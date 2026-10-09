@@ -1,0 +1,2431 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>楽天DMP × SmartNews Ads — ペルソナ設計ツール</title>
+<style>
+:root{
+  --bg:#fafaf7;
+  --surface:#ffffff;
+  --surface-2:#f4f2ec;
+  --border:rgba(0,0,0,0.08);
+  --border-strong:rgba(0,0,0,0.15);
+  --text:#1a1a1a;
+  --text-sec:#5f5e5a;
+  --text-ter:#999792;
+  --accent:#185FA5;
+  --r:#D85A30;--b:#378ADD;--t:#1D9E75;--p:#7F77DD;
+  --r-bg:#FAECE7;--b-bg:#E6F1FB;--t-bg:#E1F5EE;--p-bg:#EEEDFE;
+  --r-tx:#993C1D;--b-tx:#0C447C;--t-tx:#0F6E56;--p-tx:#534AB7;
+  --radius:8px;--radius-lg:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Hiragino Kaku Gothic ProN",Meiryo,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.7}
+.app{display:flex;min-height:100vh}
+
+/* Sidebar */
+.sidebar{width:260px;background:var(--surface);border-right:0.5px solid var(--border);padding:28px 18px;position:fixed;top:0;left:0;height:100vh;overflow-y:auto}
+.brand{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px;line-height:1.4}
+.brand-sub{font-size:11px;color:var(--text-ter);margin-bottom:24px;line-height:1.5}
+.nav-label{font-size:10px;font-weight:500;color:var(--text-ter);letter-spacing:0.05em;padding:0 10px;margin:16px 0 6px}
+.nav-item{display:block;padding:9px 12px;border-radius:var(--radius);font-size:13px;color:var(--text-sec);cursor:pointer;transition:all 0.15s;margin-bottom:2px;border:none;background:transparent;width:100%;text-align:left;font-family:inherit}
+.nav-item:hover{background:var(--surface-2);color:var(--text)}
+.nav-item.active{background:var(--b-bg);color:var(--b-tx);font-weight:500}
+.nav-item .num{display:inline-block;width:18px;font-size:11px;color:var(--text-ter);margin-right:6px}
+.nav-item.active .num{color:var(--b-tx)}
+.nav-foot{position:absolute;bottom:20px;left:16px;right:16px;font-size:10px;color:var(--text-ter);line-height:1.5;padding-top:16px;border-top:0.5px solid var(--border)}
+
+/* Main */
+.main{margin-left:260px;flex:1;padding:40px 56px;max-width:1400px}
+.section{display:none}
+.section.active{display:block}
+.sec-hd{margin-bottom:24px}
+.sec-ttl{font-size:20px;font-weight:500;margin-bottom:4px}
+.sec-sub{font-size:13px;color:var(--text-sec);line-height:1.6}
+
+/* Cards */
+.card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);margin-bottom:10px;overflow:hidden;transition:border-color 0.15s}
+.card:hover{border-color:var(--border-strong)}
+.card-hd{display:flex;align-items:center;gap:10px;padding:14px 18px;cursor:pointer;user-select:none}
+.badge{font-size:10px;font-weight:500;padding:3px 8px;border-radius:var(--radius);white-space:nowrap}
+.b-r{background:var(--r-bg);color:var(--r-tx)}
+.b-b{background:var(--b-bg);color:var(--b-tx)}
+.b-t{background:var(--t-bg);color:var(--t-tx)}
+.b-p{background:var(--p-bg);color:var(--p-tx)}
+.card-ttl{font-size:15px;font-weight:500;flex:1}
+.card-cnt{font-size:11px;color:var(--text-ter)}
+.arrow{color:var(--text-ter);transition:transform 0.2s;width:14px;text-align:center;font-size:10px}
+.card.open .arrow{transform:rotate(90deg)}
+.card-body{display:none;padding:0 18px 16px;border-top:0.5px solid var(--border);padding-top:14px}
+.card.open .card-body{display:block}
+
+.sub{margin-bottom:14px}
+.sub:last-child{margin-bottom:0}
+.sub-lbl{font-size:12px;font-weight:500;color:var(--text-sec);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.sub-cnt{font-size:10px;color:var(--text-ter);font-weight:400}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.ch{font-size:11px;padding:3px 9px;border-radius:var(--radius);background:var(--surface-2);color:var(--text-sec);line-height:1.4}
+.sep{border:none;border-top:0.5px solid var(--border);margin:12px 0}
+.pref-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:3px}
+.pref-grid .ch{text-align:center;justify-content:center;display:flex;padding:3px 4px;font-size:10px}
+.note{font-size:11px;color:var(--text-ter);margin-top:8px;padding:8px 10px;background:var(--surface-2);border-radius:var(--radius);line-height:1.5}
+
+/* Section 2: Use cases */
+.uc-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:18px 22px;margin-bottom:12px}
+.uc-hd{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.uc-lbl-sec{font-size:11px;font-weight:500;color:var(--text-ter);margin:16px 0 6px;letter-spacing:0.03em}
+.uc-lbl-sec:first-child{margin-top:0}
+.uc-desc{font-size:13px;color:var(--text-sec);line-height:1.7;margin-bottom:4px}
+.tag-ind{font-size:11px;padding:3px 9px;border-radius:var(--radius);background:var(--b-bg);color:#185FA5;margin:0 3px 3px 0;display:inline-block}
+.combos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px}
+.combo{background:var(--surface-2);border-radius:var(--radius);padding:10px 12px;font-size:12px;line-height:1.5}
+.combo strong{display:block;font-size:11px;font-weight:500;color:var(--text);margin-bottom:2px}
+.combo span{color:var(--text-sec)}
+
+/* Section 3: Personas */
+.p-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.p-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px}
+.p-hd{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.p-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;flex-shrink:0}
+.p-ic-r{background:var(--r-bg);color:var(--r-tx)}
+.p-ic-b{background:var(--b-bg);color:var(--b-tx)}
+.p-ic-t{background:var(--t-bg);color:var(--t-tx)}
+.p-ic-p{background:var(--p-bg);color:var(--p-tx)}
+.p-name{font-size:15px;font-weight:500}
+.p-sub{font-size:11px;color:var(--text-ter)}
+.p-recipe{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.chip{font-size:10px;padding:3px 8px;border-radius:var(--radius);font-weight:500}
+.plus{color:var(--text-ter);font-size:11px;display:flex;align-items:center}
+.p-logic{font-size:12px;color:var(--text-sec);line-height:1.6;padding:8px 10px;background:var(--surface-2);border-radius:var(--radius);margin-bottom:10px}
+.p-logic b{color:var(--text);font-weight:500}
+.p-inds{display:flex;flex-wrap:wrap;gap:3px}
+
+/* IS (Industry Sales) filter and tags */
+.is-filter{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;padding:10px 14px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg)}
+.is-filter-lbl{font-size:11px;color:var(--text-ter);margin-right:4px;display:flex;align-items:center}
+.is-pill{font-size:12px;padding:5px 11px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--surface);color:var(--text-sec);cursor:pointer;transition:all 0.15s;font-family:inherit;line-height:1.3}
+.is-pill:hover{border-color:var(--border-strong);color:var(--text)}
+.is-pill.active{background:var(--text);color:var(--surface);border-color:var(--text)}
+.is-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border)}
+.is-tag{font-size:10px;padding:2px 8px;border-radius:var(--radius);font-weight:500}
+.is-1{background:var(--r-bg);color:var(--r-tx)}
+.is-2{background:var(--b-bg);color:var(--b-tx)}
+.is-3{background:var(--t-bg);color:var(--t-tx)}
+.is-4{background:var(--p-bg);color:var(--p-tx)}
+.is-b{background:#E8E6DE;color:#5F5E5A}
+
+/* Asset recommendation panel */
+.asset-panel{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);margin-bottom:20px;overflow:hidden}
+.ap-tabs{display:flex;border-bottom:0.5px solid var(--border);overflow-x:auto}
+.ap-tab{font-size:12px;padding:9px 16px;cursor:pointer;color:var(--text-sec);border:none;background:transparent;font-family:inherit;white-space:nowrap;border-bottom:2px solid transparent;transition:all 0.15s}
+.ap-tab:hover{color:var(--text)}
+.ap-tab.active{color:var(--text);border-bottom-color:var(--text);font-weight:500}
+.ap-content{display:none;padding:16px 18px}
+.ap-content.active{display:block}
+.ap-row{display:grid;grid-template-columns:minmax(120px,auto) 1fr 80px 72px;gap:10px;padding:7px 0;border-bottom:0.5px solid var(--border);align-items:start;font-size:12px}
+.ap-row:last-child{border-bottom:none}
+.ap-asset{font-weight:500;color:var(--text)}
+.ap-use{color:var(--text-sec);line-height:1.5}
+.ap-type{text-align:center}
+.ap-vs{text-align:center}
+.ap-hi{font-size:10px;padding:2px 8px;border-radius:var(--radius);background:var(--t-bg);color:var(--t-tx);font-weight:500}
+.ap-mi{font-size:10px;padding:2px 8px;border-radius:var(--radius);background:var(--b-bg);color:var(--b-tx);font-weight:500}
+.ap-lo{font-size:10px;padding:2px 8px;border-radius:var(--radius);background:var(--surface-2);color:var(--text-ter);font-weight:500}
+.ap-mkt{display:block;font-size:9px;color:var(--text-ter);margin-top:3px;font-weight:400;line-height:1.3}
+.p-mkt{font-size:10px;color:var(--text-ter);margin-left:6px;font-weight:400}
+.ap-badge-s{font-size:10px;padding:2px 8px;border-radius:var(--radius);background:var(--t-bg);color:var(--t-tx);font-weight:500}
+.ap-badge-c{font-size:10px;padding:2px 8px;border-radius:var(--radius);background:var(--p-bg);color:var(--p-tx);font-weight:500}
+.ap-badge-b{font-size:10px;padding:2px 8px;border-radius:var(--radius);background:var(--b-bg);color:var(--b-tx);font-weight:500}
+.ap-hdr{font-size:10px;color:var(--text-ter);font-weight:500;letter-spacing:0.03em;padding:0 0 6px;border-bottom:0.5px solid var(--border);margin-bottom:2px}
+.ap-note{font-size:11px;color:var(--text-ter);margin-top:8px;padding:6px 10px;background:var(--surface-2);border-radius:var(--radius);line-height:1.5}
+.p-comp{display:inline-block;font-size:10px;padding:2px 8px;border-radius:var(--radius);font-weight:500;margin-left:6px}
+.p-comp-h{background:var(--t-bg);color:var(--t-tx)}
+.p-comp-m{background:var(--b-bg);color:var(--b-tx)}
+.p-comp-l{background:var(--surface-2);color:var(--text-ter)}
+/* Competitive advantage on persona cards */
+.p-adv{font-size:11px;line-height:1.5;margin-top:8px;padding:6px 10px;background:var(--t-bg);color:var(--t-tx);border-radius:var(--radius)}
+.p-adv b{font-weight:500}
+.p-warn-sm{font-size:10px;color:#854F0B;margin-top:4px}
+.subsec{margin:28px 0 14px;padding-bottom:8px;border-bottom:0.5px solid var(--border)}
+.subsec:first-of-type{margin-top:0}
+.subsec-num{font-size:11px;color:var(--text-ter);font-weight:500;letter-spacing:0.05em;margin-bottom:2px}
+.subsec-ttl{font-size:16px;font-weight:500;color:var(--text)}
+.subsec-desc{font-size:12px;color:var(--text-sec);margin-top:4px;line-height:1.6}
+.subsec-bridge{font-size:12px;color:var(--text-sec);padding:12px 16px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);margin:20px 0 14px;line-height:1.6;text-align:center}
+
+/* Section 5: Comparison table */
+.cmp-wrap{overflow-x:auto;margin-top:4px}
+
+/* Section 6: New industry cards */
+.ind-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:20px 22px;margin-bottom:14px}
+.ind-hd{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.ind-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:500;flex-shrink:0}
+.ind-name{font-size:16px;font-weight:500}
+.ind-mkt{font-size:11px;color:var(--text-sec);margin-left:auto}
+.ind-mkt b{color:var(--text);font-weight:500}
+.ind-fit{font-size:12px;color:var(--text-sec);line-height:1.6;padding:8px 12px;background:var(--surface-2);border-radius:var(--radius);margin-bottom:12px}
+.ind-fit b{color:var(--text);font-weight:500}
+.ind-sec-lbl{font-size:11px;font-weight:500;color:var(--text-ter);letter-spacing:0.03em;margin:14px 0 6px;padding-bottom:4px;border-bottom:0.5px solid var(--border)}
+.ind-assets{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px}
+.ind-asset{font-size:11px;padding:5px 10px;background:var(--surface-2);border-radius:var(--radius);line-height:1.4}
+.ind-asset b{font-weight:500;color:var(--text);display:block;margin-bottom:1px}
+.ind-asset span{color:var(--text-sec)}
+.ind-persona{padding:12px 14px;background:var(--surface-2);border-radius:var(--radius);margin-top:4px}
+.ind-p-name{font-size:13px;font-weight:500;margin-bottom:4px}
+.ind-p-recipe{font-size:11px;color:var(--text-sec);margin-bottom:6px}
+.ind-p-scene{font-size:12px;line-height:1.7;font-style:italic;font-family:Georgia,"Yu Mincho",serif;color:var(--text);margin-bottom:6px}
+.ind-p-inds{display:flex;flex-wrap:wrap;gap:3px}
+.ind-warn{font-size:11px;color:#854F0B;padding:6px 10px;background:#FAEEDA;border-radius:var(--radius);margin-top:8px;line-height:1.5}
+.demo-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px;padding:12px 16px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);flex-wrap:wrap}
+.demo-stat{font-size:12px;color:var(--text-sec)}
+.demo-stat b{color:var(--text);font-weight:500}
+.demo-accent{color:var(--r-tx);font-weight:500}
+
+/* Evaluation UI */
+.eval-section{border-top:0.5px solid var(--border);margin-top:14px;padding-top:14px}
+.eval-toggle{font-size:12px;color:var(--text-sec);cursor:pointer;display:flex;align-items:center;gap:6px;padding:4px 0;font-family:inherit;background:none;border:none}
+.eval-toggle:hover{color:var(--text)}
+.eval-toggle .arrow{font-size:10px;transition:transform 0.15s}
+.eval-toggle.open .arrow{transform:rotate(90deg)}
+.eval-body{display:none;margin-top:10px}
+.eval-body.open{display:block}
+.eval-summary{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.eval-s-pill{font-size:10px;padding:2px 8px;border-radius:var(--radius);font-weight:500}
+.eval-s-h{background:var(--t-bg);color:var(--t-tx)}.eval-s-m{background:var(--b-bg);color:var(--b-tx)}.eval-s-l{background:var(--surface-2);color:var(--text-ter)}
+.eval-form{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px;padding:10px 12px;background:var(--surface-2);border-radius:var(--radius)}
+.ef-group{display:flex;flex-direction:column;gap:2px}
+.ef-label{font-size:10px;color:var(--text-ter);font-weight:500}
+.ef-sel{font-size:11px;padding:4px 6px;border:0.5px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);font-family:inherit}
+.ef-input{font-size:11px;padding:4px 8px;border:0.5px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);font-family:inherit;flex:1;min-width:180px}
+.ef-btn{font-size:11px;padding:5px 14px;border:0.5px solid var(--border-strong);border-radius:var(--radius);background:var(--text);color:var(--surface);cursor:pointer;font-family:inherit;font-weight:500;white-space:nowrap}
+.ef-btn:hover{opacity:0.85}
+.eval-list{display:flex;flex-direction:column;gap:4px}
+.ev-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:8px 10px;background:var(--surface-2);border-radius:var(--radius);font-size:11px}
+.ev-user{font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px}
+.ev-badge{font-size:9px;padding:1px 6px;border-radius:var(--radius);font-weight:500;white-space:nowrap}
+.ev-bS{background:var(--t-bg);color:var(--t-tx)}.ev-bA{background:var(--b-bg);color:var(--b-tx)}.ev-bB{background:var(--surface-2);color:var(--text-sec);border:0.5px solid var(--border)}.ev-bC{background:var(--surface-2);color:var(--text-ter)}
+.ev-w1{background:var(--t-bg);color:var(--t-tx)}.ev-w2{background:var(--b-bg);color:var(--b-tx)}.ev-w3{background:var(--surface-2);color:var(--text-ter)}
+.ev-month{font-size:10px;color:var(--text-ter);white-space:nowrap}
+.ev-comment{flex-basis:100%;order:10;margin:2px 0 0 0;padding:6px 4px 0 4px;color:var(--text-sec);line-height:1.55;word-break:break-word;border-top:0.5px dashed var(--border);font-size:11px}
+.ev-time{font-size:9px;color:var(--text-ter);margin-left:auto;white-space:nowrap}
+.ev-del{order:9;font-size:9px;color:var(--text-ter);cursor:pointer;background:none;border:none;font-family:inherit;padding:2px 6px;border-radius:var(--radius);opacity:0.5;transition:all 0.15s}
+.ev-del:hover{opacity:1;background:var(--r-bg);color:var(--r-tx)}
+.eval-empty{font-size:11px;color:var(--text-ter);font-style:italic;padding:4px 0}
+.team-sel{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0}
+.team-chk{display:none}
+.team-lbl{font-size:11px;padding:4px 10px;border-radius:var(--radius);border:0.5px solid var(--border);cursor:pointer;color:var(--text-sec);transition:all 0.15s;user-select:none}
+.team-lbl:hover{border-color:var(--border-strong);color:var(--text)}
+.team-chk:checked+.team-lbl{background:var(--text);color:var(--surface);border-color:var(--text)}
+.custom-del{font-size:10px;color:var(--text-ter);cursor:pointer;background:none;border:0.5px solid var(--border);border-radius:var(--radius);padding:2px 8px;font-family:inherit;margin-left:auto;transition:all 0.15s}
+.custom-del:hover{background:var(--r-bg);color:var(--r-tx);border-color:var(--r-tx)}
+.is-sas1{background:#E6F1FB;color:#0C447C}.is-sas2{background:#E6F1FB;color:#0C447C}.is-sas3{background:#E6F1FB;color:#0C447C}
+.is-das1{background:#FAEEDA;color:#854F0B}.is-das2{background:#FAEEDA;color:#854F0B}
+.is-other{background:#F1EFE8;color:#5F5E5A}
+.eval-toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--surface);padding:8px 20px;border-radius:var(--radius);font-size:12px;z-index:100;display:none}
+
+/* Section 7: Dashboard */
+.dash-panel{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:18px 22px;margin-bottom:16px}
+.dash-title{font-size:14px;font-weight:500;margin-bottom:12px}
+.dash-empty{font-size:13px;color:var(--text-ter);font-style:italic;padding:20px 0;text-align:center}
+.matrix-grid{display:grid;grid-template-columns:80px repeat(3,1fr);gap:0;font-size:11px;border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.mx-hdr{background:var(--surface-2);padding:8px;text-align:center;font-weight:500;color:var(--text-sec);border-bottom:0.5px solid var(--border)}
+.mx-row-lbl{background:var(--surface-2);padding:8px 10px;font-weight:500;color:var(--text-sec);border-right:0.5px solid var(--border);border-bottom:0.5px solid var(--border)}
+.mx-cell{padding:10px;text-align:center;border-right:0.5px solid var(--border);border-bottom:0.5px solid var(--border);font-size:12px;font-weight:500;cursor:default;transition:background 0.1s}
+.mx-cell:last-child{border-right:none}
+.mx-p1{background:#E1F5EE;color:#0F6E56}
+.mx-p2{background:#E6F1FB;color:#0C447C}
+.mx-p3{background:#FAEEDA;color:#854F0B}
+.mx-p4{background:var(--surface-2);color:var(--text-ter)}
+.rank-list{display:flex;flex-direction:column;gap:6px}
+.rank-row{display:grid;grid-template-columns:36px 1fr 60px 60px 80px 60px;gap:8px;align-items:center;padding:8px 12px;background:var(--surface-2);border-radius:var(--radius);font-size:12px}
+.rank-pos{font-size:16px;font-weight:500;text-align:center}
+.rank-pos-1{color:#0F6E56}.rank-pos-2{color:#185FA5}.rank-pos-3{color:#854F0B}
+.rank-name{font-weight:500;line-height:1.3}
+.rank-name small{font-weight:400;color:var(--text-ter);font-size:10px;display:block}
+.rank-score{font-size:14px;font-weight:500;text-align:center}
+.rank-badge{font-size:10px;padding:2px 8px;border-radius:var(--radius);font-weight:500;text-align:center}
+.rank-month{font-size:10px;color:var(--text-sec);text-align:center}
+.tl-wrap{overflow-x:auto}
+.tl-grid{display:grid;grid-template-columns:140px repeat(12,1fr);gap:0;font-size:10px;min-width:700px}
+.tl-hdr{padding:4px 6px;text-align:center;background:var(--surface-2);font-weight:500;color:var(--text-sec);border-bottom:0.5px solid var(--border)}
+.tl-name{padding:6px 8px;font-size:11px;font-weight:500;border-bottom:0.5px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl-cell{padding:6px 2px;text-align:center;border-bottom:0.5px solid var(--border)}
+.tl-bar{height:8px;border-radius:4px;margin:0 auto}
+.tl-bar-s{background:#0F6E56}.tl-bar-a{background:#185FA5}.tl-bar-b{background:#854F0B}.tl-bar-c{background:var(--border)}
+.asset-freq{display:flex;flex-wrap:wrap;gap:6px}
+.af-item{display:flex;align-items:center;gap:6px;font-size:12px;padding:6px 10px;background:var(--surface-2);border-radius:var(--radius)}
+.af-bar{height:6px;border-radius:3px;background:#185FA5}
+.af-name{font-weight:500;min-width:120px}
+.af-count{color:var(--text-ter);font-size:11px}
+.cmp-table{width:100%;border-collapse:collapse;font-size:12px;min-width:1000px}
+.cmp-table th{background:#1A1A2E;color:#fff;font-weight:500;padding:10px 12px;text-align:center;border:0.5px solid #333;vertical-align:middle;line-height:1.4;position:sticky;top:0;z-index:2}
+.cmp-table th:nth-child(2){text-align:left}
+.cmp-table td{padding:8px 12px;border:0.5px solid var(--border);vertical-align:top;line-height:1.6}
+.cmp-table td:first-child{text-align:center;color:var(--text-ter);width:30px}
+.cmp-table td:nth-child(2){font-weight:500;width:140px;color:var(--text)}
+.cmp-cat td{background:var(--surface-2);font-weight:500;color:var(--text-sec);font-size:12px;letter-spacing:0.03em;padding:6px 12px}
+.cmp-sn td{background:var(--r-bg)}
+.cmp-sn td:nth-child(2){color:var(--r-tx)}
+.col-sn{background:rgba(250,236,231,0.3)}
+.cmp-adv{font-size:10px;padding:2px 6px;border-radius:var(--radius);font-weight:500;display:inline-block;margin-right:2px}
+.cmp-str{background:var(--t-bg);color:var(--t-tx)}
+.cmp-mid{background:var(--b-bg);color:var(--b-tx)}
+.cmp-weak{background:var(--surface-2);color:var(--text-ter)}
+.cmp-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.cmp-fbtn{font-size:11px;padding:5px 11px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--surface);color:var(--text-sec);cursor:pointer;font-family:inherit;transition:all 0.15s}
+.cmp-fbtn:hover{border-color:var(--border-strong);color:var(--text)}
+.cmp-fbtn.active{background:var(--text);color:var(--surface);border-color:var(--text)}
+
+/* Section 4: Builder */
+.builder-wrap{display:grid;grid-template-columns:440px 1fr;gap:20px;align-items:start}
+.builder-left{position:sticky;top:20px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px}
+.builder-right{min-width:0}
+.cat-row{margin-bottom:12px}
+.cat-hd{font-size:11px;font-weight:500;color:var(--text-sec);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.cat-dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.dr{background:var(--r)}.db{background:var(--b)}.dt{background:var(--t)}.dp{background:var(--p)}
+.sg{display:flex;flex-wrap:wrap;gap:5px}
+.sg-btn{font-size:12px;padding:5px 10px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--surface);color:var(--text-sec);cursor:pointer;transition:all 0.15s;line-height:1.3;font-family:inherit}
+.sg-btn:hover{border-color:var(--border-strong);color:var(--text)}
+.sg-btn.sel-r{background:var(--r-bg);color:var(--r-tx);border-color:var(--r)}
+.sg-btn.sel-b{background:var(--b-bg);color:var(--b-tx);border-color:var(--b)}
+.sg-btn.sel-t{background:var(--t-bg);color:var(--t-tx);border-color:var(--t)}
+.sg-btn.sel-p{background:var(--p-bg);color:var(--p-tx);border-color:var(--p)}
+.sg-btn.dis{opacity:0.35;cursor:not-allowed}
+.sg-btn .sz{font-size:9px;opacity:0.6;margin-left:3px}
+.bar{display:flex;align-items:center;gap:8px;margin:14px 0 0;min-height:34px;flex-wrap:wrap;padding:8px 12px;background:var(--surface-2);border-radius:var(--radius)}
+.bar-lbl{font-size:12px;color:var(--text-ter)}
+.bar-chip{font-size:12px;padding:3px 8px;border-radius:var(--radius);font-weight:500}
+.bx{font-size:12px;color:var(--text-ter);margin:0 2px}
+.rst{font-size:11px;color:var(--accent);cursor:pointer;margin-left:auto;padding:3px 10px;border-radius:var(--radius);border:0.5px solid var(--accent);background:transparent;font-family:inherit}
+.rst:hover{background:var(--b-bg)}
+
+.step{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:8px;position:relative}
+.step-num{position:absolute;top:-7px;left:14px;font-size:9px;font-weight:500;padding:2px 8px;border-radius:var(--radius);background:var(--surface);border:0.5px solid var(--border);color:var(--text-ter);letter-spacing:0.05em}
+.step-hd{font-size:13px;font-weight:500;margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.conf{font-size:10px;padding:2px 8px;border-radius:var(--radius);font-weight:500}
+.conf-hi{background:var(--t-bg);color:var(--t-tx)}
+.conf-md{background:var(--b-bg);color:var(--b-tx)}
+.conf-lo{background:var(--p-bg);color:var(--p-tx)}
+.arr{text-align:center;color:var(--text-ter);font-size:10px;margin:-2px 0 6px;letter-spacing:0.1em}
+.f-list{font-size:12px;color:var(--text-sec);line-height:1.7}
+.f-list li{list-style:none;padding:3px 0 3px 16px;position:relative}
+.f-list li:before{content:"→";position:absolute;left:0;color:var(--text-ter);font-size:10px}
+.f-list b{font-weight:500;color:var(--text)}
+.scene{padding:10px 12px;background:var(--surface-2);border-radius:var(--radius);margin-bottom:6px}
+.scene-lbl{font-size:9px;font-weight:500;color:var(--text-ter);letter-spacing:0.05em;margin-bottom:4px}
+.scene-body{font-size:12px;line-height:1.8;color:var(--text);font-style:italic;font-family:Georgia,"Yu Mincho",serif}
+.scene-body:before{content:"\201c";font-size:20px;color:var(--text-ter);margin-right:1px}
+.scene-body:after{content:"\201d";font-size:20px;color:var(--text-ter);margin-left:1px}
+.motive{font-size:12px;color:var(--text-sec);line-height:1.7;margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)}
+.traits{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.trait{font-size:10px;padding:3px 8px;border-radius:var(--radius);background:var(--surface-2);border:0.5px solid var(--border);color:var(--text-sec)}
+.why-ind{font-size:12px;color:var(--text-sec);line-height:1.7;margin-bottom:8px}
+.r-inds{display:flex;flex-wrap:wrap;gap:3px}
+.r-ind{font-size:11px;padding:3px 8px;border-radius:var(--radius);background:var(--b-bg);color:#185FA5}
+.pitch{font-size:12px;color:var(--text-sec);line-height:1.7;padding:8px 10px;background:var(--surface-2);border-radius:var(--radius)}
+.empty{text-align:center;padding:2rem 1rem;color:var(--text-ter);font-size:13px;background:var(--surface);border-radius:var(--radius-lg);border:0.5px dashed var(--border-strong)}
+.warn{font-size:11px;color:#854F0B;padding:7px 10px;background:#FAEEDA;border-radius:var(--radius);margin-top:8px;line-height:1.5}
+.mini-lbl{font-size:10px;font-weight:500;color:var(--text-ter);margin-bottom:4px;letter-spacing:0.03em}
+
+@media(max-width:1200px){
+  .p-grid{grid-template-columns:repeat(2,1fr)}
+  .builder-wrap{grid-template-columns:1fr;gap:16px}
+  .builder-left{position:static}
+}
+@media(max-width:900px){
+  .sidebar{width:200px}
+  .main{margin-left:200px;padding:24px}
+  .p-grid{grid-template-columns:1fr}
+  .combos{grid-template-columns:1fr}
+  .pref-grid{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<aside class="sidebar">
+  <div class="brand">楽天DMP × SmartNews Ads</div>
+  <div class="brand-sub">ペルソナ設計ツール<br>ベーシックセグメント対応</div>
+
+  <div class="nav-label">ナビゲーション</div>
+  <button class="nav-item active" onclick="nav('s1')"><span class="num">1</span>データカード</button>
+  <button class="nav-item" onclick="nav('s2')"><span class="num">2</span>単体需要・代表UC</button>
+  <button class="nav-item" onclick="nav('s3')"><span class="num">3</span>代表ペルソナ</button>
+  <button class="nav-item" onclick="nav('s4')"><span class="num">4</span>ペルソナビルダー</button>
+  <button class="nav-item" onclick="nav('s5')"><span class="num">5</span>競合対比表</button>
+  <button class="nav-item" onclick="nav('s6')"><span class="num">6</span>新規開拓業種</button>
+  <button class="nav-item" onclick="nav('s7')"><span class="num">7</span>評価ダッシュボード</button>
+
+  <div class="nav-foot">
+    SmartNews 広告事業部<br>
+    Driver: Yuki Kawarazuka<br>
+    v0.2 / 2026-04
+  </div>
+</aside>
+
+<main class="main">
+
+<!-- Section 1: データカード -->
+<section class="section active" id="s1">
+<div class="sec-hd">
+  <div class="sec-ttl">1. データカード</div>
+  <div class="sec-sub">楽天DMPベーシックセグメントの4大データ。カードをタップすると内訳がMECEで展開されます。</div>
+</div>
+
+<div class="card" id="c0">
+  <div class="card-hd" onclick="tog(0)">
+    <span class="badge b-r">事実</span>
+    <span class="card-ttl">会員情報データ</span>
+    <span class="card-cnt">4軸 / 66項目</span>
+    <span class="arrow">▶</span>
+  </div>
+  <div class="card-body">
+    <div class="sub">
+      <div class="sub-lbl">性別 <span class="sub-cnt">2</span></div>
+      <div class="chips"><span class="ch">男性</span><span class="ch">女性</span></div>
+    </div>
+    <hr class="sep">
+    <div class="sub">
+      <div class="sub-lbl">年齢 <span class="sub-cnt">12区分</span></div>
+      <div class="chips"><span class="ch">15-19歳</span><span class="ch">20-24歳</span><span class="ch">25-29歳</span><span class="ch">30-34歳</span><span class="ch">35-39歳</span><span class="ch">40-44歳</span><span class="ch">45-49歳</span><span class="ch">50-54歳</span><span class="ch">55-59歳</span><span class="ch">60-64歳</span><span class="ch">65-69歳</span><span class="ch">70歳以上</span></div>
+    </div>
+    <hr class="sep">
+    <div class="sub">
+      <div class="sub-lbl">会員ランク <span class="sub-cnt">5段階</span></div>
+      <div class="chips"><span class="ch">レギュラー</span><span class="ch">シルバー</span><span class="ch">ゴールド</span><span class="ch">プラチナ</span><span class="ch">ダイヤモンド</span></div>
+      <div class="note">ランクが高いほど楽天での購買頻度・金額が大きい事実の指標</div>
+    </div>
+    <hr class="sep">
+    <div class="sub">
+      <div class="sub-lbl">都道府県 <span class="sub-cnt">47</span></div>
+      <div class="pref-grid"><span class="ch">北海道</span><span class="ch">青森</span><span class="ch">岩手</span><span class="ch">宮城</span><span class="ch">秋田</span><span class="ch">山形</span><span class="ch">福島</span><span class="ch">茨城</span><span class="ch">栃木</span><span class="ch">群馬</span><span class="ch">埼玉</span><span class="ch">千葉</span><span class="ch">東京</span><span class="ch">神奈川</span><span class="ch">新潟</span><span class="ch">富山</span><span class="ch">石川</span><span class="ch">福井</span><span class="ch">山梨</span><span class="ch">長野</span><span class="ch">岐阜</span><span class="ch">静岡</span><span class="ch">愛知</span><span class="ch">三重</span><span class="ch">滋賀</span><span class="ch">京都</span><span class="ch">大阪</span><span class="ch">兵庫</span><span class="ch">奈良</span><span class="ch">和歌山</span><span class="ch">鳥取</span><span class="ch">島根</span><span class="ch">岡山</span><span class="ch">広島</span><span class="ch">山口</span><span class="ch">徳島</span><span class="ch">香川</span><span class="ch">愛媛</span><span class="ch">高知</span><span class="ch">福岡</span><span class="ch">佐賀</span><span class="ch">長崎</span><span class="ch">熊本</span><span class="ch">大分</span><span class="ch">宮崎</span><span class="ch">鹿児島</span><span class="ch">沖縄</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="card" id="c1">
+  <div class="card-hd" onclick="tog(1)">
+    <span class="badge b-b">事実</span>
+    <span class="card-ttl">楽天市場行動データ</span>
+    <span class="card-cnt">7群 / 38カテゴリ</span>
+    <span class="arrow">▶</span>
+  </div>
+  <div class="card-body">
+    <div class="sub"><div class="sub-lbl">ファッション・身だしなみ <span class="sub-cnt">7</span></div><div class="chips"><span class="ch">レディースファッション</span><span class="ch">メンズファッション</span><span class="ch">インナー・下着・ナイトウェア</span><span class="ch">バッグ・小物・ブランド雑貨</span><span class="ch">靴</span><span class="ch">腕時計</span><span class="ch">ジュエリー・アクセサリー</span></div></div>
+    <hr class="sep">
+    <div class="sub"><div class="sub-lbl">食品・飲料 <span class="sub-cnt">5</span></div><div class="chips"><span class="ch">食品</span><span class="ch">スイーツ・お菓子</span><span class="ch">水・ソフトドリンク</span><span class="ch">ビール・洋酒</span><span class="ch">日本酒・焼酎</span></div></div>
+    <hr class="sep">
+    <div class="sub"><div class="sub-lbl">デジタル・通信 <span class="sub-cnt">4</span></div><div class="chips"><span class="ch">家電</span><span class="ch">TV・オーディオ・カメラ</span><span class="ch">パソコン・周辺機器</span><span class="ch">スマートフォン・タブレット</span></div></div>
+    <hr class="sep">
+    <div class="sub"><div class="sub-lbl">生活・住まい <span class="sub-cnt">7</span></div><div class="chips"><span class="ch">インテリア・寝具・収納</span><span class="ch">日用品雑貨・文房具・手芸</span><span class="ch">キッチン用品・食器・調理器具</span><span class="ch">光回線・モバイル通信</span><span class="ch">花・ガーデン・DIY</span><span class="ch">サービス・リフォーム</span><span class="ch">住宅・不動産</span></div></div>
+    <hr class="sep">
+    <div class="sub"><div class="sub-lbl">キッズ・ヘルスケア <span class="sub-cnt">5</span></div><div class="chips"><span class="ch">キッズ・ベビー・マタニティ</span><span class="ch">美容・コスメ・香水</span><span class="ch">ダイエット・健康</span><span class="ch">医薬品・コンタクト・介護</span><span class="ch">ペット・ペットグッズ</span></div></div>
+    <hr class="sep">
+    <div class="sub"><div class="sub-lbl">ホビー・エンタメ <span class="sub-cnt">7</span></div><div class="chips"><span class="ch">おもちゃ</span><span class="ch">スポーツ・アウトドア</span><span class="ch">本・雑誌・コミック</span><span class="ch">CD・DVD</span><span class="ch">テレビゲーム</span><span class="ch">ホビー</span><span class="ch">楽器・音響機器</span></div></div>
+    <hr class="sep">
+    <div class="sub"><div class="sub-lbl">車・ギフト <span class="sub-cnt">3</span></div><div class="chips"><span class="ch">車・バイク</span><span class="ch">車用品・バイク用品</span><span class="ch">カタログギフト・チケット</span></div>
+    <div class="note">全カテゴリが閲覧・購買の事実データ。RDACの最大差別化ポイント。</div></div>
+  </div>
+</div>
+
+<div class="card" id="c2">
+  <div class="card-hd" onclick="tog(2)">
+    <span class="badge b-t">事実</span>
+    <span class="card-ttl">楽天経済圏データ</span>
+    <span class="card-cnt">6群 / 46サービス</span>
+    <span class="arrow">▶</span>
+  </div>
+  <div class="card-body">
+    <div class="sub"><div class="sub-lbl">EC・ショッピング <span class="sub-cnt">9</span></div><div class="chips"><span class="ch">楽天市場</span><span class="ch">楽天ファッション</span><span class="ch">楽天西友ネットスーパー</span><span class="ch">楽天ビック</span><span class="ch">楽天ブックス</span><span class="ch">楽天Kobo</span><span class="ch">楽天ラクマ</span><span class="ch">楽天24</span><span class="ch">ROOM</span></div></div>
+    <hr class="sep">
+    <div class="sub"><div class="sub-lbl">旅行・レジャー <span class="sub-cnt">8</span></div><div class="chips"><span class="ch">楽天トラベル</span><span class="ch">楽天GORA</span><span class="ch">楽天チケット</span><span class="ch">トラベル予約_直近1年</span><span class="ch">国内ホテル_直近1年</span><span class="ch">海外ホテル_直近1年</span><span class="ch">レンタカー_直近1年</span><span class="ch">GORA予約_直近1年</span></div></div>
+    <hr class="sep">
+    <div class="sub"><div class="sub-lbl">金融・決済・ポイント <span class="sub-cnt">8</span></div><div class="chips"><span class="ch">楽天ペイ</span><span class="ch">楽天キャッシュ</span><span class="ch">楽天ポイントクラブ</span><span class="ch">楽天ポイントカード</span><span class="ch">楽天ポイントモール</span><span class="ch">楽天ポイントギャラリー</span><span class="ch">楽天スーパーポイントスクリーン</span><span class="ch">楽天リーベイツ</span></div></div>
+    <hr class="sep">
+    <div class="sub"><div class="sub-lbl">メディア・エンタメ <span class="sub-cnt">6</span></div><div class="chips"><span class="ch">楽天TV</span><span class="ch">楽天マガジン</span><span class="ch">楽天ミュージック</span><span class="ch">楽天競馬</span><span class="ch">楽天TOTO</span><span class="ch">東北楽天ゴールデンイーグルス</span></div></div>
+    <hr class="sep">
+    <div class="sub"><div class="sub-lbl">生活サービス <span class="sub-cnt">10</span></div><div class="chips"><span class="ch">楽天モバイル</span><span class="ch">楽天エナジー</span><span class="ch">楽天ビューティ</span><span class="ch">ビューティ予約_直近1年</span><span class="ch">楽天不動産</span><span class="ch">楽天車検</span><span class="ch">楽天レシピ</span><span class="ch">楽天Web検索</span><span class="ch">楽天Pasha</span><span class="ch">楽天超ミニバイト</span></div></div>
+    <hr class="sep">
+    <div class="sub"><div class="sub-lbl">会員属性・割引 <span class="sub-cnt">5</span></div><div class="chips"><span class="ch">楽天ママ割</span><span class="ch">楽天学割</span><span class="ch">楽天シニア</span><span class="ch">RAXY</span><span class="ch">みんなの就職活動日記</span></div>
+    <div class="note">予約履歴(直近1年)はタイミングシグナルとして価値大。ママ割/学割/シニアはライフステージの自己申告＝高確度。</div></div>
+  </div>
+</div>
+
+<div class="card" id="c3">
+  <div class="card-hd" onclick="tog(3)">
+    <span class="badge b-p">類推</span>
+    <span class="card-ttl">類推データ</span>
+    <span class="card-cnt">3群 / 34項目</span>
+    <span class="arrow">▶</span>
+  </div>
+  <div class="card-body">
+    <div class="sub">
+      <div class="sub-lbl">職種 <span class="sub-cnt">5</span></div>
+      <div class="chips"><span class="ch">役員</span><span class="ch">部長職以上</span><span class="ch">非管理職</span><span class="ch">正社員</span><span class="ch">パート・アルバイト</span></div>
+      <div class="note">役員・部長職以上はToB / ハイエンド商材のペルソナ起点に</div>
+    </div>
+    <hr class="sep">
+    <div class="sub">
+      <div class="sub-lbl">ライフスタイル <span class="sub-cnt">20</span></div>
+      <div class="chips" style="margin-bottom:5px"><span class="ch">既婚</span><span class="ch">未婚</span><span class="ch">子供あり</span><span class="ch">子供がいない</span></div>
+      <div class="chips" style="margin-bottom:5px"><span class="ch">住居_賃貸</span><span class="ch">住居_持ち家</span><span class="ch">マンション・アパート</span><span class="ch">一戸建て</span></div>
+      <div class="chips" style="margin-bottom:5px"><span class="ch">車_世帯所有</span><span class="ch">車_本人所有</span><span class="ch">ペット_飼育あり</span><span class="ch">ペット_飼育なし</span></div>
+      <div class="chips" style="margin-bottom:5px"><span class="ch">就業中</span><span class="ch">就学中</span><span class="ch">専業主婦(夫)</span><span class="ch">喫煙</span><span class="ch">飲酒</span></div>
+      <div class="chips"><span class="ch">住所変更_直近1年</span><span class="ch">住所変更_直近6ヶ月</span><span class="ch">住所変更_直近3ヶ月</span></div>
+      <div class="note">住所変更(直近3ヶ月)は引越しタイミングシグナル。類推だが即効性あり。</div>
+    </div>
+    <hr class="sep">
+    <div class="sub">
+      <div class="sub-lbl">金融 <span class="sub-cnt">14</span></div>
+      <div class="chips" style="margin-bottom:5px"><span class="ch">世帯年収_400万+</span><span class="ch">600万+</span><span class="ch">800万+</span><span class="ch">1000万+</span></div>
+      <div class="chips" style="margin-bottom:5px"><span class="ch">個人年収_400万+</span><span class="ch">600万+</span><span class="ch">800万+</span><span class="ch">1000万+</span></div>
+      <div class="chips"><span class="ch">保険_加入あり</span><span class="ch">生命保険_加入あり</span><span class="ch">自動車保険_加入あり</span><span class="ch">株式・債権_保有</span><span class="ch">クレカ_保有</span><span class="ch">クレカ_保有なし</span></div>
+      <div class="note">年収は累積型(400万+に1000万+も含む)。楽天競合の金融業種はNGだが、高所得フィルタとして他業種向けに最強。</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- Section 2: 単体需要・代表UC -->
+<section class="section" id="s2">
+<div class="sec-hd">
+  <div class="sec-ttl">2. 単体需要と代表ユースケース</div>
+  <div class="sec-sub">各データカードの単体での使い道と、他データとの組み合わせで生まれる代表的なユースケース（各3パターン）。</div>
+</div>
+
+<div class="uc-card">
+  <div class="uc-hd"><span class="badge b-r">事実</span><strong style="font-size:15px;font-weight:500">会員情報データ</strong></div>
+  <div class="uc-lbl-sec">単体でできること</div>
+  <div class="uc-desc">最も基本的なデモグラ軸。ほぼ全業種のベースフィルタとして機能。会員ランクは購買力の代理指標。</div>
+  <div class="uc-lbl-sec">対応業種</div>
+  <div><span class="tag-ind">CPG</span><span class="tag-ind">アパレル</span><span class="tag-ind">飲料・食品</span><span class="tag-ind">コスメ</span><span class="tag-ind">教育</span><span class="tag-ind">自治体・観光</span></div>
+  <div class="uc-lbl-sec">組み合わせで生まれる需要</div>
+  <div class="combos">
+    <div class="combo"><strong>+ 市場行動</strong><span>「30代女性×コスメ購買」→美容EC新規獲得</span></div>
+    <div class="combo"><strong>+ 経済圏</strong><span>「地方在住×楽天トラベル」→地域観光プロモ</span></div>
+    <div class="combo"><strong>+ 類推</strong><span>「ゴールド以上×年収800万+」→高級ブランド</span></div>
+  </div>
+</div>
+
+<div class="uc-card">
+  <div class="uc-hd"><span class="badge b-b">事実</span><strong style="font-size:15px;font-weight:500">楽天市場行動データ</strong></div>
+  <div class="uc-lbl-sec">単体でできること</div>
+  <div class="uc-desc">実際の購買・閲覧行動に基づく最も精度の高いセグメント。類推ではなく事実なので、購買意欲の裏付けが強い。RDAC最大の差別化。</div>
+  <div class="uc-lbl-sec">対応業種</div>
+  <div><span class="tag-ind">総合EC</span><span class="tag-ind">アパレル</span><span class="tag-ind">家電</span><span class="tag-ind">食品・飲料</span><span class="tag-ind">美容・コスメ</span><span class="tag-ind">スポーツ</span><span class="tag-ind">インテリア</span><span class="tag-ind">ペット</span></div>
+  <div class="uc-lbl-sec">組み合わせで生まれる需要</div>
+  <div class="combos">
+    <div class="combo"><strong>+ 会員情報</strong><span>「家電購買×20代男性」→ガジェット系D2C</span></div>
+    <div class="combo"><strong>+ 経済圏</strong><span>「食品購買×楽天西友」→食品メーカー×オフライン</span></div>
+    <div class="combo"><strong>+ 類推</strong><span>「車用品購買×車所有」→自動車アフターマーケット</span></div>
+  </div>
+</div>
+
+<div class="uc-card">
+  <div class="uc-hd"><span class="badge b-t">事実</span><strong style="font-size:15px;font-weight:500">楽天経済圏データ</strong></div>
+  <div class="uc-lbl-sec">単体でできること</div>
+  <div class="uc-desc">楽天市場の買い物以外のライフスタイル行動を捉える。旅行/ゴルフ/読書/決済など、趣味嗜好とオフライン行動の手がかり。</div>
+  <div class="uc-lbl-sec">対応業種</div>
+  <div><span class="tag-ind">旅行・観光</span><span class="tag-ind">ゴルフ・レジャー</span><span class="tag-ind">美容サロン</span><span class="tag-ind">出版・メディア</span><span class="tag-ind">モバイル</span><span class="tag-ind">決済</span></div>
+  <div class="uc-lbl-sec">組み合わせで生まれる需要</div>
+  <div class="combos">
+    <div class="combo"><strong>+ 会員情報</strong><span>「楽天トラベル×地方在住」→ふるさと納税</span></div>
+    <div class="combo"><strong>+ 市場行動</strong><span>「楽天ビューティ×コスメ購買」→美容クロスセル</span></div>
+    <div class="combo"><strong>+ 類推</strong><span>「楽天GORA×年収600万+」→プレミアムレジャー</span></div>
+  </div>
+</div>
+
+<div class="uc-card">
+  <div class="uc-hd"><span class="badge b-p">類推</span><strong style="font-size:15px;font-weight:500">類推データ</strong></div>
+  <div class="uc-lbl-sec">単体でできること</div>
+  <div class="uc-desc">事実データでは見えないユーザー像を補完。年収帯・職種・ライフステージは、高単価商材や金融商品の訴求に直結。ただし類推なので単独では事実データに精度で劣る。</div>
+  <div class="uc-lbl-sec">対応業種</div>
+  <div><span class="tag-ind">不動産</span><span class="tag-ind">自動車</span><span class="tag-ind">保険</span><span class="tag-ind">金融(NG注意)</span><span class="tag-ind">高級ブランド</span><span class="tag-ind">人材</span><span class="tag-ind">ブライダル</span></div>
+  <div class="uc-lbl-sec">組み合わせで生まれる需要</div>
+  <div class="combos">
+    <div class="combo"><strong>+ 会員情報</strong><span>「年収1000万+×ダイヤモンド」→ラグジュアリーVIP</span></div>
+    <div class="combo"><strong>+ 市場行動</strong><span>「持ち家×インテリア購買」→リフォーム</span></div>
+    <div class="combo"><strong>+ 経済圏</strong><span>「就業中×ポイント高活用」→経済圏拡張サービス</span></div>
+  </div>
+</div>
+</section>
+
+<!-- Section 3: 代表ペルソナ -->
+<section class="section" id="s3">
+<div class="sec-hd">
+  <div class="sec-ttl">3. IS別推奨アセットと代表ペルソナ</div>
+  <div class="sec-sub">3-A：IS別の推奨アセット（単体/掛け合わせ） → 3-B：それらを組み合わせた代表ペルソナ、の2段構成。ISフィルタで絞り込み可能。</div>
+</div>
+
+<div class="is-filter">
+  <span class="is-filter-lbl">IS絞り込み：</span>
+  <button class="is-pill active" onclick="filterIS(event,'all')">All</button>
+  <button class="is-pill" onclick="filterIS(event,'is1')">IS1 / CPG・飲料</button>
+  <button class="is-pill" onclick="filterIS(event,'is2')">IS2 / EC・人材・旅行・漫画</button>
+  <button class="is-pill" onclick="filterIS(event,'is3')">IS3 / H&B・診療・タバコ</button>
+  <button class="is-pill" onclick="filterIS(event,'is4')">IS4 / 金融・保険・不動産・Telecom・車・Tech</button>
+  <button class="is-pill" onclick="filterIS(event,'btob')">BtoB</button>
+  <span style="font-size:10px;color:var(--text-ter);margin:0 4px">|</span>
+  <button class="is-pill" onclick="filterIS(event,'sas1')">SAS1</button>
+  <button class="is-pill" onclick="filterIS(event,'sas2')">SAS2</button>
+  <button class="is-pill" onclick="filterIS(event,'sas3')">SAS3</button>
+  <button class="is-pill" onclick="filterIS(event,'das1')">DAS1</button>
+  <button class="is-pill" onclick="filterIS(event,'das2')">DAS2</button>
+</div>
+
+<div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:18px;font-size:12px;color:var(--text-sec);line-height:1.7">
+  <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:8px">本セクションの読み方</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div>
+      <div style="font-size:11px;font-weight:500;color:var(--text-ter);margin-bottom:4px">vs競合（楽天データの競合優位度）</div>
+      <span style="font-size:10px;padding:2px 8px;border-radius:var(--radius);background:var(--t-bg);color:var(--t-tx);font-weight:500">High</span> 楽天固有のデータで、競合3社が同等品を持たない<br>
+      <span style="font-size:10px;padding:2px 8px;border-radius:var(--radius);background:var(--b-bg);color:var(--b-tx);font-weight:500">Mid</span> 競合も類似データを持つが、楽天の粒度や確度で勝負できる<br>
+      <span style="font-size:10px;padding:2px 8px;border-radius:var(--radius);background:var(--surface-2);color:var(--text-ter);font-weight:500">Low</span> 競合の方が構造的に強い領域
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:500;color:var(--text-ter);margin-bottom:4px">他社提供状況（市場ニーズの裏付け）</div>
+      <span style="font-weight:500">A</span>=Amazon DSP　<span style="font-weight:500">D</span>=ドコモ　<span style="font-weight:500">L</span>=LINEヤフー<br>
+      ○=類似を提供　△=部分的に提供　×=提供なし<br>
+      <span style="font-weight:500">「SN×楽天独自」</span>= 3社いずれも同等品がない楽天固有資産
+    </div>
+  </div>
+  <div style="border-top:0.5px solid var(--border);margin-top:10px;padding-top:10px;font-size:11px;color:var(--text-ter)">
+    <span style="font-weight:500;color:var(--text-sec)">読み取りの目安：</span>
+    他社が提供しているアセット（A○等）はニーズが市場で検証済み → 提案時の説得力が高い。
+    「SN×楽天独自」のアセットは差別化の武器だが、ニーズの実証はPoCで行う前提。
+    最も提案しやすいのは「vs競合: High + 他社1社が類似提供」のパターン（差別化もニーズ裏付けも両立）。
+  </div>
+</div>
+
+<!-- IS別推奨アセット一覧 -->
+<div class="subsec">
+  <div class="subsec-num">3-A</div>
+  <div class="subsec-ttl">IS別 推奨アセット一覧</div>
+  <div class="subsec-desc">楽天データの中から、各ISの広告主に「単体で刺さる鉄板」と「掛け合わせで威力が出る」アセットを整理。競合にない楽天固有の資産も明示。</div>
+</div>
+
+<div class="asset-panel">
+  <div class="ap-tabs">
+    <button class="ap-tab active" onclick="showAP(event,0)">IS1 CPG・飲料</button>
+    <button class="ap-tab" onclick="showAP(event,1)">IS2 EC・人材・旅行・漫画</button>
+    <button class="ap-tab" onclick="showAP(event,2)">IS3 H&B・診療・タバコ</button>
+    <button class="ap-tab" onclick="showAP(event,3)">IS4 金融・保険・不動産・Telecom・車・Tech</button>
+    <button class="ap-tab" onclick="showAP(event,4)">BtoB</button>
+  </div>
+
+  <div class="ap-content active" id="ap0">
+    <div class="ap-hdr" style="display:grid;grid-template-columns:minmax(120px,auto) 1fr 80px 72px;gap:10px">
+      <span>アセット名</span><span>活用方法 / 提案先</span><span style="text-align:center">利用形態</span><span style="text-align:center">vs競合</span>
+    </div>
+    <div class="ap-row"><span class="ap-asset">食品カテゴリ購買</span><span class="ap-use">食品メーカー・調味料・冷凍食品等に直球。購買事実で精度高。</span><span class="ap-type"><span class="ap-badge-s">単体◎</span></span><span class="ap-vs"><span class="ap-mi">Mid</span><span class="ap-mkt">A○ D△ L△</span></span></div>
+    <div class="ap-row"><span class="ap-asset">ビール・洋酒 / 日本酒・焼酎 購買</span><span class="ap-use">飲料メーカーに単体で直接的。酒類ブランドのターゲティングに最適。</span><span class="ap-type"><span class="ap-badge-s">単体◎</span></span><span class="ap-vs"><span class="ap-mi">Mid</span></span></div>
+    <div class="ap-row"><span class="ap-asset">水・ソフトドリンク購買</span><span class="ap-use">ノンアル飲料メーカーに。健康系飲料は「ダイエット・健康」と掛けても有効。</span><span class="ap-type"><span class="ap-badge-b">単体/掛け</span></span><span class="ap-vs"><span class="ap-mi">Mid</span><span class="ap-mkt">A○ D△ L×</span></span></div>
+    <div class="ap-row"><span class="ap-asset">楽天ママ割（自己申告事実）</span><span class="ap-use">子育て世帯CPG全般。Amazonの推定と違い自己申告＝最高確度。</span><span class="ap-type"><span class="ap-badge-s">単体◎</span></span><span class="ap-vs"><span class="ap-hi">High</span><span class="ap-mkt">SN×楽天独自</span></span></div>
+    <div class="ap-row"><span class="ap-asset">楽天シニア（自己申告事実）</span><span class="ap-use">シニア向け健康食品・飲料。自己申告ベースはドコモにもない。</span><span class="ap-type"><span class="ap-badge-s">単体◎</span></span><span class="ap-vs"><span class="ap-hi">High</span><span class="ap-mkt">SN×楽天独自</span></span></div>
+    <div class="ap-row"><span class="ap-asset">ママ割 × 食品購買 × 30代女性</span><span class="ap-use">CPGの最重要ペルソナ「家計の購買決定者」を3重事実で特定。</span><span class="ap-type"><span class="ap-badge-c">掛け合わせ</span></span><span class="ap-vs"><span class="ap-hi">High</span><span class="ap-mkt">この精度は独自</span></span></div>
+    <div class="ap-row"><span class="ap-asset">ペット・ペットグッズ購買</span><span class="ap-use">ペットフードメーカー等CPG提案に。ペット産業1.7兆円。IS1の守備範囲でもある。</span><span class="ap-type"><span class="ap-badge-b">単体/掛け</span></span><span class="ap-vs"><span class="ap-mi">Mid</span><span class="ap-mkt">A○ D△ L△</span></span></div>
+    <div class="ap-row"><span class="ap-asset">ペット飼育あり（類推）</span><span class="ap-use">ペット用品購買との掛けで「飼っていて実際に買っている層」を高確度で特定。</span><span class="ap-type"><span class="ap-badge-b">単体/掛け</span></span><span class="ap-vs"><span class="ap-hi">High</span><span class="ap-mkt">SN×楽天独自</span></span></div>
+    <div class="ap-row"><span class="ap-asset">マタニティ・新生児用品 初回購買</span><span class="ap-use">妊娠中〜出産直後のシグナル。粉ミルク・離乳食・ベビー飲料の広告主に直球。</span><span class="ap-type"><span class="ap-badge-s">単体◎</span></span><span class="ap-vs"><span class="ap-hi">High</span><span class="ap-mkt">A○(推定) 楽天は購買事実</span></span></div>
+    <div class="ap-row"><span class="ap-asset">ママ割 新規登録（直近） × キッズ購買</span><span class="ap-use">ママ割は妊娠中から登録可。直近の新規登録＝妊娠中〜出産直後の蓋然性。</span><span class="ap-type"><span class="ap-badge-c">掛け合わせ</span></span><span class="ap-vs"><span class="ap-hi">High</span><span class="ap-mkt">この精度は独自</span></span></div>
+    <div class="ap-note">競合優位：楽天ママ割/シニアの「自己申告」、ペット飼育の「類推」は他社にない独自資産。マタニティ初回購買は「購買事実」であり、Amazonの推定ベースより確度が高い。</div>
+  </div>
+
+  <div class="ap-content" id="ap1">
+    <div class="ap-hdr" style="display:grid;grid-template-columns:minmax(120px,auto) 1fr 80px 72px;gap:10px">
+      <span>アセット名</span><span>活用方法 / 提案先</span><span style="text-align:center">利用形態</span><span style="text-align:center">vs競合</span>
+    </div>
+    <div class="ap-row"><span class="ap-asset">トラベル国内ホテル予約_直近1年</span><span class="ap-use">国内旅行商材に単体で有効。予約事実はAmazon/ドコモ/LINEヤフーにない。</span><span class="ap-type"><span class="ap-badge-s">単体◎</span></span><span class="ap-vs"><span class="ap-hi">High</span><span class="ap-mkt">L○のみ(Yahoo!トラベル)</span></span></div>
+    <div class="ap-row"><span class="ap-asset">トラベル海外ホテル予約_直近1年</span><span class="ap-use">海外旅行・航空会社に単体で有効。海外旅行者のみを切り出せる。</span><span class="ap-type"><span class="ap-badge-s">単体◎</span></span><span class="ap-vs"><span class="ap-hi">High</span><span class="ap-mkt">L○のみ(Yahoo!トラベル)</span></span></div>
+    <div class="ap-row"><span class="ap-asset">レンタカー予約_直近1年</span><span class="ap-use">地方旅行者/カーシェア利用者。自動車保険との掛けも有効。</span><span class="ap-type"><span class="ap-badge-b">単体/掛け</span></span><span class="ap-vs"><span class="ap-hi">High</span><span class="ap-mkt">SN×楽天独自</span></span></div>
+    <div class="ap-row"><span class="ap-asset">楽天Kobo利用者</span><span class="ap-use">Web漫画・電子書籍アプリの直球ターゲット。AmazonのKindleに相当。</span><span class="ap-type"><span class="ap-badge-s">単体◎</span></span><span class="ap-vs"><span class="ap-mi">Mid</span><span class="ap-mkt">A○(Kindle)</span></span></div>
+    <div class="ap-row"><span class="ap-asset">楽天ラクマ利用者</span><span class="ap-use">フリマ/リユース/総合EC利用者。CtoCサービスの提案に。</span><span class="ap-type"><span class="ap-badge-s">単体◎</span></span><span class="ap-vs"><span class="ap-mi">Mid</span><span class="ap-mkt">L△(Yahoo!オークション)</span></span></div>
+    <div class="ap-row"><span class="ap-asset">就職活動日記利用者</span><span class="ap-use">人材・転職サービスへの最も直接的なシグナル。単体で提案可能。</span><span class="ap-type"><span class="ap-badge-s">単体◎</span></span><span class="ap-vs"><span class="ap-hi">High</span><span class="ap-mkt">SN×楽天独自</span></span></div>
+    <div class="ap-row"><span class="ap-asset">トラベル予約 × 食品購買 × 都道府県</span><span class="ap-use">「食×旅」クロスでご当地グルメ・ふるさと納税の3種掛け。</span><span class="ap-type"><span class="ap-badge-c">掛け合わせ</span></span><span class="ap-vs"><span class="ap-hi">High</span><span class="ap-mkt">この組み合わせは独自</span></span></div>
+    <div class="ap-note">競合優位：楽天トラベルの予約種別データ（国内/海外/レンタカー/GORA）はこの粒度で持つプラットフォームが他にない。旅行業種への最大の武器。</div>
+  </div>
+
+  <div class="ap-content" id="ap2">
+    <div class="ap-hdr" style="display:grid;grid-template-columns:minmax(120px,auto) 1fr 80px 72px;gap:10px">
+      <span>アセット名</span><span>活用方法 / 提案先</span><span style="text-align:center">利用形態</span><span style="text-align:center">vs競合</span>
+    </div>
+    <div class="ap-row"><span class="ap-asset">美容・コスメ・香水 購買</span><span class="ap-use">H&B D2C全般に単体で有効。購買事実で精度高。</span><span class="ap-type"><span class="ap-badge-s">単体◎</span></span><span class="ap-vs"><span class="ap-mi">Mid</span></span></div>
+    <div class="ap-row"><span class="ap-asset">楽天ビューティ予約_直近1年</span><span class="ap-use">サロン・美容医療に単体で有効。サロン予約事実は楽天のみ。</span><span class="ap-type"><span class="ap-badge-s">単体◎</span></span><span class="ap-vs"><span class="ap-hi">High</span><span class="ap-mkt">A△(@cosme閲覧のみ)</span></span></div>
+    <div class="ap-row"><span class="ap-asset">ダイエット・健康 購買</span><span class="ap-use">オンライン診療・ヘルステック・サプリに単体で有効。</span><span class="ap-type"><span class="ap-badge-s">単体◎</span></span><span class="ap-vs"><span class="ap-mi">Mid</span><span class="ap-mkt">A○ D△ L△</span></span></div>
+    <div class="ap-row"><span class="ap-asset">医薬品・コンタクト・介護 購買</span><span class="ap-use">オンライン診療への直接シグナル。「健康」購買と掛けてさらに精度向上。</span><span class="ap-type"><span class="ap-badge-b">単体/掛け</span></span><span class="ap-vs"><span class="ap-mi">Mid</span></span></div>
+    <div class="ap-row"><span class="ap-asset">喫煙セグメント（類推）</span><span class="ap-use">タバコ業種の唯一のターゲット。Amazon/ドコモ/LINEヤフーに明示的な喫煙セグメントなし。</span><span class="ap-type"><span class="ap-badge-s">単体◎</span></span><span class="ap-vs"><span class="ap-hi">High</span><span class="ap-mkt">SN×楽天独自</span></span></div>
+    <div class="ap-row"><span class="ap-asset">ビューティ予約 × コスメ購買 × 女性</span><span class="ap-use">サロン予約(事実) × 物販購買(事実) × 性別(事実)の3事実掛け。</span><span class="ap-type"><span class="ap-badge-c">掛け合わせ</span></span><span class="ap-vs"><span class="ap-hi">High</span><span class="ap-mkt">A△(@cosme) 他なし</span></span></div>
+    <div class="ap-row"><span class="ap-asset">喫煙 × 年齢 × 会員ランク</span><span class="ap-use">タバコ業種の購買力付きペルソナ。喫煙者×高購買力の掛け。</span><span class="ap-type"><span class="ap-badge-c">掛け合わせ</span></span><span class="ap-vs"><span class="ap-hi">High</span><span class="ap-mkt">SN×楽天独自</span></span></div>
+    <div class="ap-note">競合優位：「喫煙」は楽天にしかない明示的セグメント。「楽天ビューティ予約」はサロン予約の事実データとしてAmazon @cosmeパッケージ（閲覧中心）より確度が高い。</div>
+  </div>
+
+  <div class="ap-content" id="ap3">
+    <div class="ap-hdr" style="display:grid;grid-template-columns:minmax(120px,auto) 1fr 80px 72px;gap:10px">
+      <span>アセット名</span><span>活用方法 / 提案先</span><span style="text-align:center">利用形態</span><span style="text-align:center">vs競合</span>
+    </div>
+    <div class="ap-row"><span class="ap-asset">車・バイク / 車用品 購買</span><span class="ap-use">自動車業種に単体で有効。購買事実でディーラー来店の手前を捕捉。</span><span class="ap-type"><span class="ap-badge-s">単体◎</span></span><span class="ap-vs"><span class="ap-mi">Mid</span><span class="ap-mkt">A○ D△ L△</span></span></div>
+    <div class="ap-row"><span class="ap-asset">住所変更_直近3ヶ月</span><span class="ap-use">Telecom（回線契約見直しタイミング）に単体で有効。他社にないデータ。</span><span class="ap-type"><span class="ap-badge-s">単体◎</span></span><span class="ap-vs"><span class="ap-hi">High</span></span></div>
+    <div class="ap-row"><span class="ap-asset">スマートフォン・タブレット購買</span><span class="ap-use">Telecom/Tech業種に。端末買い替えタイミングの捕捉。</span><span class="ap-type"><span class="ap-badge-s">単体◎</span></span><span class="ap-vs"><span class="ap-mi">Mid</span><span class="ap-mkt">A○ D◎ L△</span></span></div>
+    <div class="ap-row"><span class="ap-asset">光回線・モバイル通信 購買</span><span class="ap-use">Telecom業種に単体で直接的。通信環境見直し中のユーザー。</span><span class="ap-type"><span class="ap-badge-s">単体◎</span></span><span class="ap-vs"><span class="ap-mi">Mid</span><span class="ap-mkt">A△ D◎ L△</span></span></div>
+    <div class="ap-row"><span class="ap-asset">会員ランク ダイヤモンド/プラチナ</span><span class="ap-use">金融の富裕層向けに単体で有効。購買実績の事実指標。</span><span class="ap-type"><span class="ap-badge-s">単体◎</span></span><span class="ap-vs"><span class="ap-mi">Mid</span><span class="ap-mkt">A○ D○ L△</span></span></div>
+    <div class="ap-row"><span class="ap-asset">パソコン・周辺機器 購買</span><span class="ap-use">Tech業種に。デジタル投資意欲の事実確認。</span><span class="ap-type"><span class="ap-badge-b">単体/掛け</span></span><span class="ap-vs"><span class="ap-mi">Mid</span><span class="ap-mkt">A○ D△ L△</span></span></div>
+    <div class="ap-row"><span class="ap-asset">住所変更 × 光回線購買 × 20-34歳</span><span class="ap-use">新居のネット環境構築需要。Telecom業種の鉄板3種掛け。</span><span class="ap-type"><span class="ap-badge-c">掛け合わせ</span></span><span class="ap-vs"><span class="ap-hi">High</span><span class="ap-mkt">この組み合わせは独自</span></span></div>
+    <div class="ap-row"><span class="ap-asset">車用品購買 × 年収800万+ × ランク上位</span><span class="ap-use">高級車ディーラー向け。購買事実+購買力の3軸。</span><span class="ap-type"><span class="ap-badge-c">掛け合わせ</span></span><span class="ap-vs"><span class="ap-hi">High</span><span class="ap-mkt">A○(類似可) D△ L△</span></span></div>
+    <div class="ap-row"><span class="ap-asset">住宅・不動産カテゴリ購買</span><span class="ap-use">不動産・リフォーム会社に単体で有効。持ち家類推との掛けで精度向上。</span><span class="ap-type"><span class="ap-badge-b">単体/掛け</span></span><span class="ap-vs"><span class="ap-mi">Mid</span><span class="ap-mkt">A○ D△ L△</span></span></div>
+    <div class="ap-row"><span class="ap-asset">サービス・リフォーム購買</span><span class="ap-use">リフォーム会社への直球。50-60代の持ち家層がメインターゲット。</span><span class="ap-type"><span class="ap-badge-s">単体◎</span></span><span class="ap-vs"><span class="ap-hi">High</span><span class="ap-mkt">SN×楽天独自</span></span></div>
+    <div class="ap-row"><span class="ap-asset">保険_加入あり（類推）</span><span class="ap-use">保険見直し層のターゲット。生命保険/自動車保険もサブセグメントで個別利用可。</span><span class="ap-type"><span class="ap-badge-s">単体◎</span></span><span class="ap-vs"><span class="ap-mi">Mid</span><span class="ap-mkt">D○ L△</span></span></div>
+    <div class="ap-row"><span class="ap-asset">持ち家 × リフォーム購買 × 50代以上</span><span class="ap-use">不動産リフォームの鉄板3種掛け。SNユーザーのボリュームゾーンに直撃。</span><span class="ap-type"><span class="ap-badge-c">掛け合わせ</span></span><span class="ap-vs"><span class="ap-hi">High</span><span class="ap-mkt">この組み合わせは独自</span></span></div>
+    <div class="ap-row"><span class="ap-asset">保険加入 × 年収600万+ × 50代既婚</span><span class="ap-use">保険見直し層の3種掛け。生保/損保の提案に。</span><span class="ap-type"><span class="ap-badge-c">掛け合わせ</span></span><span class="ap-vs"><span class="ap-mi">Mid</span><span class="ap-mkt">D○(決済データ) L△</span></span></div>
+    <div class="ap-note">競合優位：「住所変更_直近3ヶ月」はAmazon/LINEヤフーにない独自タイミングデータ。「サービス・リフォーム」カテゴリ購買は楽天独自。保険の類推セグメント(生命/自動車の個別)も差別化ポイント。ドコモはキャリア契約変更で間接的に持つが、SmartNewsには提供されない。IS4最大の武器。<br>留意：Telecom/金融は楽天競合NGの可能性あり。提案前に楽天側と要確認。</div>
+  </div>
+
+  <div class="ap-content" id="ap4">
+    <div class="ap-hdr" style="display:grid;grid-template-columns:minmax(120px,auto) 1fr 80px 72px;gap:10px">
+      <span>アセット名</span><span>活用方法 / 提案先</span><span style="text-align:center">利用形態</span><span style="text-align:center">vs競合</span>
+    </div>
+    <div class="ap-row"><span class="ap-asset">職種：役員/部長職以上</span><span class="ap-use">BtoB意思決定者に単体でリーチ。会員ランクとの掛けで精度向上。</span><span class="ap-type"><span class="ap-badge-b">単体/掛け</span></span><span class="ap-vs"><span class="ap-mi">Mid</span><span class="ap-mkt">A△ D○ L○</span></span></div>
+    <div class="ap-row"><span class="ap-asset">デジタル・通信購買</span><span class="ap-use">ITリテラシーの代理指標。SaaS/ビジネスツールの提案に。</span><span class="ap-type"><span class="ap-badge-b">単体/掛け</span></span><span class="ap-vs"><span class="ap-mi">Mid</span><span class="ap-mkt">A○ D△ L△</span></span></div>
+    <div class="ap-row"><span class="ap-asset">役員 × デジタル購買 × 年収800万+</span><span class="ap-use">「法人購買の意思決定者で、個人でもテックに投資する人」の3種掛け。</span><span class="ap-type"><span class="ap-badge-c">掛け合わせ</span></span><span class="ap-vs"><span class="ap-mi">Mid</span><span class="ap-mkt">A△ D△ L△</span></span></div>
+    <div class="ap-note">競合優位：各社横並びの領域だが、楽天の3種掛けペルソナ手法自体がBtoB提案では独自の差別化になる。「ニュースを読んでいる瞬間」にBtoB広告を出せるのもSN独自。</div>
+  </div>
+</div>
+
+<!-- ペルソナカード -->
+<div class="subsec-bridge">▼ 上記のアセットを2〜3軸掛け合わせると、以下の「営業提案用ペルソナ」が設計できます ▼</div>
+
+<div class="subsec">
+  <div class="subsec-num">3-B</div>
+  <div class="subsec-ttl">代表ペルソナ — 複合アセットの提案パターン</div>
+  <div class="subsec-desc">3-Aの素材を組み合わせて「どんな人物像か」「なぜその業種に刺さるか」「競合と比べた優位性は何か」を一枚に。IS担当がそのまま広告主に見せられる設計。</div>
+</div>
+
+<div class="p-grid">
+
+<div class="p-card" data-is="is4 btob">
+  <div class="p-hd"><div class="p-icon p-ic-p">A</div><div><div class="p-name">エグゼクティブ購買層</div><div class="p-sub">ToB / ハイエンド</div><span class="p-comp p-comp-m">vs競合: Mid</span><span class="p-mkt">| 類似: A○ D○ L△</span></div></div>
+  <div class="p-recipe">
+    <span class="chip b-p">年収1000万+</span><span class="plus">×</span>
+    <span class="chip b-r">ダイヤモンド</span><span class="plus">×</span>
+    <span class="chip b-b">高額商材購買</span>
+  </div>
+  <div class="p-logic"><b>推論：</b>年収推定×最上位ランク(購買事実)×高額商材購買(事実)の3軸で「お金を持ち、実際に使う人」を特定。</div>
+  <div class="p-inds"><span class="r-ind">高級車</span><span class="r-ind">ラグジュアリー</span><span class="r-ind">法人SaaS</span><span class="r-ind">BtoB集客</span></div>
+  <div class="p-adv"><b>vs競合：</b>会員ランク＝購買実績の「事実」で裏付ける点がAmazonの世帯年収(3rd Party推定)より確度が高い。SmartNewsのニュース面でビジネス情報を読んでいる瞬間に接触できるのも独自。</div>
+  <div class="is-tags"><span class="is-tag is-4">IS4</span><span class="is-tag is-b">BtoB</span></div>
+</div>
+
+<div class="p-card" data-is="is2 btob">
+  <div class="p-hd"><div class="p-icon p-ic-t">B</div><div><div class="p-name">出張族ビジネスパーソン</div><div class="p-sub">ToB+旅行クロス</div><span class="p-comp p-comp-h">vs競合: High</span><span class="p-mkt">| 旅行予約データは独自</span></div></div>
+  <div class="p-recipe">
+    <span class="chip b-p">正社員</span><span class="plus">×</span>
+    <span class="chip b-t">トラベル頻回</span><span class="plus">×</span>
+    <span class="chip b-b">ビジネス用品</span>
+  </div>
+  <div class="p-logic"><b>推論：</b>正社員推定×トラベル頻回利用(事実)×ビジネスバッグ購買(事実)で出張の多いビジネスパーソンを特定。</div>
+  <div class="p-inds"><span class="r-ind">ビジネスホテル</span><span class="r-ind">航空会社</span><span class="r-ind">ビジネスウェア</span><span class="r-ind">法人カード</span></div>
+  <div class="p-adv"><b>vs競合：</b>楽天トラベルの予約頻度データはAmazon/ドコモ/LINEヤフーにない。国内/海外/レンタカーの種別で出張パターンまで絞れる。</div>
+  <div class="is-tags"><span class="is-tag is-2">IS2</span><span class="is-tag is-b">BtoB</span></div>
+</div>
+
+<div class="p-card" data-is="is1 is3">
+  <div class="p-hd"><div class="p-icon p-ic-r">C</div><div><div class="p-name">子育てアクティブママ</div><div class="p-sub">ファミリー市場の中核</div><span class="p-comp p-comp-h">vs競合: High</span><span class="p-mkt">| ママ割は独自、他社は推定</span></div></div>
+  <div class="p-recipe">
+    <span class="chip b-t">楽天ママ割(自己申告)</span><span class="plus">×</span>
+    <span class="chip b-b">食品/キッズ購買</span><span class="plus">×</span>
+    <span class="chip b-r">30代女性</span>
+  </div>
+  <div class="p-logic"><b>推論：</b>ママ割の自己申告(事実)×食品/キッズの購買(事実)×年齢性別(事実)。3軸全て事実で最高確度のファミリーペルソナ。</div>
+  <div class="p-inds"><span class="r-ind">食品メーカー</span><span class="r-ind">ベビー用品</span><span class="r-ind">幼児教育</span><span class="r-ind">ファミリーカー</span></div>
+  <div class="p-adv"><b>vs競合：</b>ママ割の「自己申告」はAmazonのライフイベント(購買推定)より確度高。ドコモの家族割は間接的で粒度が粗い。IS1のCPG提案で最も信頼できるセグメント。</div>
+  <div class="is-tags"><span class="is-tag is-1">IS1</span><span class="is-tag is-3">IS3</span></div>
+</div>
+
+<div class="p-card" data-is="is3">
+  <div class="p-hd"><div class="p-icon p-ic-b">D</div><div><div class="p-name">美容投資層</div><div class="p-sub">物販×サービス両取り</div><span class="p-comp p-comp-h">vs競合: High</span><span class="p-mkt">| サロン予約事実は独自</span></div></div>
+  <div class="p-recipe">
+    <span class="chip b-t">楽天ビューティ予約</span><span class="plus">×</span>
+    <span class="chip b-b">コスメ購買</span><span class="plus">×</span>
+    <span class="chip b-r">25-44歳女性</span>
+  </div>
+  <div class="p-logic"><b>推論：</b>サロン予約(事実)×コスメ購買(事実)×年齢性別(事実)。3事実で美容投資の「時間も金も使う層」を特定。</div>
+  <div class="p-inds"><span class="r-ind">H&B D2C</span><span class="r-ind">美容医療</span><span class="r-ind">サプリD2C</span><span class="r-ind">サロン</span></div>
+  <div class="p-adv"><b>vs競合：</b>Amazon DSPは@cosmeパッケージ(閲覧中心)で対抗するが、楽天は「サロン予約事実×物販購買事実」の両面を持つ。閲覧と購買では確度が違う。</div>
+  <div class="is-tags"><span class="is-tag is-3">IS3</span></div>
+</div>
+
+<div class="p-card" data-is="is2 is4">
+  <div class="p-hd"><div class="p-icon p-ic-p">E</div><div><div class="p-name">アウトドア富裕層</div><div class="p-sub">レジャー×可処分所得</div><span class="p-comp p-comp-h">vs競合: High</span><span class="p-mkt">| GORA予約は独自</span></div></div>
+  <div class="p-recipe">
+    <span class="chip b-t">楽天GORA予約</span><span class="plus">×</span>
+    <span class="chip b-p">年収800万+</span><span class="plus">×</span>
+    <span class="chip b-b">スポーツ購買</span>
+  </div>
+  <div class="p-logic"><b>推論：</b>GORA予約(事実)×年収推定(類推)×スポーツ購買(事実)。趣味に高額投資する富裕層を特定。</div>
+  <div class="p-inds"><span class="r-ind">ゴルフ用品</span><span class="r-ind">旅行</span><span class="r-ind">プレミアム車</span><span class="r-ind">高級時計</span></div>
+  <div class="p-adv"><b>vs競合：</b>GORA予約データは楽天にしかない。ゴルフ用品のEC購買+ゴルフ場予約の「両事実」を掛けられるのは楽天のみ。</div>
+  <div class="is-tags"><span class="is-tag is-2">IS2</span><span class="is-tag is-4">IS4</span></div>
+</div>
+
+<div class="p-card" data-is="is2 is4">
+  <div class="p-hd"><div class="p-icon p-ic-t">F</div><div><div class="p-name">新生活スターター</div><div class="p-sub">引越し×新居需要×Telecom</div><span class="p-comp p-comp-h">vs競合: High</span><span class="p-mkt">| 住所変更データは独自</span></div></div>
+  <div class="p-recipe">
+    <span class="chip b-p">住所変更3ヶ月</span><span class="plus">×</span>
+    <span class="chip b-b">インテリア/家電/光回線</span><span class="plus">×</span>
+    <span class="chip b-r">20-34歳</span>
+  </div>
+  <div class="p-logic"><b>推論：</b>住所変更(類推)×家電/光回線の購買(事実)×若年層(事実)。引越し直後の新居整備需要をリアルタイムで捕捉。</div>
+  <div class="p-inds"><span class="r-ind">家電</span><span class="r-ind">通信キャリア</span><span class="r-ind">インテリア</span><span class="r-ind">引越し</span></div>
+  <div class="p-adv"><b>vs競合：</b>「住所変更_直近3ヶ月」はAmazon/LINEヤフーにない独自データ。ドコモは契約変更で間接的に持つがSNには提供されない。IS4 Telecom向けの最大の武器。</div>
+  <div class="is-tags"><span class="is-tag is-2">IS2</span><span class="is-tag is-4">IS4</span></div>
+</div>
+
+<div class="p-card" data-is="is1">
+  <div class="p-hd"><div class="p-icon p-ic-r">G</div><div><div class="p-name">日常CPGリピーター</div><div class="p-sub">食卓を支えるEC活用世帯</div><span class="p-comp p-comp-h">vs競合: High</span><span class="p-mkt">| 西友NS+ママ割は独自</span></div></div>
+  <div class="p-recipe">
+    <span class="chip b-t">楽天西友ネットスーパー</span><span class="plus">×</span>
+    <span class="chip b-b">食品・飲料購買</span><span class="plus">×</span>
+    <span class="chip b-t">楽天ママ割</span>
+  </div>
+  <div class="p-logic"><b>推論：</b>西友NS利用(事実)×食品購買(事実)×ママ割(自己申告事実)。3事実で「週次で食品をEC購入する家計代表者」を特定。</div>
+  <div class="p-inds"><span class="r-ind">食品メーカー</span><span class="r-ind">飲料</span><span class="r-ind">調味料</span><span class="r-ind">CPG全般</span><span class="r-ind">食品D2C</span></div>
+  <div class="p-adv"><b>vs競合：</b>楽天西友NSは楽天経済圏独自のリアル小売連携。Amazonの食品購買データとは「スーパーで買う日用食品」vs「ECで買う嗜好品」で客層が違う。</div>
+  <div class="is-tags"><span class="is-tag is-1">IS1</span></div>
+</div>
+
+<div class="p-card" data-is="is2">
+  <div class="p-hd"><div class="p-icon p-ic-b">H</div><div><div class="p-name">キャリア模索ミドル</div><div class="p-sub">転職・副業への関心層</div><span class="p-comp p-comp-h">vs競合: High</span><span class="p-mkt">| 就活日記は独自</span></div></div>
+  <div class="p-recipe">
+    <span class="chip b-t">就職活動日記利用</span><span class="plus">×</span>
+    <span class="chip b-p">正社員/年収600万+</span><span class="plus">×</span>
+    <span class="chip b-r">25-39歳</span>
+  </div>
+  <div class="p-logic"><b>推論：</b>就活日記利用(事実)で転職意欲を直接確認。年収推定と年齢で「現職に不満はないが次を探す層」を特定。</div>
+  <div class="p-inds"><span class="r-ind">転職サービス</span><span class="r-ind">人材紹介</span><span class="r-ind">スキル教育</span><span class="r-ind">副業PF</span></div>
+  <div class="p-adv"><b>vs競合：</b>「楽天みんなの就職活動日記」は転職意欲の直接シグナル。Amazon/ドコモ/LINEヤフーにはこの粒度の就活データがない。SmartNewsでキャリア記事を読む瞬間に接触。</div>
+  <div class="is-tags"><span class="is-tag is-2">IS2</span></div>
+</div>
+
+<div class="p-card" data-is="is3">
+  <div class="p-hd"><div class="p-icon p-ic-t">I</div><div><div class="p-name">健康気づかい層</div><div class="p-sub">不調を感じ始めた働き盛り</div><span class="p-comp p-comp-m">vs競合: Mid</span><span class="p-mkt">| 類似: A○ D△ L△</span></div></div>
+  <div class="p-recipe">
+    <span class="chip b-b">ダイエット・健康購買</span><span class="plus">×</span>
+    <span class="chip b-b">医薬品購買</span><span class="plus">×</span>
+    <span class="chip b-r">40-54歳</span>
+  </div>
+  <div class="p-logic"><b>推論：</b>健康+医薬品の2カテゴリ購買(事実×2)×年齢(事実)。健康課題を持つ中年層を購買行動の重なりで特定。</div>
+  <div class="p-inds"><span class="r-ind">オンライン診療</span><span class="r-ind">サプリ</span><span class="r-ind">健康食品</span><span class="r-ind">ヘルステック</span></div>
+  <div class="p-adv"><b>vs競合：</b>「健康+医薬品」の購買カテゴリ2軸クロスはAmazonも可能だが、楽天は経済圏データ（楽天西友等）でオフライン日用品購買も間接的に捕捉。</div>
+  <div class="is-tags"><span class="is-tag is-3">IS3</span></div>
+</div>
+
+<div class="p-card" data-is="is3">
+  <div class="p-hd"><div class="p-icon p-ic-r">L</div><div><div class="p-name">喫煙者セグメント</div><div class="p-sub">タバコ業種の唯一のターゲット</div><span class="p-comp p-comp-h">vs競合: High</span><span class="p-mkt">| 喫煙セグメントは独自</span></div></div>
+  <div class="p-recipe">
+    <span class="chip b-p">喫煙（類推）</span><span class="plus">×</span>
+    <span class="chip b-r">年齢・性別</span><span class="plus">×</span>
+    <span class="chip b-r">会員ランク</span>
+  </div>
+  <div class="p-logic"><b>推論：</b>喫煙(類推)×デモグラ(事実)×購買力(事実)。喫煙者を明示的にターゲットできるのは楽天のみ。単体でも掛け合わせでも使える。</div>
+  <div class="p-inds"><span class="r-ind">タバコメーカー</span><span class="r-ind">加熱式タバコ</span><span class="r-ind">禁煙サービス</span></div>
+  <div class="p-adv"><b>vs競合：</b>Amazon DSP/ドコモ/LINEヤフーいずれも「喫煙者」を明示的セグメントとして持たない。IS3タバコ業種への提案で決定的な差別化。</div>
+  <div class="is-tags"><span class="is-tag is-3">IS3</span></div>
+</div>
+
+<div class="p-card" data-is="is4">
+  <div class="p-hd"><div class="p-icon" style="background:var(--r-bg);color:var(--r-tx)">O</div><div><div class="p-name">リフォーム検討シニア</div><div class="p-sub">不動産・住宅設備</div><span class="p-comp p-comp-h">vs競合: High</span><span class="p-mkt">| 住所変更+リフォーム購買は独自</span></div></div>
+  <div class="p-recipe">
+    <span class="chip b-p">持ち家/一戸建て</span><span class="plus">×</span>
+    <span class="chip b-b">リフォーム・インテリア購買</span><span class="plus">×</span>
+    <span class="chip b-r">50-60代</span>
+  </div>
+  <div class="p-logic"><b>推論：</b>持ち家(類推)×リフォーム関連購買(事実)×50-60代(事実)。子供独立後のバリアフリー改修・住み替え需要を捕捉。</div>
+  <div class="p-inds"><span class="r-ind">リフォーム会社</span><span class="r-ind">住宅設備</span><span class="r-ind">不動産仲介</span><span class="r-ind">外壁塗装</span></div>
+  <div class="p-adv"><b>vs競合：</b>「サービス・リフォーム」カテゴリ購買は楽天独自。ドコモは位置情報で住宅展示場来場を捕捉できるが、購買意図の事実データでは楽天が勝る。SN面で住宅・経済記事を読む層への接触も独自。</div>
+  <div class="is-tags"><span class="is-tag is-4">IS4</span></div>
+</div>
+
+<div class="p-card" data-is="is4">
+  <div class="p-hd"><div class="p-icon" style="background:var(--b-bg);color:var(--b-tx)">P</div><div><div class="p-name">保険見直し世代</div><div class="p-sub">生保・損保</div><span class="p-comp p-comp-m">vs競合: Mid</span><span class="p-mkt">| 類似: D○ L△</span></div></div>
+  <div class="p-recipe">
+    <span class="chip b-p">保険加入あり</span><span class="plus">×</span>
+    <span class="chip b-p">年収600万+・既婚</span><span class="plus">×</span>
+    <span class="chip b-r">50代</span>
+  </div>
+  <div class="p-logic"><b>推論：</b>保険加入(類推)×年収・家族構成(類推)×50代(事実)。子供独立を機に保障を見直す層。年齢の事実が類推を補強。</div>
+  <div class="p-inds"><span class="r-ind">生命保険</span><span class="r-ind">医療保険</span><span class="r-ind">がん保険</span><span class="r-ind">介護保険</span><span class="r-ind">相続対策型</span></div>
+  <div class="p-adv"><b>vs競合：</b>ドコモはd払い/dカードで保険料支払いを捕捉できるが、楽天は保険種別(生命/自動車)の個別類推を持つ。SN面で老後・年金記事を読む瞬間に保険広告が出せるのは独自価値。</div>
+  <div class="p-warn-sm">留意：楽天NG「金融全般」に保険が含まれるか要確認。楽天生命/楽天損保の存在次第。</div>
+  <div class="is-tags"><span class="is-tag is-4">IS4</span></div>
+</div>
+
+<div class="p-card" data-is="is4">
+  <div class="p-hd"><div class="p-icon p-ic-p">J</div><div><div class="p-name">スマートホーム志向層</div><div class="p-sub">新居×デジタル環境構築</div><span class="p-comp p-comp-l">vs競合: Low</span><span class="p-mkt">| 類似: A△ D◎ L△</span></div></div>
+  <div class="p-recipe">
+    <span class="chip b-b">デジタル・通信購買</span><span class="plus">×</span>
+    <span class="chip b-p">持ち家/一戸建て</span><span class="plus">×</span>
+    <span class="chip b-b">光回線/住まい購買</span>
+  </div>
+  <div class="p-logic"><b>推論：</b>デジタル購買(事実)×持ち家(類推)×住まい投資(事実)。新築/リフォームでIoT・スマート家電を導入する層。</div>
+  <div class="p-inds"><span class="r-ind">Telecom</span><span class="r-ind">光回線</span><span class="r-ind">スマート家電</span><span class="r-ind">IoT</span></div>
+  <div class="p-adv"><b>vs競合：</b>ドコモはキャリアデータ+位置情報でTelecom領域に強いが、楽天は「通信機器の購買事実」で対抗。SmartNewsでテック記事を読む層へのリーチは独自。</div>
+  <div class="p-warn-sm">留意：Telecom/キャリア業種は楽天競合NGの可能性あり。提案前に確認を。</div>
+  <div class="is-tags"><span class="is-tag is-4">IS4</span></div>
+</div>
+
+<div class="p-card" data-is="btob">
+  <div class="p-hd"><div class="p-icon p-ic-b">K</div><div><div class="p-name">法人購買決定者</div><div class="p-sub">BtoB意思決定層</div><span class="p-comp p-comp-m">vs競合: Mid</span><span class="p-mkt">| 類似: A△ D○ L○</span></div></div>
+  <div class="p-recipe">
+    <span class="chip b-p">役員・管理職</span><span class="plus">×</span>
+    <span class="chip b-b">デジタル購買</span><span class="plus">×</span>
+    <span class="chip b-p">年収800万+</span>
+  </div>
+  <div class="p-logic"><b>推論：</b>管理職(類推)×テック購買(事実)×高年収(類推)。個人消費から法人購買の意思決定に関わる層を捕捉。</div>
+  <div class="p-inds"><span class="r-ind">BtoB SaaS</span><span class="r-ind">法人サービス</span><span class="r-ind">研修</span><span class="r-ind">法人カード</span></div>
+  <div class="p-adv"><b>vs競合：</b>各社横並びの領域だが、SmartNewsは「ニュースコンテンツ面」で経済/テック/ビジネス記事を読んでいる瞬間にBtoB広告を出せる。配信面の文脈が独自の差別化。</div>
+  <div class="is-tags"><span class="is-tag is-b">BtoB</span></div>
+</div>
+
+<div class="p-card" data-is="is2">
+  <div class="p-hd"><div class="p-icon p-ic-b">M</div><div><div class="p-name">電子書籍ヘビーユーザー</div><div class="p-sub">Web漫画・コンテンツ消費</div><span class="p-comp p-comp-m">vs競合: Mid</span><span class="p-mkt">| 類似: A○(Kindle)</span></div></div>
+  <div class="p-recipe">
+    <span class="chip b-t">楽天Kobo利用</span><span class="plus">×</span>
+    <span class="chip b-b">本・雑誌・コミック購買</span><span class="plus">×</span>
+    <span class="chip b-r">年齢</span>
+  </div>
+  <div class="p-logic"><b>推論：</b>Kobo利用(事実)×書籍購買(事実)で「デジタルコンテンツに課金する習慣がある層」を特定。単体でも有効。</div>
+  <div class="p-inds"><span class="r-ind">Web漫画アプリ</span><span class="r-ind">電子書籍</span><span class="r-ind">動画配信</span><span class="r-ind">ゲーム</span></div>
+  <div class="p-adv"><b>vs競合：</b>AmazonはKindleユーザーのメディアオーディエンスを持つが、楽天Kobo利用者はAmazonの配信面では狙えない。SmartNewsで記事を読む「活字消費者」への文脈的親和性も高い。</div>
+  <div class="is-tags"><span class="is-tag is-2">IS2</span></div>
+</div>
+
+<div class="p-card" data-is="is1">
+  <div class="p-hd"><div class="p-icon p-ic-r">N</div><div><div class="p-name">シニア健康意識層</div><div class="p-sub">高齢者向け健康食品・飲料</div><span class="p-comp p-comp-h">vs競合: High</span><span class="p-mkt">| シニア自己申告は独自</span></div></div>
+  <div class="p-recipe">
+    <span class="chip b-t">楽天シニア(自己申告)</span><span class="plus">×</span>
+    <span class="chip b-b">ダイエット・健康購買</span><span class="plus">×</span>
+    <span class="chip b-r">ゴールド以上</span>
+  </div>
+  <div class="p-logic"><b>推論：</b>シニア自己申告(事実)×健康購買(事実)×購買力(事実)。3事実で「健康に投資するアクティブシニア」を特定。</div>
+  <div class="p-inds"><span class="r-ind">健康食品</span><span class="r-ind">サプリ</span><span class="r-ind">シニア向け飲料</span><span class="r-ind">介護関連</span></div>
+  <div class="p-adv"><b>vs競合：</b>楽天シニアは自己申告ベースの事実データ。Amazon/ドコモ/LINEヤフーにシニア向けの自己申告型セグメントはない。IS1のシニアCPG提案で独自性が高い。</div>
+  <div class="is-tags"><span class="is-tag is-1">IS1</span></div>
+</div>
+
+<div class="p-card" data-is="is1">
+  <div class="p-hd"><div class="p-icon p-ic-r">Q</div><div><div class="p-name">ペット飼育CPGユーザー</div><div class="p-sub">ペットフードはCPGカテゴリ</div><span class="p-comp p-comp-h">vs競合: High</span><span class="p-mkt">| ペット飼育類推は独自</span></div></div>
+  <div class="p-recipe">
+    <span class="chip b-p">ペット飼育あり</span><span class="plus">×</span>
+    <span class="chip b-b">ペット用品購買</span><span class="plus">×</span>
+    <span class="chip b-r">50-60代</span>
+  </div>
+  <div class="p-logic"><b>推論：</b>ペット飼育(類推)×ペット用品購買(事実)×年齢(事実)。飼っていて実際に買っている層を特定。50-70代はSNの広告反応ボリュームゾーンに直撃。</div>
+  <div class="p-inds"><span class="r-ind">ペットフード</span><span class="r-ind">ペット用品D2C</span><span class="r-ind">ペット保険</span><span class="r-ind">動物病院</span></div>
+  <div class="p-adv"><b>vs競合：</b>ペット飼育の類推は楽天独自。Amazonはペット用品購買データを持つが、飼育の事実確認は楽天が優位。SNのシニアユーザーとの親和性も高い。</div>
+  <div class="is-tags"><span class="is-tag is-1">IS1</span></div>
+</div>
+
+<div class="p-card" data-is="is1 is3">
+  <div class="p-hd"><div class="p-icon p-ic-r">R</div><div><div class="p-name">妊娠・出産準備層</div><div class="p-sub">マタニティ〜育児初期</div><span class="p-comp p-comp-h">vs競合: High</span><span class="p-mkt">| ママ割新規+初回購買は独自</span></div></div>
+  <div class="p-recipe">
+    <span class="chip b-t">ママ割 新規登録</span><span class="plus">×</span>
+    <span class="chip b-b">マタニティ・新生児購買</span><span class="plus">×</span>
+    <span class="chip b-r">20-39歳女性</span>
+  </div>
+  <div class="p-logic"><b>推論：</b>ママ割の直近新規登録(事実)×マタニティ用品の初回購買(事実)×年齢性別(事実)。3事実で「今まさに妊娠中〜出産直後」を高確度で特定。</div>
+  <div class="p-inds"><span class="r-ind">粉ミルク</span><span class="r-ind">離乳食</span><span class="r-ind">ベビー飲料</span><span class="r-ind">紙おむつ</span><span class="r-ind">ベビー用品</span></div>
+  <div class="p-adv"><b>vs競合：</b>Amazonはベビー用品購買から出産を推定するが、楽天は「ママ割の新規登録タイミング」という自己申告の事実データを持つ。妊娠中から申告しているため、出産前からリーチ可能。CPGの粉ミルク・離乳食メーカーにとって最も価値の高い瞬間。</div>
+  <div class="is-tags"><span class="is-tag is-1">IS1</span><span class="is-tag is-3">IS3</span></div>
+</div>
+
+</div>
+</section>
+
+<!-- Section 4: ペルソナビルダー -->
+<section class="section" id="s4">
+<div class="sec-hd">
+  <div class="sec-ttl">4. ペルソナビルダー</div>
+  <div class="sec-sub">データサブグループを2〜3つ選ぶと、シグナル→推論→ペルソナ像→業種の4ステップが展開されます。</div>
+</div>
+
+<div class="builder-wrap">
+  <div class="builder-left">
+    <div id="bld-grid"></div>
+    <div class="bar" id="bld-bar"><span class="bar-lbl">2〜3つ選択してください</span></div>
+  </div>
+  <div class="builder-right">
+    <div id="bld-out"><div class="empty">左のサブグループを2〜3つ選ぶと、生活者の具体的なシーンが浮かび上がります</div></div>
+  </div>
+</div>
+</section>
+
+<!-- Section 5: 競合対比表 -->
+<section class="section" id="s5">
+<div class="sec-hd">
+  <div class="sec-ttl">5. 競合対比表</div>
+  <div class="sec-sub">実行動データを広告ターゲティングに活用する主要プラットフォームとの対比。SN × 楽天RMPの取り組みが実現した場合に、市場でどのようなポジションを取りうるかを示す。</div>
+</div>
+
+<div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:18px 22px;margin-bottom:18px">
+  <div style="font-size:14px;font-weight:500;margin-bottom:10px">総括：楽天データ活用が実現した場合のポジショニング</div>
+  <div style="font-size:13px;color:var(--text-sec);line-height:1.8">
+    本表は、楽天DMPのオーディエンスデータをSmartNews Adsで活用できるようになった場合に、競合3社（Amazon DSP / ドコモ / LINEヤフー）と比較してどのような位置づけになるかを整理したものです。現時点ではPoC前の構想段階であり、実績に基づく評価ではありません。
+  </div>
+  <div style="border-top:0.5px solid var(--border);margin-top:12px;padding-top:12px;font-size:13px;color:var(--text-sec);line-height:1.8">
+    <span style="font-weight:500;color:var(--text)">もし実現すれば強みとなりうる点：</span><br>
+    ・楽天市場の購買事実データ（約40カテゴリ）はAmazon DSPに次ぐ精度と規模を持ち、ドコモ/LINEヤフーのEC購買データより粒度が高い<br>
+    ・ママ割/シニア/就活日記/喫煙セグメント/トラベル予約種別など、他社にない楽天固有のデータ資産が複数存在する<br>
+    ・「購買事実データ × ニュースメディア面」という組み合わせは4社の中で唯一であり、情報感度の高い瞬間にリーチできる独自性がある
+  </div>
+  <div style="border-top:0.5px solid var(--border);margin-top:12px;padding-top:12px;font-size:13px;color:var(--text-sec);line-height:1.8">
+    <span style="font-weight:500;color:var(--text)">一方で留意すべき点：</span><br>
+    ・オフライン購買の効果測定（O2O）はドコモ/LINEヤフーが先行しており、楽天DCRの構想が具体化するまではギャップが残る<br>
+    ・データの更新頻度がAmazonのインマーケット（リアルタイム更新）に対してどの程度かは未確認<br>
+    ・配信面がSmartNews単体であり、Amazon/ドコモ/LINEヤフーのように複数面を横断する配信は現時点で不可<br>
+    ・データフィー20%が粗利構造に与える影響は、特にSmartView（メディアRevShare約40%）との併用時に要注意
+  </div>
+</div>
+
+<div class="cmp-filter">
+  <button class="cmp-fbtn active" onclick="filterCmp(event,'all')">全て表示</button>
+  <button class="cmp-fbtn" onclick="filterCmp(event,'basic')">基本情報</button>
+  <button class="cmp-fbtn" onclick="filterCmp(event,'fact')">事実データ</button>
+  <button class="cmp-fbtn" onclick="filterCmp(event,'infer')">類推データ</button>
+  <button class="cmp-fbtn" onclick="filterCmp(event,'func')">特徴的機能</button>
+  <button class="cmp-fbtn" onclick="filterCmp(event,'eval')">市場評価</button>
+  <button class="cmp-fbtn" onclick="filterCmp(event,'strat')">戦略示唆</button>
+</div>
+
+<div class="cmp-wrap">
+<table class="cmp-table">
+<thead>
+<tr>
+  <th>#</th>
+  <th>比較軸</th>
+  <th style="min-width:220px">SN × 楽天 RMP<br>（実現した場合の想定）</th>
+  <th style="min-width:220px">Amazon DSP</th>
+  <th style="min-width:220px">ドコモ<br>(docomo Ad Network / ARUTANA)</th>
+  <th style="min-width:220px">LINEヤフー<br>(LINE広告 + Yahoo!広告)</th>
+</tr>
+</thead>
+<tbody>
+
+<tr class="cmp-cat" data-sec="basic"><td></td><td colspan="5">基本情報</td></tr>
+<tr data-sec="basic"><td>1</td><td>データ保有者</td><td class="col-sn">楽天グループ<br>（楽天市場+楽天経済圏）</td><td>Amazon Japan<br>（Amazon.co.jp+Prime等）</td><td>NTTドコモ<br>（dポイントクラブ+d払い+キャリア契約）</td><td>LINEヤフー<br>（LINE+Yahoo!JAPAN+PayPay）</td></tr>
+<tr data-sec="basic"><td>2</td><td>会員基盤規模</td><td class="col-sn">楽天会員 1億以上<br>※2022年9月時点</td><td>Amazon JP 数千万規模<br>（公式非開示）</td><td>dポイントクラブ 1億800万<br>※2025年3月時点</td><td>LINE MAU 9,900万<br>Yahoo! PV 830億/月<br>PayPay 6,600万+</td></tr>
+<tr data-sec="basic"><td>3</td><td>配信面</td><td class="col-sn">SmartNews Ads<br>（ChannelView / SmartView）</td><td>Amazon内（商品詳細/トップ/検索結果）<br>+ APS提携メディア<br>+ Google AdX</td><td>ドコモメディア（dメニュー/メッセージS等）<br>+ ARUTANA（リテールアプリ40社）<br>+ 一般メディア</td><td>LINE面（トーク/NEWS/VOOM等）<br>+ Yahoo!面（トップ/ニュース等）<br>→ 2026春「LINEヤフー広告」に統合</td></tr>
+<tr data-sec="basic"><td>4</td><td>データフィー / 課金</td><td class="col-sn">SN配信費の20%を楽天へ<br>（Criteo連携と同料率）</td><td>CPM課金<br>月額100-300万円～</td><td>CPM/CPC課金<br>（プロダクトにより異なる）</td><td>CPM/CPC/友だち追加課金<br>（統合後は未定）</td></tr>
+<tr data-sec="basic"><td>5</td><td>非出店企業への開放</td><td class="col-sn"><span class="cmp-adv cmp-str">○</span> 非出店もスコープ<br>※楽天競合はNG</td><td><span class="cmp-adv cmp-str">○</span> ノンエンデミック対応<br>自動車/不動産/金融も利用可</td><td><span class="cmp-adv cmp-str">○</span> ドコモ契約者以外もリーチ可</td><td><span class="cmp-adv cmp-str">○</span> 出稿主体に制限なし</td></tr>
+
+<tr class="cmp-cat" data-sec="fact"><td></td><td colspan="5">データアセット — 事実データ</td></tr>
+<tr data-sec="fact"><td>6</td><td>デモグラフィック<br>（事実）</td><td class="col-sn"><span class="cmp-adv cmp-str">○</span> 性別/年齢(12区分)/ランク(5段階)/都道府県(47)<br>→ 楽天会員登録情報</td><td><span class="cmp-adv cmp-str">○</span> 年齢/性別/地域<br>→ Amazonアカウント+3rd Party照合</td><td><span class="cmp-adv cmp-str">◎</span> 性別/年齢/地域<br>→ 携帯契約の本人確認書類ベース<br>= 最も精度が高い</td><td><span class="cmp-adv cmp-mid">○</span> 性別/年齢/地域<br>→ LINE登録情報+推定<br>※精度はやや劣る</td></tr>
+<tr data-sec="fact"><td>7</td><td>EC購買・閲覧<br>（事実）</td><td class="col-sn"><span class="cmp-adv cmp-str">◎</span> 楽天市場行動データ 約40カテゴリ<br>閲覧+購買の両方を捕捉<br>※RDAC最大の差別化ポイント</td><td><span class="cmp-adv cmp-str">◎</span> 購買/閲覧/検索/カート<br>大カテゴリ20+/中カテゴリ253+<br>※EC購買データの王者</td><td><span class="cmp-adv cmp-weak">△</span> d払い/dカード加盟店POS連携<br>オフライン購買含むが粒度はEC未満</td><td><span class="cmp-adv cmp-weak">△</span> Yahoo!ショッピング閲覧・購買<br>PayPay決済データ（構想段階）<br>※EC特化度はAmazon/楽天に劣る</td></tr>
+<tr data-sec="fact"><td>8</td><td>経済圏サービス利用<br>（事実）</td><td class="col-sn"><span class="cmp-adv cmp-str">◎</span> 楽天経済圏 46サービス<br>トラベル/GORA/ビューティ/Kobo/<br>モバイル/ペイ等の利用実績</td><td><span class="cmp-adv cmp-mid">○</span> Prime Video/Twitch/Kindle/<br>IMDb/Alexa/FireTV<br>※メディア消費が中心</td><td><span class="cmp-adv cmp-mid">○</span> dマガジン/dTV等メディア<br>+ d払い加盟店36,000店<br>→ オフライン行動に強い</td><td><span class="cmp-adv cmp-str">◎</span> LINE公式アカウント友だち(130万社)<br>Yahoo!検索/トラベル/一休<br>PayPay加盟店<br>→ メッセンジャー行動が独自</td></tr>
+<tr data-sec="fact"><td>9</td><td>決済・オフライン購買<br>（事実）</td><td class="col-sn"><span class="cmp-adv cmp-weak">△</span> 楽天ペイ/カードは<br>経済圏に含まれるが<br>個別決済額は不明</td><td><span class="cmp-adv cmp-weak">△</span> Amazon Pay外部決済は限定的<br>EC内購買が主戦場</td><td><span class="cmp-adv cmp-str">◎</span> d払い/dカード/iD<br>オフライン実店舗の購買まで追跡<br>→ O2O最強</td><td><span class="cmp-adv cmp-mid">○</span> PayPay決済データ<br>オフライン購買の追跡が可能<br>→ O2O構築中</td></tr>
+<tr data-sec="fact"><td>10</td><td>位置情報<br>（事実）</td><td class="col-sn"><span class="cmp-adv cmp-weak">△</span> 都道府県レベルの居住地のみ</td><td><span class="cmp-adv cmp-weak">△</span> 配送先住所ベース</td><td><span class="cmp-adv cmp-str">◎</span> 携帯基地局+GPS<br>リアルタイム位置情報<br>来店検知まで可能</td><td><span class="cmp-adv cmp-mid">○</span> LINE/Yahoo!の位置情報<br>居住地/勤務地/現在地の3分類</td></tr>
+<tr data-sec="fact"><td>11</td><td>ライフステージシグナル<br>（事実）</td><td class="col-sn"><span class="cmp-adv cmp-str">◎</span> ママ割/学割/シニア（自己申告）<br>トラベル予約(直近1年)<br>ビューティ予約(直近1年)<br>住所変更(直近3ヶ月)</td><td><span class="cmp-adv cmp-mid">○</span> ライフイベント<br>結婚/引越し/出産等<br>※購買パターンからの推定</td><td><span class="cmp-adv cmp-mid">○</span> 家族割/学割等<br>キャリア契約変更イベント</td><td><span class="cmp-adv cmp-mid">○</span> LINE友だち追加/ブロック行動<br>Yahoo!ライフイベント検索<br>購買意向カテゴリ</td></tr>
+
+<tr class="cmp-cat" data-sec="infer"><td></td><td colspan="5">データアセット — 類推（推定）データ</td></tr>
+<tr data-sec="infer"><td>12</td><td>年収・所得推定</td><td class="col-sn"><span class="cmp-adv cmp-mid">○</span> 世帯/個人年収(400万+～1000万+)<br>金融商品保有状況<br>※経済圏の実行動から推計</td><td><span class="cmp-adv cmp-mid">○</span> 世帯年収レベル<br>（3rd Partyデータ照合）</td><td><span class="cmp-adv cmp-mid">○</span> 契約プラン/決済額から推定<br>※キャリアデータの信頼性は高い</td><td><span class="cmp-adv cmp-mid">○</span> 推定年収<br>（LINE/Yahoo!行動から推計）</td></tr>
+<tr data-sec="infer"><td>13</td><td>職種・職業推定</td><td class="col-sn"><span class="cmp-adv cmp-mid">○</span> 役員/部長職以上/正社員/パート等<br>※経済圏行動から推計</td><td><span class="cmp-adv cmp-weak">△</span> 明示的な職種セグメントは限定的</td><td><span class="cmp-adv cmp-mid">○</span> 法人/個人契約の区別<br>ビジネス利用パターン</td><td><span class="cmp-adv cmp-mid">○</span> 職業カテゴリ<br>（LINE登録+行動推定）</td></tr>
+<tr data-sec="infer"><td>14</td><td>ライフスタイル推定</td><td class="col-sn"><span class="cmp-adv cmp-mid">○</span> 既婚/未婚/子供有無/住居形態<br>車所有/ペット/喫煙/飲酒<br>→ 20項目</td><td><span class="cmp-adv cmp-str">○</span> ライフスタイル 100種類+<br>グルメ/スポーツ/テック等<br>※EC閲覧+メディア消費から推計</td><td><span class="cmp-adv cmp-mid">○</span> docomo SenseでAI統計処理化<br>した行動プロファイル</td><td><span class="cmp-adv cmp-mid">○</span> 趣味・関心カテゴリ<br>ゲーム/スポーツ/ファッション等<br>+ 行動カテゴリ</td></tr>
+<tr data-sec="infer"><td>15</td><td>興味関心<br>（コンテンツ消費）</td><td class="col-sn"><span class="cmp-adv cmp-weak">△</span> 楽天内の行動に限定<br>外部コンテンツ消費は捕捉不可</td><td><span class="cmp-adv cmp-mid">○</span> IMDb/Prime Video/Twitch/<br>Kindleの視聴・閲覧<br>→ エンタメ消費に強い</td><td><span class="cmp-adv cmp-mid">○</span> dマガジン/dTV等の<br>コンテンツ消費データ</td><td><span class="cmp-adv cmp-str">◎</span> Yahoo!ニュース/Yahoo!検索<br>LINEスタンプ/公式アカウント<br>→ 最もリッチなコンテンツ消費データ</td></tr>
+
+<tr class="cmp-cat" data-sec="func"><td></td><td colspan="5">特徴的な機能・差別化</td></tr>
+<tr data-sec="func"><td>16</td><td>データクリーンルーム<br>(DCR)</td><td class="col-sn"><span class="cmp-adv cmp-mid">○</span> 楽天DCRを構想中<br>→ GMV/CPA改善の効果測定</td><td><span class="cmp-adv cmp-str">◎</span> Amazon Marketing Cloud (AMC)<br>→ 先行・成熟、外部データ統合可</td><td><span class="cmp-adv cmp-mid">○</span> ドコモ×インテージ連携で<br>購買リフト検証が可能</td><td><span class="cmp-adv cmp-mid">○</span> LINE DATA SOLUTION<br>データ分析レポート提供</td></tr>
+<tr data-sec="func"><td>17</td><td>API連携方式</td><td class="col-sn"><span class="cmp-adv cmp-mid">○</span> Advertiserに都度Push<br>管理画面上で自由生成は不要<br>（楽天にとって望ましい形）</td><td><span class="cmp-adv cmp-str">○</span> Amazon DSP API<br>+ Amazon Marketing Stream<br>リアルタイムデータ連携</td><td><span class="cmp-adv cmp-mid">○</span> docomo Ad Network API<br>標準的なDSP連携</td><td><span class="cmp-adv cmp-mid">○</span> ビジネスマネージャー経由<br>LINE⇔Yahoo!間<br>オーディエンスデータ連携</td></tr>
+<tr data-sec="func"><td>18</td><td>クロスプラットフォーム</td><td class="col-sn"><span class="cmp-adv cmp-weak">△</span> 現時点ではSN単体<br>楽天⇔Criteo(RDAC)は既存</td><td><span class="cmp-adv cmp-mid">○</span> Amazon内外(APS/AdX)<br>+ AMCで外部データ統合</td><td><span class="cmp-adv cmp-str">◎</span> ドコモ×ARUTANA(40社アプリ)<br>×LiveBoard(DOOH)<br>×インテージ(購買パネル)</td><td><span class="cmp-adv cmp-str">◎</span> LINE⇔Yahoo!⇔PayPay<br>2026春統合で単一PFに<br>→ 最大のエコシステム統合</td></tr>
+<tr data-sec="func"><td>19</td><td>オフライン効果測定<br>（O2O）</td><td class="col-sn"><span class="cmp-adv cmp-weak">△</span> 現時点では未対応<br>（楽天DCRで将来的に可能性）</td><td><span class="cmp-adv cmp-weak">△</span> Amazon内購買の計測は可能<br>オフライン店舗は限定的</td><td><span class="cmp-adv cmp-str">◎</span> d払い/dカード決済で<br>広告接触→実店舗購買を<br>シングルIDで計測可能</td><td><span class="cmp-adv cmp-mid">○</span> PayPay決済による<br>オフラインCV計測を構築中</td></tr>
+
+<tr class="cmp-cat" data-sec="eval"><td></td><td colspan="5">市場での評価・活用状況</td></tr>
+<tr data-sec="eval"><td>20</td><td>広告主からの<br>最大の評価ポイント</td><td class="col-sn">（PoC前のため未検証）<br>→ 楽天の事実データ精度と<br>SNの高品質メディア面の<br>掛け合わせが仮説</td><td>EC購買データの精度と規模<br>「実際に買った/買おうとした人」<br>をピンポイントで狙える<br>→ CPG/ECの鉄板ツール</td><td>オフライン購買まで追跡できる<br>唯一のキャリアデータ基盤<br>→ O2O/リテール業種で高評価</td><td>LINE 9,900万MAUのリーチ力<br>+ Yahoo!検索意図データ<br>→ 日本最大のユーザー接点</td></tr>
+<tr data-sec="eval"><td>21</td><td>特に活用されている<br>セグメント</td><td class="col-sn">（想定）<br>楽天市場行動データ（購買カテゴリ）<br>× 会員ランク<br>→ 購買力×志向の掛け合わせ</td><td>インマーケット（直近購買意向）<br>→ CVRが最も高い<br>ライフスタイル（100種類+）<br>→ 認知拡大で重宝</td><td>d払い/dカード決済データ<br>→ 実店舗購買リフト検証<br>位置情報×来店検知<br>→ 小売/飲食で重宝</td><td>LINE友だちオーディエンス<br>→ CRM連携で高CVR<br>類似オーディエンス(1%)<br>→ 新規獲得の鉄板</td></tr>
+<tr data-sec="eval"><td>22</td><td>急成長中/<br>ニーズが高い領域</td><td class="col-sn">（機会）<br>3種掛け合わせペルソナ提案<br>→ 競合にないSN独自の付加価値</td><td>AMC（データクリーンルーム）<br>→ 高度な分析ニーズ急増<br>Prime Video広告<br>→ CTV領域の成長</td><td>ARUTANA（リテールアプリ連携）<br>→ 2027年市場1,390億円予測<br>ドコモ×インテージ連携</td><td>LINE⇔Yahoo!統合<br>→ 2026春の大きな転換点<br>PayPayデータ連携<br>→ O2O本格化の期待</td></tr>
+
+<tr class="cmp-cat" data-sec="strat"><td></td><td colspan="5">SN × 楽天への戦略的示唆</td></tr>
+<tr class="cmp-sn" data-sec="strat"><td>23</td><td>楽天データの<br>「使える筋」</td><td colspan="4">【最優先】楽天市場行動データ（事実） → EC購買カテゴリは楽天最大の武器になりうる。他社が持てない「何を買ったか」の事実。<br>【高優先】会員ランク × 年収推定 → 購買力の事実+推定の掛け合わせで独自のポジションを構築できる可能性。<br>【差別化】3種掛けペルソナ → Amazon/ドコモにない提案手法として機能しうる。<br>【固有資産候補】ママ割/シニア(自己申告事実)、トラベル予約種別、楽天ビューティ予約、喫煙セグメント、Kobo利用者、就活日記利用者</td></tr>
+<tr class="cmp-sn" data-sec="strat"><td>24</td><td>SN独自の<br>ポジショニング</td><td colspan="4">実現すれば「購買事実データ × ニュースメディア」という唯一の組み合わせが成立する。<br>Amazon DSP → EC面中心 ｜ ドコモ → リテールアプリ面中心 ｜ LINEヤフー → メッセンジャー/ポータル面<br>SmartNews → ニュースコンテンツ面 = 可処分時間の中で最も情報感度が高い瞬間にリーチできる可能性</td></tr>
+<tr class="cmp-sn" data-sec="strat"><td>25</td><td>実現時に<br>想定される課題</td><td colspan="4">①データの鮮度：Amazonのインマーケット(リアルタイム更新)に対し、楽天データの更新頻度は要確認<br>②配信面の限定性：Amazon/ドコモ/LINEヤフーは複数面を持つがSNは自社面のみ。リーチ量での不利は前提<br>③O2O効果測定：ドコモ/LINEヤフーが先行。楽天DCRの具体化が必要<br>④データフィー20%：粗利構造への影響。特にSmartView(メディアRevShare約40%)との併用時に採算ラインの事前設計が必須</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- Section 6: 新規開拓業種 -->
+<section class="section" id="s6">
+<div class="sec-hd">
+  <div class="sec-ttl">6. 新規開拓業種の提案</div>
+  <div class="sec-sub">既存ISでカバーされていない業種を、QuickWin（SNユーザーのボリュームゾーン50-70代に直撃）と中長期（20-40代の新ポートフォリオ創出）の2軸で提案。</div>
+</div>
+
+<div class="demo-bar">
+  <div class="demo-stat"><b>SNユーザー</b></div>
+  <div class="demo-stat">女性52.5% / 男性47.5%</div>
+  <div class="demo-stat">|</div>
+  <div class="demo-stat"><span class="demo-accent">広告反応Volume：50-70代</span></div>
+  <div class="demo-stat">|</div>
+  <div class="demo-stat">南関東32.6% / 近畿17.3% / 東海11.4%</div>
+</div>
+
+<div class="subsec">
+  <div class="subsec-num">6-A</div>
+  <div class="subsec-ttl">QuickWin — 50-70代直撃で即効性の高い業種</div>
+  <div class="subsec-desc">SNユーザーの広告反応ボリュームゾーンと完全に一致する業種。楽天データとの親和性も高く、PoCから早期に結果が出やすい。</div>
+</div>
+
+<div class="ind-card">
+  <div class="ind-hd">
+    <div class="ind-icon" style="background:var(--t-bg);color:var(--t-tx)">1</div>
+    <div><div class="ind-name">ペット</div></div>
+    <div class="ind-mkt">産業市場 <b>約1.7兆円</b> | デジタル広告推定500〜800億円 | 年率10%+成長</div>
+  </div>
+  <div class="ind-fit"><b>SNフィット：◎</b> 50-70代の「子供が自立した後のペット飼育」は社会現象化。ペットは「第二の子育て」として情緒的投資が大きく、広告反応率も高い。</div>
+  <div class="ind-sec-lbl">推奨アセット</div>
+  <div class="ind-assets">
+    <div class="ind-asset"><b>ペット用品購買（事実）</b><span>単体◎ | A○ D△ L△</span></div>
+    <div class="ind-asset"><b>ペット飼育あり（類推）</b><span>単体◎ | SN×楽天独自</span></div>
+    <div class="ind-asset"><b>医薬品・介護購買（事実）</b><span>掛け合わせ（ペット医療費の相関）</span></div>
+    <div class="ind-asset"><b>年収600万+（類推）</b><span>掛け合わせ（支出余力の裏付け）</span></div>
+  </div>
+  <div class="ind-sec-lbl">代表ペルソナ</div>
+  <div class="ind-persona">
+    <div class="ind-p-name">ペットオーナー・シニア <span class="p-comp p-comp-h">vs競合: High</span> <span class="p-mkt">| ペット飼育類推は独自</span></div>
+    <div class="ind-p-recipe">ペット飼育あり（類推） × ペット用品購買（事実） × 50-60代（事実）</div>
+    <div class="ind-p-scene">朝のSmartNewsでペットの健康記事を読んだ後、愛犬のフード切れに気づいて楽天で定期便を確認する。動物病院の検診費用も上がってきたので、ペット保険も気になり始めている。</div>
+    <div class="ind-p-inds"><span class="r-ind">ペットフード</span><span class="r-ind">ペット保険</span><span class="r-ind">動物病院チェーン</span><span class="r-ind">ペット用品D2C</span><span class="r-ind">ペットホテル</span></div>
+  </div>
+</div>
+
+<div class="ind-card">
+  <div class="ind-hd">
+    <div class="ind-icon" style="background:var(--p-bg);color:var(--p-tx)">2</div>
+    <div><div class="ind-name">介護・シニアサービス</div></div>
+    <div class="ind-mkt">介護市場 <b>約12兆円</b> | デジタル広告は小規模だが年率20%+急成長</div>
+  </div>
+  <div class="ind-fit"><b>SNフィット：◎（最高）</b> 50-60代＝親の介護当事者、70代＝自身のケア。SNの広告反応ボリュームゾーンと最も一致する業種。</div>
+  <div class="ind-sec-lbl">推奨アセット</div>
+  <div class="ind-assets">
+    <div class="ind-asset"><b>楽天シニア（自己申告事実）</b><span>単体◎ | SN×楽天独自</span></div>
+    <div class="ind-asset"><b>医薬品・介護購買（事実）</b><span>単体◎ | A○ D△ L△</span></div>
+    <div class="ind-asset"><b>ダイエット・健康購買（事実）</b><span>掛け合わせ</span></div>
+    <div class="ind-asset"><b>60代以上（事実）</b><span>単体/掛け</span></div>
+  </div>
+  <div class="ind-sec-lbl">代表ペルソナ</div>
+  <div class="ind-persona">
+    <div class="ind-p-name">介護準備世代 <span class="p-comp p-comp-h">vs競合: High</span> <span class="p-mkt">| 楽天シニアは独自</span></div>
+    <div class="ind-p-recipe">楽天シニア（事実） × 医薬品・介護購買（事実） × ゴールド以上（事実）</div>
+    <div class="ind-p-scene">実家の母の足腰が弱ってきたことに気づき、手すり設置と介護用品をネットで調べ始めた。SmartNewsで「介護費用の実態」の記事を読みながら、自分の老後も考え始めている。</div>
+    <div class="ind-p-inds"><span class="r-ind">有料老人ホーム</span><span class="r-ind">訪問介護</span><span class="r-ind">介護用品D2C</span><span class="r-ind">見守りサービス</span><span class="r-ind">シニア向け住宅</span></div>
+  </div>
+</div>
+
+<div class="ind-card">
+  <div class="ind-hd">
+    <div class="ind-icon" style="background:var(--r-bg);color:var(--r-tx)">3</div>
+    <div><div class="ind-name">ふるさと納税・地方自治体</div></div>
+    <div class="ind-mkt">ふるさと納税市場 <b>1兆円超</b> | 楽天ふるさと納税が市場シェア上位</div>
+  </div>
+  <div class="ind-fit"><b>SNフィット：◎</b> メイン利用者＝年収500万+の40-60代でSNユーザー中核層と一致。節税意識の高い層はニュース面で経済記事を読む傾向。年末集中の季節性はスポット予算として逆に取りやすい。</div>
+  <div class="ind-sec-lbl">推奨アセット</div>
+  <div class="ind-assets">
+    <div class="ind-asset"><b>年収帯600万+（類推）</b><span>単体◎</span></div>
+    <div class="ind-asset"><b>食品カテゴリ購買（事実）</b><span>掛け（返礼品の関心軸）</span></div>
+    <div class="ind-asset"><b>トラベル予約（事実）</b><span>掛け（地方関心の裏付け）</span></div>
+    <div class="ind-asset"><b>会員ランク ゴールド以上</b><span>掛け（納税余力の事実指標）</span></div>
+  </div>
+  <div class="ind-sec-lbl">代表ペルソナ</div>
+  <div class="ind-persona">
+    <div class="ind-p-name">節税意識の高い高年収層 <span class="p-comp p-comp-h">vs競合: High</span> <span class="p-mkt">| 楽天ふるさと納税連携で独自</span></div>
+    <div class="ind-p-recipe">年収800万+（類推） × 食品購買（事実） × トラベル利用（事実） × プラチナ以上（事実）</div>
+    <div class="ind-p-scene">11月の週末、SmartNewsの「年末調整と控除」の記事を読んだ後、今年の控除枠を計算し始める。去年旅行で訪れた地方の特産品を思い出し、ふるさと納税で返礼品を探す。</div>
+    <div class="ind-p-inds"><span class="r-ind">地方自治体</span><span class="r-ind">ふるさと納税PF</span><span class="r-ind">地方特産品</span><span class="r-ind">地域観光協会</span></div>
+  </div>
+  <div style="font-size:11px;color:var(--text-ter);margin-top:8px;padding:6px 10px;background:var(--surface-2);border-radius:var(--radius);line-height:1.5">楽天はふるさと納税ポータルを運営。データ親和性が全業種中最も高く、楽天側の協業モチベーションも揃いやすい。</div>
+</div>
+
+<div class="subsec-bridge">▼ 以下は即効性よりも中長期のポートフォリオ拡大を狙う業種提案です ▼</div>
+
+<div class="subsec">
+  <div class="subsec-num">6-B</div>
+  <div class="subsec-ttl">中長期 — 20-40代の新規ポートフォリオ創出</div>
+  <div class="subsec-desc">SNユーザーのテール層（20-40代）に向けた新規業種。現時点の広告反応率はボリュームゾーンほど高くないが、楽天データとの掛け合わせで他媒体にない提案ができる領域。中長期的な広告主ポートフォリオの厚みを作る布石。</div>
+</div>
+
+<div class="ind-card">
+  <div class="ind-hd">
+    <div class="ind-icon" style="background:var(--b-bg);color:var(--b-tx)">4</div>
+    <div><div class="ind-name">教育・学習（塾/通信教育/資格取得）</div></div>
+    <div class="ind-mkt">教育産業市場 <b>約3兆円</b> | EdTech領域は年率15%+成長</div>
+  </div>
+  <div class="ind-fit"><b>SNフィット：○</b> 30-40代が子供の教育に投資する世代。リスキリング需要で20-30代の資格取得も拡大中。SN面でキャリア・教育記事を読む層との親和性。</div>
+  <div class="ind-sec-lbl">推奨アセット</div>
+  <div class="ind-assets">
+    <div class="ind-asset"><b>楽天ママ割（自己申告事実）</b><span>単体◎ | SN×楽天独自</span></div>
+    <div class="ind-asset"><b>キッズ・ベビー購買（事実）</b><span>掛け合わせ（子供の存在確認）</span></div>
+    <div class="ind-asset"><b>本・雑誌・コミック購買（事実）</b><span>単体/掛け（学習意欲の代理指標）</span></div>
+    <div class="ind-asset"><b>楽天Kobo利用（事実）</b><span>掛け（デジタル学習親和性）</span></div>
+  </div>
+  <div class="ind-sec-lbl">代表ペルソナ</div>
+  <div class="ind-persona">
+    <div class="ind-p-name">教育投資パパママ <span class="p-comp p-comp-h">vs競合: High</span> <span class="p-mkt">| ママ割は独自</span></div>
+    <div class="ind-p-recipe">楽天ママ割（事実） × キッズ購買（事実） × 本・雑誌購買（事実）</div>
+    <div class="ind-p-scene">中学受験を意識し始めた小4の子供のために、塾の資料をスマホで比較する。SmartNewsで「教育費のリアル」の記事を読んだ直後に、通信教育の広告が目に入る。</div>
+    <div class="ind-p-inds"><span class="r-ind">学習塾</span><span class="r-ind">通信教育</span><span class="r-ind">EdTech</span><span class="r-ind">英会話</span><span class="r-ind">資格スクール</span></div>
+  </div>
+</div>
+
+<div class="ind-card">
+  <div class="ind-hd">
+    <div class="ind-icon" style="background:var(--r-bg);color:var(--r-tx)">5</div>
+    <div><div class="ind-name">ブライダル・結婚関連</div></div>
+    <div class="ind-mkt">ブライダル市場 <b>約1.4兆円</b> | デジタルシフトが加速中</div>
+  </div>
+  <div class="ind-fit"><b>SNフィット：△→○</b> メインターゲットは25-35歳でSNのテール層だが、結婚準備期は情報感度が極めて高く、ニュースアプリとの接点も多い。親世代（50-60代）への結婚式場広告も有効。</div>
+  <div class="ind-sec-lbl">推奨アセット</div>
+  <div class="ind-assets">
+    <div class="ind-asset"><b>ジュエリー・アクセサリー購買（事実）</b><span>単体/掛け | A○ D× L×</span></div>
+    <div class="ind-asset"><b>未婚→既婚（類推の変化）</b><span>掛け合わせ（ライフイベントシグナル）</span></div>
+    <div class="ind-asset"><b>トラベル予約（事実）</b><span>掛け（ハネムーン需要）</span></div>
+    <div class="ind-asset"><b>ファッション購買（事実）</b><span>掛け（準備期の衣装関心）</span></div>
+  </div>
+  <div class="ind-sec-lbl">代表ペルソナ</div>
+  <div class="ind-persona">
+    <div class="ind-p-name">結婚準備カップル <span class="p-comp p-comp-m">vs競合: Mid</span> <span class="p-mkt">| 類似: A△ L○(Yahoo!検索)</span></div>
+    <div class="ind-p-recipe">ジュエリー購買（事実） × 25-34歳（事実） × トラベル予約（事実）</div>
+    <div class="ind-p-scene">婚約指輪を購入した直後、次はハネムーンの行き先を楽天トラベルで検討。式場選びと新居探しが同時進行で、SmartNewsの住まい・旅行記事をよくチェックしている。</div>
+    <div class="ind-p-inds"><span class="r-ind">結婚式場</span><span class="r-ind">ジュエリーブランド</span><span class="r-ind">新婚旅行</span><span class="r-ind">ブライダルエステ</span><span class="r-ind">新居家具</span></div>
+  </div>
+</div>
+
+<div class="ind-card">
+  <div class="ind-hd">
+    <div class="ind-icon" style="background:var(--t-bg);color:var(--t-tx)">6</div>
+    <div><div class="ind-name">フィットネス・ジム・スポーツジム</div></div>
+    <div class="ind-mkt">フィットネス市場 <b>約7,000億円</b> | コロナ後の回復+オンラインフィットネス成長</div>
+  </div>
+  <div class="ind-fit"><b>SNフィット：○</b> 20-40代の健康投資意識の高まり。IS3のH&Bは美容D2C中心でジムは別領域。SN面で健康・ダイエット記事を読む層との親和性。</div>
+  <div class="ind-sec-lbl">推奨アセット</div>
+  <div class="ind-assets">
+    <div class="ind-asset"><b>スポーツ・アウトドア購買（事実）</b><span>単体◎ | A○ D△ L△</span></div>
+    <div class="ind-asset"><b>ダイエット・健康購買（事実）</b><span>単体◎ | A○ D△ L△</span></div>
+    <div class="ind-asset"><b>楽天GORA利用（事実）</b><span>掛け（スポーツ習慣の裏付け）</span></div>
+    <div class="ind-asset"><b>20-40代（事実）</b><span>掛け合わせ</span></div>
+  </div>
+  <div class="ind-sec-lbl">代表ペルソナ</div>
+  <div class="ind-persona">
+    <div class="ind-p-name">健康投資アクティブ層 <span class="p-comp p-comp-m">vs競合: Mid</span> <span class="p-mkt">| 類似: A○ D△ L△</span></div>
+    <div class="ind-p-recipe">スポーツ購買（事実） × ダイエット・健康購買（事実） × 25-39歳（事実）</div>
+    <div class="ind-p-scene">在宅勤務で体重が増えたことを気にして、まずはランニングシューズを楽天で購入。次にジムの体験入会を検討しながら、SmartNewsでダイエット記事をチェックしている。</div>
+    <div class="ind-p-inds"><span class="r-ind">フィットネスジム</span><span class="r-ind">オンラインフィットネス</span><span class="r-ind">スポーツウェア</span><span class="r-ind">プロテインD2C</span><span class="r-ind">ヘルステック</span></div>
+  </div>
+</div>
+
+<div class="ind-card">
+  <div class="ind-hd">
+    <div class="ind-icon" style="background:var(--p-bg);color:var(--p-tx)">7</div>
+    <div><div class="ind-name">アパレル・ファッションブランド</div></div>
+    <div class="ind-mkt">アパレル市場 <b>約9兆円</b> | EC化率20%+でデジタル広告は数千億円規模</div>
+  </div>
+  <div class="ind-fit"><b>SNフィット：○</b> 20-40代女性が中心だが、楽天のファッション購買データは7カテゴリと最もリッチ。IS1-4のどこにも明示されていない空白領域。</div>
+  <div class="ind-sec-lbl">推奨アセット</div>
+  <div class="ind-assets">
+    <div class="ind-asset"><b>レディース/メンズファッション購買（事実）</b><span>単体◎ | A○ D× L△</span></div>
+    <div class="ind-asset"><b>靴/バッグ/ジュエリー購買（事実）</b><span>単体◎ | A○ D× L×</span></div>
+    <div class="ind-asset"><b>楽天ファッション利用（事実）</b><span>単体◎ | SN×楽天独自</span></div>
+    <div class="ind-asset"><b>楽天ビューティ予約（事実）</b><span>掛け（美容×ファッション）</span></div>
+  </div>
+  <div class="ind-sec-lbl">代表ペルソナ</div>
+  <div class="ind-persona">
+    <div class="ind-p-name">ファッション消費アクティブ層 <span class="p-comp p-comp-m">vs競合: Mid</span> <span class="p-mkt">| 楽天ファッション利用は独自</span></div>
+    <div class="ind-p-recipe">ファッション購買（事実） × 楽天ファッション利用（事実） × 25-39歳女性（事実）</div>
+    <div class="ind-p-scene">季節の変わり目に、楽天ファッションのセールを見ながら秋物のアウターを検討中。同時にサロン予約も入れて、トータルコーディネートを楽しんでいる。</div>
+    <div class="ind-p-inds"><span class="r-ind">アパレルブランド</span><span class="r-ind">シューズ</span><span class="r-ind">アクセサリー</span><span class="r-ind">ファッションEC</span><span class="r-ind">百貨店</span></div>
+  </div>
+</div>
+
+<div class="ind-card">
+  <div class="ind-hd">
+    <div class="ind-icon" style="background:var(--b-bg);color:var(--b-tx)">8</div>
+    <div><div class="ind-name">ゲーム・エンタメアプリ</div></div>
+    <div class="ind-mkt">ゲーム市場 <b>約2兆円</b>（国内） | モバイルゲーム広告は数千億円規模</div>
+  </div>
+  <div class="ind-fit"><b>SNフィット：△→○</b> 20-30代中心だが、IS2のWeb漫画とは別領域。楽天のテレビゲーム購買+Kobo利用+楽天TV利用でデジタルコンテンツ消費者を特定。</div>
+  <div class="ind-sec-lbl">推奨アセット</div>
+  <div class="ind-assets">
+    <div class="ind-asset"><b>テレビゲーム購買（事実）</b><span>単体◎ | A○ D△ L△</span></div>
+    <div class="ind-asset"><b>楽天Kobo利用（事実）</b><span>掛け（デジタルコンテンツ課金習慣）</span></div>
+    <div class="ind-asset"><b>楽天TV利用（事実）</b><span>掛け（エンタメ消費習慣）</span></div>
+    <div class="ind-asset"><b>20-30代（事実）</b><span>掛け合わせ</span></div>
+  </div>
+  <div class="ind-sec-lbl">代表ペルソナ</div>
+  <div class="ind-persona">
+    <div class="ind-p-name">デジタルコンテンツ消費者 <span class="p-comp p-comp-m">vs競合: Mid</span> <span class="p-mkt">| 類似: A○(Twitch/Prime)</span></div>
+    <div class="ind-p-recipe">テレビゲーム購買（事実） × 楽天Kobo利用（事実） × 20-30代（事実）</div>
+    <div class="ind-p-scene">通勤電車でSmartNewsを読んだ後、次の駅までの時間で楽天Koboの漫画を読む。週末に発売される新作ゲームの予約も済ませたところで、ゲーム関連の広告に反応する。</div>
+    <div class="ind-p-inds"><span class="r-ind">ゲームパブリッシャー</span><span class="r-ind">ストリーミング</span><span class="r-ind">ゲーミングデバイス</span><span class="r-ind">エンタメアプリ</span></div>
+  </div>
+</div>
+
+<div class="ind-card">
+  <div class="ind-hd">
+    <div class="ind-icon" style="background:var(--t-bg);color:var(--t-tx)">9</div>
+    <div><div class="ind-name">食品D2C・ミールキット</div></div>
+    <div class="ind-mkt">ミールキット市場 <b>約1,500億円</b> | 食品EC全体で年率8%+成長</div>
+  </div>
+  <div class="ind-fit"><b>SNフィット：○</b> IS1のCPGは大手メーカー中心で、D2C系の小規模ブランドやミールキットは別チャネル。30-40代の共働き世帯向けで、楽天データの食品+ママ割+就業中（類推）で特定可能。</div>
+  <div class="ind-sec-lbl">推奨アセット</div>
+  <div class="ind-assets">
+    <div class="ind-asset"><b>食品カテゴリ購買（事実）</b><span>単体◎ | A○ D△ L△</span></div>
+    <div class="ind-asset"><b>楽天西友ネットスーパー利用（事実）</b><span>単体◎ | SN×楽天独自</span></div>
+    <div class="ind-asset"><b>楽天ママ割（自己申告事実）</b><span>掛け | SN×楽天独自</span></div>
+    <div class="ind-asset"><b>就業中（類推）</b><span>掛け（共働き世帯の特定）</span></div>
+  </div>
+  <div class="ind-sec-lbl">代表ペルソナ</div>
+  <div class="ind-persona">
+    <div class="ind-p-name">時短志向の共働き世帯 <span class="p-comp p-comp-h">vs競合: High</span> <span class="p-mkt">| 西友NS+ママ割は独自</span></div>
+    <div class="ind-p-recipe">食品購買（事実） × 楽天ママ割（事実） × 就業中（類推）</div>
+    <div class="ind-p-scene">保育園のお迎え後、夕食の準備時間がないことに気づく。SmartNewsで時短レシピ記事を読みながら、ミールキットの定期便を検討し始める。楽天西友で日用品もまとめて注文。</div>
+    <div class="ind-p-inds"><span class="r-ind">ミールキット</span><span class="r-ind">食品サブスク</span><span class="r-ind">オーガニック食品D2C</span><span class="r-ind">離乳食D2C</span><span class="r-ind">調理家電</span></div>
+  </div>
+</div>
+
+<div class="ind-card">
+  <div class="ind-hd">
+    <div class="ind-icon" style="background:var(--r-bg);color:var(--r-tx)">10</div>
+    <div><div class="ind-name">スポーツ・アウトドアブランド</div></div>
+    <div class="ind-mkt">アウトドア市場 <b>約5,000億円</b> | キャンプ・登山ブーム継続で堅調</div>
+  </div>
+  <div class="ind-fit"><b>SNフィット：○</b> 30-40代のアクティブ層が中心。IS2の旅行とは別で、用品メーカー・ブランドが広告主。楽天のスポーツ購買+GORA+車用品（キャンプ移動）の掛け合わせが独自。</div>
+  <div class="ind-sec-lbl">推奨アセット</div>
+  <div class="ind-assets">
+    <div class="ind-asset"><b>スポーツ・アウトドア購買（事実）</b><span>単体◎ | A○ D△ L△</span></div>
+    <div class="ind-asset"><b>楽天GORA予約（事実）</b><span>掛け | SN×楽天独自</span></div>
+    <div class="ind-asset"><b>車用品購買（事実）</b><span>掛け（キャンプ/アウトドア移動手段）</span></div>
+    <div class="ind-asset"><b>トラベル予約（事実）</b><span>掛け（アウトドア旅行）</span></div>
+  </div>
+  <div class="ind-sec-lbl">代表ペルソナ</div>
+  <div class="ind-persona">
+    <div class="ind-p-name">週末アウトドア層 <span class="p-comp p-comp-h">vs競合: High</span> <span class="p-mkt">| GORA+スポーツ+車用品の3掛けは独自</span></div>
+    <div class="ind-p-recipe">スポーツ・アウトドア購買（事実） × 車用品購買（事実） × 30-40代（事実）</div>
+    <div class="ind-p-scene">来月のキャンプの準備で新しいテントを楽天で比較検討中。車のルーフキャリアも一緒に買おうかと迷いながら、SmartNewsのアウトドア記事でキャンプ場情報を集めている。</div>
+    <div class="ind-p-inds"><span class="r-ind">アウトドアブランド</span><span class="r-ind">スポーツ用品</span><span class="r-ind">キャンプ場</span><span class="r-ind">カー用品</span><span class="r-ind">アウトドアメディア</span></div>
+  </div>
+</div>
+
+</section>
+
+<!-- Section 7: 評価ダッシュボード -->
+<section class="section" id="s7">
+<div class="sec-hd">
+  <div class="sec-ttl">7. 評価ダッシュボード</div>
+  <div class="sec-sub">各セクションで入力されたImpact評価をリアルタイムに集計。FCST × Win確度のスコア降順で優先度を可視化。</div>
+</div>
+
+<div style="font-size:12px;color:var(--text-sec);padding:10px 14px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);margin-bottom:16px;line-height:1.7">
+  <span style="font-weight:500;color:var(--text)">スコア算出ロジック：</span>
+  FCST（S=4 / A=3 / B=2 / C=1） × Win確度（1=3 / 2=2 / 3=1） = 最大12pt / 最小1pt<br>
+  <span style="font-size:11px;color:var(--text-ter)">各ペルソナ/業種に複数の評価がある場合は、最高スコアの評価を代表値として表示します。</span>
+</div>
+
+<div class="dash-panel">
+  <div class="dash-title">優先度マトリクス（FCST × Win確度）</div>
+  <div id="dashMatrix"><div class="dash-empty">まだ評価がありません。各ペルソナカードの「Impact評価」から入力してください。</div></div>
+</div>
+
+<div class="dash-panel">
+  <div class="dash-title">優先度ランキング（スコア降順）</div>
+  <div id="dashRanking"><div class="dash-empty">評価データがありません</div></div>
+</div>
+
+<div class="dash-panel">
+  <div class="dash-title">出稿タイムライン</div>
+  <div id="dashTimeline"><div class="dash-empty">出稿想定月のデータがありません</div></div>
+</div>
+
+<div class="dash-panel">
+  <div class="dash-title">高評価ペルソナに含まれるアセット出現頻度</div>
+  <div style="font-size:11px;color:var(--text-ter);margin-bottom:10px">スコア6pt以上のペルソナに使われている楽天データアセットのランキング。「結局どのアセットが一番使えるか」が分かります。</div>
+  <div id="dashAssets"><div class="dash-empty">高評価データがありません</div></div>
+</div>
+
+</section>
+
+</main>
+</div>
+
+<script>
+// Navigation
+function nav(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// Section 1 toggle
+function tog(i){document.getElementById('c'+i).classList.toggle('open')}
+
+// Section 3: IS filter (syncs 3-A tabs and 3-B cards)
+function filterIS(e,is){
+  document.querySelectorAll('.is-pill').forEach(p=>p.classList.remove('active'));
+  e.currentTarget.classList.add('active');
+  // Sync 3-A asset panel tabs
+  var tabMap={is1:0,is2:1,is3:2,is4:3,btob:4};
+  if(is in tabMap){
+    document.querySelectorAll('.ap-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.ap-content').forEach(c=>c.classList.remove('active'));
+    var tabs=document.querySelectorAll('.ap-tab');
+    var contents=document.querySelectorAll('.ap-content');
+    if(tabs[tabMap[is]]){tabs[tabMap[is]].classList.add('active');}
+    var apEl=document.getElementById('ap'+tabMap[is]);
+    if(apEl){apEl.classList.add('active');}
+  } else if(is==='all'){
+    document.querySelectorAll('.ap-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.ap-content').forEach(c=>c.classList.remove('active'));
+    document.querySelectorAll('.ap-tab')[0].classList.add('active');
+    document.getElementById('ap0').classList.add('active');
+  }
+  // Filter 3-B persona cards
+  document.querySelectorAll('#s3 .p-card').forEach(card=>{
+    if(is==='all'){card.style.display='';return;}
+    var tags=card.getAttribute('data-is')||'';
+    card.style.display=tags.indexOf(is)>=0?'':'none';
+  });
+}
+
+// Section 3: Asset panel tabs
+function showAP(e,idx){
+  document.querySelectorAll('.ap-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.ap-content').forEach(c=>c.classList.remove('active'));
+  e.currentTarget.classList.add('active');
+  document.getElementById('ap'+idx).classList.add('active');
+}
+
+// Section 5: Comparison table filter
+function filterCmp(e,sec){
+  document.querySelectorAll('.cmp-fbtn').forEach(b=>b.classList.remove('active'));
+  e.currentTarget.classList.add('active');
+  document.querySelectorAll('.cmp-table tbody tr').forEach(tr=>{
+    if(sec==='all'){tr.style.display='';return;}
+    var s=tr.getAttribute('data-sec')||'';
+    tr.style.display=(s===sec)?'':'none';
+  });
+}
+
+// Section 4: Builder
+var G=[
+{i:0,c:0,n:"性別",d:"男/女",cl:"r",sig:"基本的なデモグラ属性"},
+{i:1,c:0,n:"年齢",d:"12区分",cl:"r",sig:"世代・ライフステージの基礎"},
+{i:2,c:0,n:"会員ランク",d:"5段階",cl:"r",sig:"楽天での購買頻度・金額の事実"},
+{i:3,c:0,n:"都道府県",d:"47",cl:"r",sig:"居住エリア・生活圏"},
+{i:4,c:1,n:"ファッション購買",d:"7種",cl:"b",sig:"見た目・ブランドへの投資志向"},
+{i:5,c:1,n:"食品・飲料購買",d:"5種",cl:"b",sig:"日常の食生活・嗜好品への支出"},
+{i:6,c:1,n:"デジタル・通信購買",d:"4種",cl:"b",sig:"デジタル機器への関心・購買力"},
+{i:7,c:1,n:"生活・住まい購買",d:"7種",cl:"b",sig:"住環境の整備・生活基盤投資"},
+{i:8,c:1,n:"キッズ・ヘルスケア購買",d:"5種",cl:"b",sig:"育児・健康・美容への実支出"},
+{i:9,c:1,n:"ホビー・エンタメ購買",d:"7種",cl:"b",sig:"趣味・余暇への消費傾向"},
+{i:10,c:1,n:"車・ギフト購買",d:"3種",cl:"b",sig:"高額商材・ギフト需要"},
+{i:11,c:2,n:"EC・ショッピング",d:"9SVC",cl:"t",sig:"ECチャネル全般の活用度"},
+{i:12,c:2,n:"旅行・レジャー",d:"8SVC",cl:"t",sig:"旅行・レジャーへの実支出とタイミング"},
+{i:13,c:2,n:"金融・決済",d:"8SVC",cl:"t",sig:"キャッシュレス・ポイント経済圏への没入度"},
+{i:14,c:2,n:"メディア・エンタメ",d:"6SVC",cl:"t",sig:"コンテンツ消費の習慣"},
+{i:15,c:2,n:"生活サービス",d:"10SVC",cl:"t",sig:"通信・美容等の生活インフラ"},
+{i:16,c:2,n:"会員属性・割引",d:"5SVC",cl:"t",sig:"自己申告ベースのライフステージ(高確度)"},
+{i:17,c:3,n:"職種",d:"5区分",cl:"p",sig:"社会的立場・BtoB購買決定力の推定"},
+{i:18,c:3,n:"ライフスタイル",d:"20項目",cl:"p",sig:"家族構成・住環境・生活習慣の推定"},
+{i:19,c:3,n:"金融・年収",d:"14項目",cl:"p",sig:"可処分所得・金融資産の推定"}
+];
+var CATS=["会員情報(事実)","市場行動(事実)","経済圏(事実)","類推"];
+var CDOTS=["dr","db","dt","dp"];
+var sel=[];
+
+var F3={
+"2,10,19":{n:"エグゼクティブ購買層",inf:["ダイヤモンド会員＝楽天で年間相当額を実際に消費している事実","車用品等の高額商材を購入する余力と関心","年収1000万+推定で可処分所得の裏付け"],scenes:["週末、愛車のメンテナンス用品をまとめ買いしながら、次の車検のタイミングで乗り換えも検討しようかと考えている。","出張先のホテルで、気になっていた高級腕時計のレビューを読み比べ、ポイント還元の高いタイミングで買うと決める。"],motive:"時間を買う意識と、自分へのご褒美としての高額消費が混ざった動機。価格より選ぶ時間を最小化して良いものを手に入れることが優先。",traits:["高可処分所得","意思決定者","時間価値重視","品質志向"],indLogic:"高年収×意思決定権×高額購買の証明で、プレミアム領域と法人購買権限を活かせるBtoB領域に最適。",ind:["高級車ディーラー","ラグジュアリーブランド","法人向けSaaS","BtoBイベント集客","プレミアム会員サービス"],p:"年収1000万超と推定され、楽天最上位会員で高額商材を実際に購入している層。御社のトップ顧客像と直接重なるペルソナを事実データで裏付けて狙えます。"},
+"9,12,19":{n:"アウトドア富裕層",inf:["楽天GORA利用＝ゴルフという高単価レジャーへの実支出","スポーツ・アウトドア商材の購買実績","高年収推定で継続的支出が可能"],scenes:["月初の週末に次のゴルフコースを予約した後、新しいドライバーのレビューを見ながら今季中に買い替えるかと悩み始める。","取引先との接待ゴルフの前日に、少し見栄えのするウェアを探し、ついでに新作のシューズもカートに入れる。"],motive:"趣味の継続支出とステータスの演出が同居。使った分だけ満足度が上がる実感がある層。",traits:["趣味への高支出","健康意識","ステータス志向","週末アクティブ"],indLogic:"レジャー消費習慣×高所得で、趣味領域のプレミアム商材と富裕層向けの非趣味領域どちらにも刺さる。",ind:["ゴルフ用品","アウトドアブランド","リゾート施設","プレミアム車","高級時計"],p:"楽天GORAや楽天トラベルの利用実績があり、スポーツ用品を購入、かつ高年収推定の層。レジャー消費の実態と購買力が揃っています。"},
+"1,8,18":{n:"子育てアクティブ層",inf:["30代＝子育て適齢期","キッズ・ベビー商材の購買で子供の存在を事実確認","ライフスタイル類推(子供あり)が購買事実と一致"],scenes:["夜、子供を寝かしつけた後、スマホで明日届く離乳食と来週の園グッズをまとめて注文する。","保育園の連絡帳を書きながら、次の休日の家族の予定と、そろそろ切れそうな日用品の補充をLINEで夫婦で共有する。"],motive:"「子供のために」と「自分の時間を守るために」が両立する動機。迷う時間を減らしたいので、口コミとブランド信頼が購買を決める。",traits:["情報感度高","時間不足","子供優先消費","EC依存度高"],indLogic:"子育て世代の支出は教育・食・レジャー・保険に広がる。時間がない層なのでEC・サブスク型サービスとの相性が良い。",ind:["習い事サービス","知育玩具","ファミリーレジャー","食品宅配","子供保険"],p:"年齢層で世代を特定し、キッズ用品の購買事実と子供ありの類推が一致する層。購買事実が類推を裏付けるので安心して提案できます。"},
+"1,7,18":{n:"新生活スターター",inf:["住所変更が直近3ヶ月(類推)＝引越しのタイミングシグナル","若年層＝新卒・転勤・結婚・独立等の蓋然性","インテリア・家電の購買で新居準備中を事実確認"],scenes:["内見から戻った帰り道、電車の中で冷蔵庫と洗濯機のサイズを測り直し、今夜中に発注しようと決める。","引越し翌日、段ボールに囲まれながら、そういえばカーテンを買い忘れたと気づいてスマホで即注文する。"],motive:"短期間で大量の意思決定が必要な状態。効率と信頼で選ぶため、一度決めたブランドは長く使う傾向がある。",traits:["短期集中購買","効率重視","初回ブランド固定","情報処理負荷高"],indLogic:"引越しタイミングは生活インフラ見直しが一斉発生。家具・家電・通信・保険・生活用品が対象でリアルタイム配信が有効。",ind:["家具・インテリア","家電メーカー","通信キャリア","引越しサービス","生活用品D2C"],p:"20-30代で直近3ヶ月に住所変更があり、インテリア・家電を購入中の層。今まさに新生活を整えている最中のタイミングを捉えられます。"},
+"1,12,17":{n:"出張族ビジネスパーソン",inf:["就業世代の年齢","楽天トラベルの頻回利用＝個人旅行だけでは説明しづらい頻度","正社員・管理職推定と整合"],scenes:["出張帰りの新幹線で、来月の福岡出張のホテルをランク基準で絞り込んで予約完了させる。","空港のラウンジで、擦り切れてきたビジネスバッグの買い替え候補をいくつかカートに入れておく。"],motive:"移動が日常化しており、時間の無駄を削る動線最適化が関心事。ポイント・ステータス・効率の3点で選ぶ。",traits:["時間制約大","ステータス重視","ポイント意識","法人延長型消費"],indLogic:"出張関連サービスと、ビジネスパーソンの個人消費(ビジネスウェア・法人カード・モバイル)に刺さる。",ind:["ビジネスホテル","航空会社","モバイルWi-Fi","ビジネスウェア","法人カード"],p:"就業世代で楽天トラベルを頻繁に利用、かつ正社員・管理職と推定される層。ビジネス出張需要を事実ベースで捕捉しています。"},
+"0,4,15":{n:"美容投資層",inf:["性別×ファッション購買で見た目への関心を事実確認","楽天ビューティでのサロン予約実績","全て事実データ(類推なし)"],scenes:["サロン帰りにカフェでスマホを開き、担当スタイリストに勧められた新作コスメをそのまま購入する。","週末のデートの前に、新しいワンピースと合わせるアクセサリーを探しつつ、次回のサロン予約も入れる。"],motive:"見た目への投資は自分の機嫌を自分で取る手段。物販とサービスを往復しながら継続的にアップデートすること自体が楽しみ。",traits:["外見投資積極","定期消費","SNS情報感度","ブランド複数使い"],indLogic:"物販(ファッション・コスメ)とサービス(サロン)の両方に支出事実があり、美容クラスタ全業種＋周辺領域に広がる。",ind:["高級コスメ","美容医療","サロン","サプリD2C","アパレル"],p:"ファッション商材を購入し、楽天ビューティでサロン予約もしている層。見た目への投資を時間もお金も使って行っている事実が揃っています。"},
+"3,5,12":{n:"グルメ旅行者",inf:["特定エリア在住の事実","食品購買の実績","楽天トラベル利用の実績"],scenes:["旅行先で食べたお店の味が忘れられず、帰宅後に同じ産地の食材をお取り寄せで注文する。","週末の夜、夫婦で次はどこ行こうかと地図を眺めながら、ご当地グルメ目当てで宿を選び始める。"],motive:"食と旅は別々ではなく一つの体験として繋がっている。買った食材でその時の旅を追体験することも楽しみの一部。",traits:["体験消費志向","食への強い関心","地方関心","時間余裕"],indLogic:"食×旅のクロス需要で、地域観光・ふるさと納税・食品ECが特に相性が良い。",ind:["地方観光協会","ふるさと納税","食品EC","旅行代理店","グルメメディア"],p:"特定地域在住で食品を積極購入し、楽天トラベルも利用している層。食×旅のクロスで、ご当地グルメや観光プロモに最適です。"}
+};
+
+function render(){
+  var h='';
+  for(var c=0;c<4;c++){
+    h+='<div class="cat-row"><div class="cat-hd"><span class="cat-dot '+CDOTS[c]+'"></span>'+CATS[c]+'</div><div class="sg">';
+    for(var j=0;j<G.length;j++){
+      if(G[j].c!==c) continue;
+      var s=sel.indexOf(j)>=0;
+      var dis=!s&&sel.length>=3;
+      var cls='sg-btn';
+      if(s) cls+=' sel-'+G[j].cl;
+      if(dis) cls+=' dis';
+      h+='<button class="'+cls+'" onclick="pick('+j+')" '+(dis?'disabled':'')+'>'+G[j].n+'<span class="sz">'+G[j].d+'</span></button>';
+    }
+    h+='</div></div>';
+  }
+  document.getElementById('bld-grid').innerHTML=h;
+  var bh='';
+  if(sel.length===0) bh='<span class="bar-lbl">2〜3つ選択してください</span>';
+  else{
+    for(var k=0;k<sel.length;k++){
+      if(k>0) bh+='<span class="bx">×</span>';
+      bh+='<span class="bar-chip b-'+G[sel[k]].cl+'">'+G[sel[k]].n+'</span>';
+    }
+    bh+='<button class="rst" onclick="reset()">リセット</button>';
+  }
+  document.getElementById('bld-bar').innerHTML=bh;
+  var out=document.getElementById('bld-out');
+  if(sel.length<2){out.innerHTML='<div class="empty">左のサブグループを2〜3つ選ぶと、生活者の具体的なシーンが浮かび上がります</div>';return;}
+  var key=sel.slice().sort(function(a,b){return a-b}).join(',');
+  var persona=null;
+  if(sel.length===3&&F3[key]) persona=F3[key];
+  if(!persona) persona=fallback(sel);
+  var fc=factCount(sel);
+  var cl,cc;
+  if(fc===sel.length){cl='事実のみ：高確度';cc='conf-hi';}
+  else if(fc>=1){cl='事実'+fc+'+類推'+(sel.length-fc);cc='conf-md';}
+  else{cl='類推のみ：事実追加推奨';cc='conf-lo';}
+  var oh='';
+  oh+='<div class="step"><span class="step-num">STEP 1 / シグナル</span>';
+  oh+='<div class="step-hd">選んだセグメントから何が読み取れるか</div>';
+  oh+='<ul class="f-list">';
+  for(var k=0;k<sel.length;k++) oh+='<li><b>'+G[sel[k]].n+'</b> → '+G[sel[k]].sig+'</li>';
+  oh+='</ul></div><div class="arr">▼</div>';
+  oh+='<div class="step"><span class="step-num">STEP 2 / 推論チェーン</span>';
+  oh+='<div class="step-hd">シグナルが組み合わさると何が見えるか <span class="conf '+cc+'">'+cl+'</span></div>';
+  oh+='<ul class="f-list">';
+  for(var k=0;k<persona.inf.length;k++) oh+='<li>'+persona.inf[k]+'</li>';
+  oh+='</ul></div><div class="arr">▼</div>';
+  oh+='<div class="step"><span class="step-num">STEP 3 / このペルソナの日常シーン</span>';
+  oh+='<div class="step-hd">'+persona.n+' — こんな瞬間にいる人</div>';
+  for(var k=0;k<persona.scenes.length;k++){
+    oh+='<div class="scene"><div class="scene-lbl">SCENE '+(k+1)+'</div><div class="scene-body">'+persona.scenes[k]+'</div></div>';
+  }
+  if(persona.motive) oh+='<div class="motive"><div class="mini-lbl">行動の裏にある動機</div>'+persona.motive+'</div>';
+  if(persona.traits&&persona.traits.length){
+    oh+='<div class="mini-lbl" style="margin-top:10px">行動特性</div><div class="traits">';
+    for(var k=0;k<persona.traits.length;k++) oh+='<span class="trait">'+persona.traits[k]+'</span>';
+    oh+='</div>';
+  }
+  oh+='</div><div class="arr">▼</div>';
+  oh+='<div class="step"><span class="step-num">STEP 4 / 提案先業種</span>';
+  oh+='<div class="step-hd">このペルソナに刺さる業種</div>';
+  if(persona.indLogic) oh+='<div class="why-ind">'+persona.indLogic+'</div>';
+  oh+='<div class="r-inds">';
+  for(var m=0;m<persona.ind.length;m++) oh+='<span class="r-ind">'+persona.ind[m]+'</span>';
+  oh+='</div>';
+  if(persona.p){oh+='<div class="mini-lbl" style="margin-top:12px">営業トーク例</div><div class="pitch">「'+persona.p+'」</div>';}
+  if(persona.w){oh+='<div class="warn">⚠ '+persona.w+'</div>';}
+  oh+='</div>';
+  oh+='<div style="margin-top:16px;padding-top:14px;border-top:0.5px solid var(--border)">';
+  oh+='<div style="font-size:11px;font-weight:500;color:var(--text-sec);margin-bottom:4px">対象チーム（複数選択可）</div>';
+  oh+='<div class="team-sel">';
+  var teams=['IS1','IS2','IS3','IS4','SAS1','SAS2','SAS3','DAS1','DAS2','その他'];
+  teams.forEach(function(t){
+    oh+='<input type="checkbox" class="team-chk" id="tm_'+t+'" value="'+t+'"><label class="team-lbl" for="tm_'+t+'">'+t+'</label>';
+  });
+  oh+='</div>';
+  oh+='<div style="display:flex;align-items:center;gap:10px;margin-top:8px">';
+  oh+='<button class="ef-btn" onclick="saveBuilderToSection3()" style="font-size:12px;padding:8px 20px">3-Bに保存する</button>';
+  oh+='<span style="font-size:11px;color:var(--text-ter)">保存すると代表ペルソナに追加され、チーム全員が評価できるようになります</span>';
+  oh+='</div></div>';
+  out.innerHTML=oh;
+}
+
+
+// Individual data items within each subgroup (for 2-level builder selection)
+var SUB_ITEMS = {
+0:[{n:'男性',vs:'Mid',mkt:'A○ D◎ L○',f:1},{n:'女性',vs:'Mid',mkt:'A○ D◎ L○',f:1}],
+1:[{n:'20代以下',vs:'Mid',mkt:'A○ D◎ L○',f:1},{n:'30代',vs:'Mid',mkt:'A○ D◎ L○',f:1},{n:'40代',vs:'Mid',mkt:'A○ D◎ L○',f:1},{n:'50代',vs:'Mid',mkt:'A○ D◎ L○',f:1},{n:'60代',vs:'Mid',mkt:'A○ D◎ L○',f:1},{n:'70歳以上',vs:'Mid',mkt:'A○ D◎ L○',f:1}],
+2:[{n:'ゴールド',vs:'High',mkt:'SN×楽天独自',f:1},{n:'プラチナ',vs:'High',mkt:'SN×楽天独自',f:1},{n:'ダイヤモンド',vs:'High',mkt:'SN×楽天独自',f:1}],
+3:[{n:'南関東',vs:'Mid',mkt:'A△ D◎ L○',f:1},{n:'近畿',vs:'Mid',mkt:'A△ D◎ L○',f:1},{n:'東海',vs:'Mid',mkt:'A△ D◎ L○',f:1},{n:'その他地域',vs:'Mid',mkt:'A△ D◎ L○',f:1}],
+4:[{n:'レディースファッション',vs:'Mid',mkt:'A○ D× L△',f:1},{n:'メンズファッション',vs:'Mid',mkt:'A○ D× L△',f:1},{n:'靴',vs:'Mid',mkt:'A○ D× L×',f:1},{n:'バッグ・小物',vs:'Mid',mkt:'A○ D× L×',f:1},{n:'ジュエリー・アクセサリー',vs:'Mid',mkt:'A○ D× L×',f:1}],
+5:[{n:'食品購買',vs:'Mid',mkt:'A○ D△ L△',f:1},{n:'スイーツ・お菓子',vs:'Mid',mkt:'A○ D△ L×',f:1},{n:'水・ソフトドリンク',vs:'Mid',mkt:'A○ D△ L×',f:1},{n:'ビール・洋酒',vs:'Mid',mkt:'A○ D× L×',f:1},{n:'日本酒・焼酎',vs:'Mid',mkt:'A○ D× L×',f:1}],
+6:[{n:'パソコン・周辺機器',vs:'Mid',mkt:'A○ D△ L△',f:1},{n:'スマートフォン・タブレット',vs:'Mid',mkt:'A○ D◎ L△',f:1},{n:'テレビゲーム',vs:'Mid',mkt:'A○ D△ L△',f:1},{n:'光回線・モバイル通信',vs:'Mid',mkt:'A△ D◎ L△',f:1}],
+7:[{n:'インテリア・寝具・収納',vs:'Mid',mkt:'A○ D△ L△',f:1},{n:'日用品雑貨',vs:'Mid',mkt:'A○ D△ L△',f:1},{n:'花・ガーデン・DIY',vs:'Mid',mkt:'A○ D× L×',f:1},{n:'住宅・不動産',vs:'Mid',mkt:'A○ D△ L△',f:1},{n:'サービス・リフォーム',vs:'High',mkt:'SN×楽天独自',f:1},{n:'ペット・ペットグッズ',vs:'Mid',mkt:'A○ D△ L△',f:1}],
+8:[{n:'キッズ・ベビー用品',vs:'Mid',mkt:'A○ D△ L△',f:1},{n:'美容・コスメ・香水',vs:'Mid',mkt:'A○ D△ L△',f:1},{n:'ダイエット・健康',vs:'Mid',mkt:'A○ D△ L△',f:1},{n:'医薬品・コンタクト・介護',vs:'Mid',mkt:'A○ D△ L△',f:1},{n:'マタニティ・新生児用品',vs:'High',mkt:'A○(推定) 楽天は購買事実',f:1}],
+9:[{n:'スポーツ・アウトドア',vs:'Mid',mkt:'A○ D△ L△',f:1},{n:'本・雑誌・コミック',vs:'Mid',mkt:'A○(Kindle) D○(dマガジン)',f:1},{n:'おもちゃ',vs:'Mid',mkt:'A○ D× L×',f:1},{n:'CD・DVD・楽器',vs:'Mid',mkt:'A○ D× L×',f:1}],
+10:[{n:'車・バイク',vs:'Mid',mkt:'A○ D△ L△',f:1},{n:'車用品',vs:'Mid',mkt:'A○ D△ L△',f:1},{n:'ギフト・花束',vs:'Mid',mkt:'A○ D× L△',f:1}],
+11:[{n:'楽天市場(総合)',vs:'High',mkt:'A○(Amazon.co.jp)',f:1},{n:'楽天24',vs:'High',mkt:'SN×楽天独自',f:1},{n:'楽天西友ネットスーパー',vs:'High',mkt:'SN×楽天独自',f:1},{n:'ラクマ',vs:'Mid',mkt:'L△(Yahoo!オークション)',f:1},{n:'楽天ファッション',vs:'High',mkt:'SN×楽天独自',f:1}],
+12:[{n:'楽天トラベル国内ホテル',vs:'High',mkt:'L○のみ(Yahoo!トラベル)',f:1},{n:'楽天トラベル海外ホテル',vs:'High',mkt:'L○のみ(Yahoo!トラベル)',f:1},{n:'レンタカー予約',vs:'High',mkt:'SN×楽天独自',f:1},{n:'楽天GORA',vs:'High',mkt:'SN×楽天独自',f:1}],
+13:[{n:'楽天カード利用',vs:'Mid',mkt:'D○(dカード) L△',f:1},{n:'楽天ペイ利用',vs:'Mid',mkt:'D○(d払い) L○(PayPay)',f:1},{n:'楽天銀行',vs:'Mid',mkt:'D△ L△',f:1},{n:'楽天証券',vs:'Mid',mkt:'D△ L×',f:1}],
+14:[{n:'楽天Kobo',vs:'Mid',mkt:'A○(Kindle)',f:1},{n:'楽天TV',vs:'Mid',mkt:'A○(Prime Video) D○(dTV)',f:1},{n:'楽天マガジン',vs:'Mid',mkt:'D○(dマガジン)',f:1}],
+15:[{n:'楽天モバイル',vs:'Mid',mkt:'D◎(キャリア) L△',f:1},{n:'楽天ビューティ予約',vs:'High',mkt:'A△(@cosme閲覧のみ)',f:1},{n:'楽天エナジー',vs:'High',mkt:'SN×楽天独自',f:1}],
+16:[{n:'楽天ママ割',vs:'High',mkt:'SN×楽天独自',f:1},{n:'楽天シニア',vs:'High',mkt:'SN×楽天独自',f:1},{n:'楽天学割',vs:'High',mkt:'SN×楽天独自',f:1},{n:'就職活動日記',vs:'High',mkt:'SN×楽天独自',f:1}],
+17:[{n:'役員/部長職以上',vs:'Mid',mkt:'A△ D○ L○',f:0},{n:'正社員',vs:'Mid',mkt:'A△ D○ L○',f:0},{n:'パート・アルバイト',vs:'Mid',mkt:'A△ D△ L○',f:0},{n:'自営業',vs:'Mid',mkt:'A△ D△ L△',f:0}],
+18:[{n:'既婚',vs:'Mid',mkt:'A○ D○ L○',f:0},{n:'子供あり',vs:'Mid',mkt:'A○ D△ L○',f:0},{n:'持ち家/一戸建て',vs:'Mid',mkt:'A○ D△ L○',f:0},{n:'ペット飼育あり',vs:'High',mkt:'SN×楽天独自',f:0},{n:'喫煙',vs:'High',mkt:'SN×楽天独自',f:0},{n:'飲酒',vs:'Mid',mkt:'A△ D× L×',f:0},{n:'住所変更3ヶ月',vs:'High',mkt:'SN×楽天独自',f:0}],
+19:[{n:'年収400万+',vs:'Mid',mkt:'A○ D○ L○',f:0},{n:'年収600万+',vs:'Mid',mkt:'A○ D○ L○',f:0},{n:'年収800万+',vs:'Mid',mkt:'A○ D○ L○',f:0},{n:'年収1000万+',vs:'Mid',mkt:'A○ D○ L○',f:0},{n:'保険加入あり',vs:'Mid',mkt:'D○ L△',f:0},{n:'生命保険加入',vs:'High',mkt:'SN×楽天独自',f:0},{n:'自動車保険加入',vs:'Mid',mkt:'D○ L△',f:0}]
+};
+
+// Builder v2: 2-level selection
+var bldSel = []; // selected items: [{gi:groupIndex, name:'楽天GORA', vs:'High', mkt:'...', fact:true}, ...]
+var bldExpanded = -1; // currently expanded group index
+
+function factCount(s){var n=0;for(var k=0;k<s.length;k++){if(G[s[k]].c<=2) n++;}return n;}
+
+function fallback(s){
+  var sorted=s.slice().sort(function(a,b){return a-b});
+  var inf=[];
+  for(var k=0;k<sorted.length;k++){
+    var isFact=G[sorted[k]].c<=2;
+    inf.push(G[sorted[k]].n+'('+(isFact?'事実':'類推')+')＝'+G[sorted[k]].sig);
+  }
+  var fc=factCount(sorted);
+  var scenes=buildScenes(sorted);
+  var motive=buildMotive(sorted);
+  var traits=buildTraits(sorted);
+  var nameParts=[];for(var k=0;k<sorted.length;k++) nameParts.push(G[sorted[k]].n);
+  var n=nameParts.join('×')+' 層';
+  var logic;
+  if(fc>=2) logic='事実データが'+fc+'軸あるため、購買・利用実績に基づく確度の高いペルソナ。複数領域での実支出が確認でき、関連業種全般に提案可能。';
+  else if(fc===1) logic='事実データ1軸が類推を補強する構造。事実軸を中心に、類推で示された属性に合致する業種が対象。';
+  else logic='全て類推データの組み合わせ。方向性は合うが、事実データの追加で確度を上げることを強く推奨。';
+  var inds=buildInds(sorted);
+  var p=(fc>=2)?'事実データが'+fc+'軸重なる層で、実際の行動で裏付けられたペルソナです。':(fc===1)?'事実1軸と類推の組み合わせで、類推の信頼性を事実が補強しています。':'全て類推データの組み合わせ。事実軸の追加を検討してください。';
+  var w=null;
+  for(var k=0;k<sorted.length;k++){if(sorted[k]===19){w='金融セグメント使用時は、楽天競合のNG業種(EC・ポイント・キャリア・金融)に注意。';break;}}
+  return{n:n,inf:inf,scenes:scenes,motive:motive,traits:traits,indLogic:logic,ind:inds,p:p,w:w};
+}
+
+function buildScenes(s){
+  var has={};for(var k=0;k<s.length;k++) has[s[k]]=1;
+  if(has[1]&&has[4]&&has[12])return["旅行の日程が決まった夜、スーツケースを出してから着ていく服がもう古いなと気づいて、新作のワンピースを探し始める。","旅先で撮った写真を見返しながら、次はもう少し華やかな装いで行きたいと、帰宅直後に次の旅行用の服をカートに入れる。"];
+  if(has[1]&&has[4]&&has[8])return["保育園の送り迎えで会う他のママの服装が気になり、夜子供を寝かしつけた後にプチプラのきれいめトップスを探す。","久しぶりの友人とのランチ前日に、マタニティ後体型が戻ってきた自分用にワンピースを1枚買い足す。"];
+  if(has[0]&&has[12]&&has[19])return["週末の夜、家族で集まって次の旅行先の候補を見ながら、少しランクの高い宿を候補に入れてみる。","GW前の仕事の合間に、プレミアムカードの旅行特典で泊まれる宿を検索し、予約を入れる。"];
+  if(has[6]&&has[7]&&has[18])return["引越したばかりの部屋で、Wi-Fiルーターの設置が終わった直後、足りない収納家具をスマホで発注する。","新居の配置を考えながら、テレビ台とその下に置くスマートスピーカーを同時にカートに入れる。"];
+  if(has[6]&&has[17]&&has[19])return["出張帰りの空港で、壊れかけのイヤホンを買い替えようと、評判の高いノイキャンモデルを即決する。","在宅勤務環境を整えるため、週末に新しいモニターとアームを同時発注する。"];
+  if(has[5]&&has[12])return["旅先で気に入った地元の食材を、帰宅後に同じ産地からお取り寄せで注文する。","次の旅行の宿を決めた後、その地域の名産をふるさと納税で先取りする。"];
+  if(has[1]&&has[17]&&has[2])return["昇進が決まったタイミングで、スーツとビジネスバッグを一式買い替えようと検討を始める。","部下との会食の帰り道、ポイント5倍デーを活用して家用の日用品を一気にまとめ買いする。"];
+  if(has[1]&&has[9]&&has[19])return["週末のゴルフ帰りに、新しいシューズのレビューを見比べ、少し高いがワンサイズ上げて買う。","仕事の区切りがついた金曜の夜、ずっと迷っていたカメラの新モデルを思い切って注文する。"];
+  if(has[8]&&has[16]&&has[18])return["楽天ママ割のメールで届いた離乳食セットを、ポイントアップデーに合わせてまとめ買いする。","子育てコミュニティで話題の絵本を週末用に3冊、同時にカートに入れる。"];
+  if(has[3]&&has[5]&&has[11])return["地元で評判の酒蔵をEC経由で見つけ、週末の食卓用にまとめて取り寄せる。","地域のイベント情報を見ながら、そこで話題になっていた食材を楽天で注文する。"];
+  if(has[4]&&has[15]&&has[0])return["サロン帰りのカフェで、スタイリストに勧められたヘアケア商品をその場で購入する。","来週のデート用に、新しいワンピースと合わせるアクセサリーをスマホで選ぶ。"];
+  return["複数のシグナルが重なる層で、日常の中で関連する買い物行動が同時に発生している瞬間がある。","生活の節目で、複数の関心事が重なるタイミングを活用して買い物を済ませる傾向が見られる。"];
+}
+
+function buildMotive(s){
+  var has={};for(var k=0;k<s.length;k++) has[s[k]]=1;
+  if(has[19]&&has[17]) return "仕事上の立場と所得に見合った自分にふさわしい消費への意識が強く、迷ったら質を取る傾向。";
+  if(has[8]&&has[18]) return "「子供のために」と「自分の時間を守るために」が両立する動機。信頼できるブランドを見つけると継続する。";
+  if(has[4]&&has[15]) return "見た目への投資は気分を整える手段でもあり、物販とサービスを往復しながら継続的に自分をアップデートしていく。";
+  if(has[12]&&(has[5]||has[4])) return "旅行と日常の買い物が繋がっており、旅先の体験を持ち帰って日常で再現する動機が強い。";
+  if(has[18]&&has[7]) return "家族や住環境を整えることが自分の満足に直結する層。必要に迫られた買い物でも選ぶこと自体を楽しむ。";
+  return "選択したセグメントが重なる層では、日常の複数の関心事が同時に動機となって購買行動に繋がっている。";
+}
+
+function buildTraits(s){
+  var has={};for(var k=0;k<s.length;k++) has[s[k]]=1;
+  var traits=[];
+  if(has[19]) traits.push("可処分所得に余裕");
+  if(has[17]) traits.push("意思決定権あり");
+  if(has[2]) traits.push("楽天購買実績豊富");
+  if(has[16]) traits.push("自己申告型ライフステージ");
+  if(has[18]) traits.push("家族単位消費");
+  if(has[12]) traits.push("旅行・体験志向");
+  if(has[4]) traits.push("見た目投資型");
+  if(has[8]) traits.push("子育てアクティブ");
+  if(has[6]) traits.push("デジタル親和性");
+  if(has[9]) traits.push("趣味消費活発");
+  if(traits.length===0) traits.push("複合的関心層");
+  return traits;
+}
+
+function buildInds(s){
+  var indMap={0:['CPG','アパレル','コスメ'],1:['年代別マーケ全般'],2:['プレミアム商材','EC'],3:['地域サービス','観光'],4:['アパレル','ブランド','百貨店'],5:['食品','飲料','食品EC'],6:['家電','通信','IT'],7:['住宅','インテリア','リフォーム'],8:['ベビー','コスメ','ヘルスケア'],9:['ゲーム','スポーツ','レジャー'],10:['自動車','ギフト'],11:['EC','D2C','通販'],12:['旅行','ホテル'],13:['フィンテック'],14:['メディア','配信'],15:['通信','美容'],16:['ファミリー','教育','シニア'],17:['BtoB','人材','法人'],18:['不動産','保険','ファミリー'],19:['高級品','プレミアム']};
+  var seen={},inds=[];
+  var sorted=s.slice().sort(function(a,b){return a-b});
+  for(var k=0;k<sorted.length;k++){
+    var arr=indMap[sorted[k]]||[];
+    for(var j=0;j<arr.length;j++) if(!seen[arr[j]]){seen[arr[j]]=1;inds.push(arr[j]);}
+  }
+  return inds;
+}
+
+// Legacy functions kept for compatibility
+function pick(idx){}
+function reset(){}
+
+
+// Builder v2: Render 2-level grid
+function renderBuilderV2(){
+  var grid = document.getElementById('bld-grid');
+  var h = '';
+  for(var gi=0; gi<G.length; gi++){
+    var g = G[gi];
+    var cls = 'cat-'+g.cl;
+    var isExp = bldExpanded === gi;
+    var selCount = bldSel.filter(function(s){return s.gi===gi}).length;
+    var badge = selCount > 0 ? ' <span style="font-size:10px;background:var(--text);color:var(--surface);padding:1px 6px;border-radius:10px;margin-left:4px">'+selCount+'</span>' : '';
+    h += '<div class="cat-row">';
+    h += '<div class="cat-hd '+cls+'" onclick="toggleBldGroup('+gi+')" style="cursor:pointer;user-select:none">';
+    h += '<span style="font-size:10px;margin-right:4px">'+(isExp?'▼':'▶')+'</span>';
+    h += g.n + ' <span style="font-size:10px;color:inherit;opacity:0.6">'+g.d+'</span>' + badge;
+    h += '</div>';
+    if(isExp && SUB_ITEMS[gi]){
+      h += '<div style="display:flex;flex-wrap:wrap;gap:4px;padding:6px 0 2px">';
+      SUB_ITEMS[gi].forEach(function(item){
+        var isSel = bldSel.some(function(s){return s.gi===gi && s.name===item.n});
+        var selCls = isSel ? 'style="background:var(--text);color:var(--surface);border-color:var(--text)"' : '';
+        h += '<button class="pref" '+selCls+' data-gi="'+gi+'" data-name="'+encodeURIComponent(item.n)+'" onclick="pickBldItemBtn(this)">'+item.n+'</button>';
+      });
+      h += '</div>';
+    }
+    h += '</div>';
+  }
+  grid.innerHTML = h;
+
+  // Update selection bar
+  var bh = '';
+  if(bldSel.length > 0){
+    bh += '<span class="bar-lbl">選択中 ('+bldSel.length+'/3)：</span>';
+    bldSel.forEach(function(s,i){
+      bh += '<span class="bar-chip">'+s.name+'<span class="bar-x" onclick="removeBldItem('+i+')">×</span></span>';
+    });
+    bh += '<button class="rst" onclick="resetBld()">リセット</button>';
+  } else {
+    bh = '<span class="bar-lbl">グループを展開して、具体的なデータ項目を2〜3つ選択してください</span>';
+  }
+  document.getElementById('bld-bar').innerHTML = bh;
+
+  // Update output
+  renderBldOutput();
+}
+
+function toggleBldGroup(gi){
+  bldExpanded = (bldExpanded === gi) ? -1 : gi;
+  renderBuilderV2();
+}
+
+function pickBldItemBtn(btn){
+  var gi = parseInt(btn.getAttribute('data-gi'));
+  var name = decodeURIComponent(btn.getAttribute('data-name')||'');
+  pickBldItem(gi, name);
+}
+
+function pickBldItem(gi, name){
+  var existing = bldSel.findIndex(function(s){return s.gi===gi && s.name===name});
+  if(existing >= 0){
+    bldSel.splice(existing, 1);
+  } else {
+    if(bldSel.length >= 3) return;
+    var item = SUB_ITEMS[gi].find(function(it){return it.n===name});
+    if(!item) return;
+    bldSel.push({gi:gi, name:item.n, vs:item.vs, mkt:item.mkt, fact:item.f});
+  }
+  renderBuilderV2();
+}
+
+function removeBldItem(idx){
+  bldSel.splice(idx, 1);
+  renderBuilderV2();
+}
+
+function resetBld(){
+  bldSel = [];
+  bldExpanded = -1;
+  renderBuilderV2();
+}
+
+function renderBldOutput(){
+  var out = document.getElementById('bld-out');
+  if(bldSel.length < 2){
+    out.innerHTML = '<div class="empty">グループを展開して具体的なデータ項目を2〜3つ選ぶと、生活者の具体的なシーンが浮かび上がります</div>';
+    return;
+  }
+
+  var selNames = bldSel.map(function(s){return s.name});
+  var personaName = selNames.join(' × ') + ' 層';
+  var factCount = bldSel.filter(function(s){return s.fact}).length;
+  var cl, cc;
+  if(factCount === bldSel.length){cl='事実のみ：高確度';cc='conf-hi';}
+  else if(factCount >= 1){cl='事実'+factCount+'+類推'+(bldSel.length-factCount);cc='conf-md';}
+  else{cl='類推のみ：事実追加推奨';cc='conf-lo';}
+
+  // Derive competitive evaluation
+  var bestVs = 'Low';
+  var order = {High:3, Mid:2, Low:1};
+  var mktList = [];
+  bldSel.forEach(function(s){
+    if(order[s.vs] > (order[bestVs]||0)) bestVs = s.vs;
+    mktList.push(s.name + ': ' + s.mkt);
+  });
+
+  var oh = '';
+  oh += '<div class="step"><span class="step-num">STEP 1 / シグナル</span>';
+  oh += '<div class="step-hd">選んだデータ項目から何が読み取れるか</div>';
+  oh += '<ul class="f-list">';
+  bldSel.forEach(function(s){
+    var typeLabel = s.fact ? '事実' : '類推';
+    oh += '<li><b>'+s.name+'</b> ('+typeLabel+') — '+G[s.gi].n+'カテゴリ → '+G[s.gi].sig+'</li>';
+  });
+  oh += '</ul></div><div class="arr">▼</div>';
+
+  oh += '<div class="step"><span class="step-num">STEP 2 / 推論チェーン</span>';
+  oh += '<div class="step-hd">データが組み合わさると何が見えるか <span class="conf '+cc+'">'+cl+'</span></div>';
+  oh += '<ul class="f-list">';
+  if(factCount >= 2) oh += '<li>事実データが'+factCount+'軸あるため、購買・利用実績に基づく確度の高いペルソナ</li>';
+  else if(factCount === 1) oh += '<li>事実データ1軸が類推を補強する構造</li>';
+  else oh += '<li>全て類推データの組み合わせ。事実データの追加で確度を上げることを推奨</li>';
+  bldSel.forEach(function(s){
+    oh += '<li>'+s.name+'('+(s.fact?'事実':'類推')+') → 「'+G[s.gi].sig+'」の具体的な裏付け</li>';
+  });
+  oh += '</ul></div><div class="arr">▼</div>';
+
+  oh += '<div class="step"><span class="step-num">STEP 3 / このペルソナの日常シーン</span>';
+  oh += '<div class="step-hd">'+personaName+' — こんな瞬間にいる人</div>';
+  oh += '<div class="scene"><div class="scene-lbl">SCENE</div><div class="scene-body">SmartNewsでニュースを読んでいる合間に、';
+  var sceneItems = selNames.slice(0, 2);
+  oh += '普段から'+sceneItems[0]+'に関心があり、'+sceneItems[1]+'にも積極的に行動する。';
+  if(selNames.length >= 3) oh += selNames[2]+'の要素も持つこの人物は、';
+  else oh += 'この人物は、';
+  oh += '情報感度が高く、関連する広告に反応しやすい瞬間にいる。</div></div>';
+  oh += '</div><div class="arr">▼</div>';
+
+  oh += '<div class="step"><span class="step-num">STEP 4 / vs競合 & 提案先業種</span>';
+  oh += '<div class="step-hd">競合評価と提案先</div>';
+  var vsCls = bestVs==='High'?'p-comp-h':bestVs==='Mid'?'p-comp-m':'p-comp-l';
+  oh += '<div style="margin-bottom:8px"><span class="p-comp '+vsCls+'">vs競合: '+bestVs+'</span></div>';
+  oh += '<div style="font-size:11px;color:var(--text-sec);margin-bottom:10px">';
+  mktList.forEach(function(m){ oh += m + '<br>'; });
+  oh += '</div>';
+
+  // Build industry suggestions based on selected groups
+  var indSet = {};
+  var indMap = {0:['年代別マーケ全般'],1:['年代別マーケ全般'],2:['プレミアム商材','EC'],3:['地域サービス','観光'],4:['アパレル','ブランド','百貨店'],5:['食品','飲料','食品EC'],6:['家電','通信','IT'],7:['住宅','インテリア','リフォーム'],8:['ベビー','コスメ','ヘルスケア'],9:['ゲーム','スポーツ','レジャー'],10:['自動車','ギフト'],11:['EC','D2C','通販'],12:['旅行','ホテル'],13:['フィンテック'],14:['メディア','配信'],15:['通信','美容'],16:['ファミリー','教育','シニア'],17:['BtoB','人材','法人'],18:['不動産','保険','ファミリー'],19:['高級品','プレミアム']};
+  bldSel.forEach(function(s){
+    var arr = indMap[s.gi] || [];
+    arr.forEach(function(ind){ indSet[ind] = 1; });
+  });
+  oh += '<div class="r-inds">';
+  for(var ind in indSet) oh += '<span class="r-ind">'+ind+'</span>';
+  oh += '</div>';
+
+  oh += '</div>';
+
+  // Save button with team selector
+  oh += '<div style="margin-top:16px;padding-top:14px;border-top:0.5px solid var(--border)">';
+  oh += '<div style="font-size:11px;font-weight:500;color:var(--text-sec);margin-bottom:4px">対象チーム（複数選択可）</div>';
+  oh += '<div class="team-sel">';
+  var teams=['IS1','IS2','IS3','IS4','SAS1','SAS2','SAS3','DAS1','DAS2','その他'];
+  teams.forEach(function(t){
+    oh += '<input type="checkbox" class="team-chk" id="tmB_'+t+'" value="'+t+'"><label class="team-lbl" for="tmB_'+t+'">'+t+'</label>';
+  });
+  oh += '</div>';
+  oh += '<div style="display:flex;align-items:center;gap:10px;margin-top:8px">';
+  oh += '<button class="ef-btn" onclick="saveBuilderToSection3()" style="font-size:12px;padding:8px 20px">3-Bに保存する</button>';
+  oh += '<span style="font-size:11px;color:var(--text-ter)">保存すると代表ペルソナに追加され、チーム全員が評価できるようになります</span>';
+  oh += '</div></div>';
+
+  out.innerHTML = oh;
+}
+
+function saveBuilderToSection3(){
+  if(bldSel.length < 2){ showToast('2つ以上の項目を選択してください'); return; }
+
+  // Duplicate check using specific item names
+  var selKey = bldSel.map(function(s){return s.name}).sort().join('+');
+  var existing = document.querySelectorAll('.p-card .p-recipe');
+  for(var k=0; k<existing.length; k++){
+    var chips = existing[k].querySelectorAll('.chip');
+    var names = [];
+    chips.forEach(function(c){ names.push(c.textContent.trim()); });
+    if(names.sort().join('+') === selKey){
+      showToast('同一の組み合わせが既に3-Bに存在します');
+      return;
+    }
+  }
+
+  var selNames = bldSel.map(function(s){return s.name});
+  var personaName = selNames.join(' × ') + ' 層';
+  var factCount = bldSel.filter(function(s){return s.fact}).length;
+  var bestVs = 'Low';
+  var order = {High:3, Mid:2, Low:1};
+  var mktList = [];
+  bldSel.forEach(function(s){
+    if(order[s.vs] > (order[bestVs]||0)) bestVs = s.vs;
+    mktList.push(s.name + ': ' + s.mkt);
+  });
+
+  var reasoning = bldSel.map(function(s){ return s.name + '(' + (s.fact?'事実':'類推') + ')'; }).join(' / ');
+  var scene = 'SmartNewsでニュースを読む合間に、' + selNames[0] + 'と' + selNames[1] + 'に関連する情報を追う層。';
+  var indSet = {};
+  var indMap = {0:['年代別マーケ'],1:['年代別マーケ'],2:['プレミアム商材'],3:['地域サービス'],4:['アパレル','ブランド'],5:['食品','飲料'],6:['家電','通信'],7:['住宅','リフォーム'],8:['ベビー','コスメ'],9:['スポーツ','レジャー'],10:['自動車'],11:['EC','D2C'],12:['旅行'],13:['金融'],14:['メディア'],15:['美容'],16:['ファミリー','教育'],17:['BtoB'],18:['不動産','保険'],19:['高級品']};
+  bldSel.forEach(function(s){ (indMap[s.gi]||[]).forEach(function(ind){ indSet[ind]=1; }); });
+  var industries = Object.keys(indSet).join(', ');
+
+  var chipColors = {0:'r',1:'r',2:'r',3:'r',4:'b',5:'b',6:'b',7:'b',8:'b',9:'b',10:'b',11:'t',12:'t',13:'t',14:'t',15:'t',16:'t',17:'p',18:'p',19:'p'};
+
+  // Collect selected teams
+  var selectedTeams=[];
+  document.querySelectorAll('.team-chk:checked').forEach(function(c){selectedTeams.push(c.value)});
+  if(selectedTeams.length===0){showToast('対象チームを1つ以上選択してください');return;}
+
+  var data = {
+    personaName: personaName,
+    segmentsJson: JSON.stringify(bldSel.map(function(s){return {gi:s.gi,name:s.name,vs:s.vs,mkt:s.mkt,fact:s.fact,cl:chipColors[s.gi]||'b'}})),
+    reasoning: reasoning,
+    scene: scene,
+    industries: industries,
+    isTags: selectedTeams.join(','),
+    vsCompete: bestVs,
+    marketInfo: mktList.join(' | ')
+  };
+
+  function onSaved(res){
+    var cp = {personaName:data.personaName, segmentsJson:data.segmentsJson, reasoning:data.reasoning, scene:data.scene, industries:data.industries, isTags:data.isTags, vsCompete:data.vsCompete, marketInfo:data.marketInfo, email:res?res.email:'you', timestamp:res?res.timestamp:new Date().toISOString()};
+    customPersonas.push(cp);
+    injectCustomCardV2(cp);
+    showToast('3-Bに保存しました: ' + data.personaName);
+  }
+
+  if(typeof google!=='undefined' && google.script && google.script.run){
+    google.script.run.withSuccessHandler(onSaved).withFailureHandler(function(e){showToast('保存エラー: '+e.message);}).saveCustomPersona(data);
+  } else {
+    onSaved({email:'you@smartnews.com', timestamp:new Date().toISOString()});
+  }
+}
+
+function injectCustomCardV2(cp){
+  var grid = document.querySelector('#s3 .p-grid');
+  if(!grid) return;
+  var segs = [];
+  try{ segs = JSON.parse(cp.segmentsJson||'[]'); }catch(e){}
+  var segChips = segs.map(function(s){
+    var cl = s.cl || 'b';
+    return '<span class="chip b-'+cl+'">'+s.name+'</span>';
+  }).join('<span class="plus">×</span>');
+  var vsCls = cp.vsCompete==='High'?'p-comp-h':cp.vsCompete==='Mid'?'p-comp-m':'p-comp-l';
+  var indsHtml = (cp.industries||'').split(',').map(function(s){return '<span class="r-ind">'+s.trim()+'</span>';}).join('');
+  var shortEmail = (cp.email||'').split('@')[0];
+
+  // Build team tags
+  var teamTags = (cp.isTags||'').split(',').filter(function(t){return t.trim()});
+  var dataIs = teamTags.map(function(t){return t.toLowerCase().replace('その他','other')}).join(' ') || 'all';
+  var teamTagsHtml = '';
+  if(teamTags.length > 0){
+    teamTagsHtml = '<div class="is-tags">';
+    var teamCls = {IS1:'is-1',IS2:'is-2',IS3:'is-3',IS4:'is-4',SAS1:'is-sas1',SAS2:'is-sas2',SAS3:'is-sas3',DAS1:'is-das1',DAS2:'is-das2','その他':'is-other'};
+    teamTags.forEach(function(t){
+      var cls = teamCls[t.trim()]||'is-other';
+      teamTagsHtml += '<span class="is-tag '+cls+'">'+t.trim()+'</span>';
+    });
+    teamTagsHtml += '</div>';
+  }
+  var canDelete = (cp.email === currentUserEmail);
+  var delBtn = canDelete ? '<button class="custom-del" data-ts="'+encodeURIComponent(cp.timestamp)+'" data-em="'+encodeURIComponent(cp.email)+'" onclick="deleteCustomCard(this)">削除</button>' : '';
+
+  var cardHtml = '<div class="p-card" data-is="'+dataIs+'">'
+    +'<div class="p-hd"><div class="p-icon" style="background:#FAEEDA;color:#854F0B">★</div><div>'
+    +'<div class="p-name">'+cp.personaName+'</div>'
+    +'<div class="p-sub">チーム作成 by '+shortEmail+'</div>'
+    +'<span class="p-comp '+vsCls+'">vs競合: '+cp.vsCompete+'</span>'
+    +'<span class="p-mkt">| '+cp.marketInfo+'</span>'
+    +'</div>'+delBtn+'</div>'
+    +'<div class="p-recipe">'+segChips+'</div>'
+    +'<div class="p-logic"><b>推論：</b>'+cp.reasoning+'<br><span style="font-size:10px;color:var(--text-ter)">※自動生成。詳細な競合分析はISリーダーが補足を推奨。</span></div>'
+    +'<div class="p-inds">'+indsHtml+'</div>'
+    +'<div class="p-adv"><b>シーン：</b>'+cp.scene+'</div>'
+    +teamTagsHtml
+    +'</div>';
+
+  var div = document.createElement('div');
+  div.innerHTML = cardHtml;
+  var card = div.firstChild;
+  grid.appendChild(card);
+
+  var pid = safePid(cp.personaName);
+  card.setAttribute('data-pid', pid);
+  var evalDiv = document.createElement('div');
+  evalDiv.className = 'eval-section';
+  evalDiv.innerHTML = buildEvalHTML(pid);
+  card.appendChild(evalDiv);
+  renderEvalsForCard(pid);
+}
+
+renderBuilderV2();
+
+// ==========================================
+// Evaluation System
+// ==========================================
+var allEvals = [];
+var currentUserEmail = '';
+var MONTHS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+var FCST_LABELS = {S:'S (3,000万+)',A:'A (1,000-3,000万)',B:'B (300-1,000万)',C:'C (300万未満)'};
+var WIN_LABELS = {1:'1 (確度高)',2:'2 (見込みあり)',3:'3 (要開拓)'};
+
+// Generate safe ID string from persona name
+function safePid(name){
+  return 'p_' + name.split('').map(function(c){
+    var code = c.charCodeAt(0);
+    if((code>=48&&code<=57)||(code>=65&&code<=90)||(code>=97&&code<=122)) return c;
+    return code.toString(36);
+  }).join('').substring(0,40);
+}
+
+function pidToName(pid){
+  var card = document.querySelector('[data-pid="'+pid+'"]');
+  if(card){
+    var nameEl = card.querySelector('.p-name') || card.querySelector('.ind-p-name');
+    if(nameEl) return nameEl.textContent.trim();
+  }
+  return pid.replace(/_/g,' ');
+}
+
+function initEvalSystem(){
+  var cards = document.querySelectorAll('.p-card, .ind-card');
+  cards.forEach(function(card, i){
+    var nameEl = card.querySelector('.p-name') || card.querySelector('.ind-p-name');
+    if(!nameEl) return;
+    var pid = safePid(nameEl.textContent.trim());
+    card.setAttribute('data-pid', pid);
+    
+    var evalDiv = document.createElement('div');
+    evalDiv.className = 'eval-section';
+    evalDiv.innerHTML = buildEvalHTML(pid);
+    card.appendChild(evalDiv);
+  });
+  loadEvaluations();
+}
+
+function buildEvalHTML(pid){
+  var monthOpts = '<option value="">--</option>';
+  MONTHS.forEach(function(m,i){ monthOpts += '<option value="'+(i+1)+'月">'+(i+1)+'月</option>'; });
+  
+  return '<button class="eval-toggle" onclick="toggleEval(this)"><span class="arrow">▶</span> Impact評価 <span class="eval-count-inline" id="ec_'+pid+'"></span></button>'
+    +'<div class="eval-body" id="eb_'+pid+'">'
+    +'<div class="eval-summary" id="es_'+pid+'"></div>'
+    +'<div class="eval-form">'
+    +'<div class="ef-group"><span class="ef-label">FCST</span><select class="ef-sel" id="ef_fcst_'+pid+'"><option value="">--</option><option value="S">S (3,000万+)</option><option value="A">A (1,000-3,000万)</option><option value="B">B (300-1,000万)</option><option value="C">C (300万未満)</option></select></div>'
+    +'<div class="ef-group"><span class="ef-label">Win確度</span><select class="ef-sel" id="ef_win_'+pid+'"><option value="">--</option><option value="1">1 (確度高)</option><option value="2">2 (見込みあり)</option><option value="3">3 (要開拓)</option></select></div>'
+    +'<div class="ef-group"><span class="ef-label">出稿想定</span><div style="display:flex;gap:4px;align-items:center"><select class="ef-sel" id="ef_mf_'+pid+'">'+monthOpts+'</select><span style="font-size:10px;color:var(--text-ter)">〜</span><select class="ef-sel" id="ef_mt_'+pid+'">'+monthOpts+'</select></div></div>'
+    +'<div class="ef-group"><span class="ef-label">コメント</span><input class="ef-input" id="ef_cm_'+pid+'" placeholder="広告主名、代理店、補足など"></div>'
+    +'<div class="ef-group"><span class="ef-label">&nbsp;</span><button class="ef-btn" data-pid="'+pid+'" onclick="submitEvalBtn(this)">送信</button></div>'
+    +'</div>'
+    +'<div class="eval-list" id="el_'+pid+'"><div class="eval-empty">まだ評価がありません</div></div>'
+    +'</div>';
+}
+
+function toggleEval(btn){
+  btn.classList.toggle('open');
+  var body = btn.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+function submitEvalBtn(btn){
+  var pid = btn.getAttribute('data-pid');
+  submitEval(pid);
+}
+
+function submitEval(pid){
+  var fcst = document.getElementById('ef_fcst_'+pid).value;
+  var win = document.getElementById('ef_win_'+pid).value;
+  var mf = document.getElementById('ef_mf_'+pid).value;
+  var mt = document.getElementById('ef_mt_'+pid).value;
+  var cm = document.getElementById('ef_cm_'+pid).value || '';
+  
+  if(!fcst || !win){ showToast('FCSTとWin確度は必須です'); return; }
+  
+  var data = {personaId:pid, fcst:fcst, winProb:win, monthFrom:mf, monthTo:mt, comment:cm};
+  
+  if(typeof google !== 'undefined' && google.script && google.script.run){
+    google.script.run
+      .withSuccessHandler(function(res){
+        var ev = {timestamp:res.timestamp, email:res.email, personaId:pid, fcst:fcst, winProb:win, monthFrom:mf, monthTo:mt, comment:cm};
+        allEvals.push(ev);
+        renderEvalsForCard(pid);
+        clearForm(pid);
+        showToast('送信しました');
+      })
+      .withFailureHandler(function(e){ showToast('エラー: '+e.message); })
+      .submitEvaluation(data);
+  } else {
+    var ev = {timestamp:new Date().toISOString(), email:'you@smartnews.com', personaId:pid, fcst:fcst, winProb:win, monthFrom:mf, monthTo:mt, comment:cm};
+    allEvals.push(ev);
+    renderEvalsForCard(pid);
+    clearForm(pid);
+    showToast('送信しました（ローカルモック）');
+  }
+}
+
+function clearForm(pid){
+  document.getElementById('ef_fcst_'+pid).value='';
+  document.getElementById('ef_win_'+pid).value='';
+  document.getElementById('ef_mf_'+pid).value='';
+  document.getElementById('ef_mt_'+pid).value='';
+  document.getElementById('ef_cm_'+pid).value='';
+}
+
+function loadEvaluations(){
+  if(typeof google !== 'undefined' && google.script && google.script.run){
+    google.script.run.withSuccessHandler(function(email){ currentUserEmail=email||''; }).getUserEmail();
+    google.script.run
+      .withSuccessHandler(function(data){
+        allEvals = data || [];
+        renderAllEvals();
+      })
+      .withFailureHandler(function(){ renderAllEvals(); })
+      .getEvaluations();
+  } else {
+    currentUserEmail = 'you@smartnews.com';
+    renderAllEvals();
+  }
+}
+
+function deleteEvalBtn(btn){
+  var pid = btn.getAttribute('data-pid')||'';
+  var ts = btn.getAttribute('data-ts')||'';
+  var em = btn.getAttribute('data-em')||'';
+  try{ pid=decodeURIComponent(pid); }catch(e){}
+  try{ ts=decodeURIComponent(ts); }catch(e){}
+  try{ em=decodeURIComponent(em); }catch(e){}
+  if(!pid||!ts){showToast('削除対象が特定できません');return;}
+  if(em!==currentUserEmail){showToast('自分の評価のみ削除できます');return;}
+  var before=allEvals.length;
+  allEvals=allEvals.filter(function(e){return !(e.timestamp===ts && e.email===em && e.personaId===pid)});
+  var after=allEvals.length;
+  if(before===after){showToast('該当する評価が見つかりません');return;}
+  if(typeof google!=='undefined'&&google.script&&google.script.run){
+    google.script.run.withFailureHandler(function(){}).deleteEvaluation({timestamp:ts,personaId:pid});
+  }
+  renderAllEvals();
+  showToast('削除しました');
+}
+
+function deleteEval(pid, timestamp, email){
+  if(email !== currentUserEmail){ showToast('自分の評価のみ削除できます'); return; }
+  var before=allEvals.length;
+  allEvals=allEvals.filter(function(e){return !(e.timestamp===timestamp && e.email===email && e.personaId===pid)});
+  if(before===allEvals.length){showToast('該当する評価が見つかりません');return;}
+  if(typeof google!=='undefined'&&google.script&&google.script.run){
+    google.script.run.withFailureHandler(function(){}).deleteEvaluation({timestamp:timestamp,personaId:pid});
+  }
+  renderAllEvals();
+  showToast('削除しました');
+}
+
+function renderAllEvals(){
+  var cards = document.querySelectorAll('[data-pid]');
+  cards.forEach(function(card){
+    renderEvalsForCard(card.getAttribute('data-pid'));
+  });
+  renderDashboard();
+}
+
+function renderEvalsForCard(pid){
+  var evs = allEvals.filter(function(e){ return e.personaId === pid; });
+  var countEl = document.getElementById('ec_'+pid);
+  var summaryEl = document.getElementById('es_'+pid);
+  var listEl = document.getElementById('el_'+pid);
+  if(!countEl || !summaryEl || !listEl) return;
+  
+  countEl.textContent = evs.length > 0 ? '('+evs.length+'件)' : '';
+  
+  if(evs.length === 0){
+    summaryEl.innerHTML = '';
+    listEl.innerHTML = '<div class="eval-empty">まだ評価がありません</div>';
+    return;
+  }
+  
+  var fc = {S:0,A:0,B:0,C:0};
+  var wc = {1:0,2:0,3:0};
+  var qc = {Q1:0,Q2:0,Q3:0,Q4:0};
+  evs.forEach(function(e){
+    fc[e.fcst] = (fc[e.fcst]||0)+1;
+    wc[e.winProb] = (wc[e.winProb]||0)+1;
+    if(e.monthFrom){
+      var m = parseInt(e.monthFrom);
+      if(m>=1&&m<=3) qc.Q1++;
+      else if(m>=4&&m<=6) qc.Q2++;
+      else if(m>=7&&m<=9) qc.Q3++;
+      else qc.Q4++;
+    }
+  });
+  
+  var sh = '';
+  if(fc.S) sh+='<span class="eval-s-pill eval-s-h">S:'+fc.S+'</span>';
+  if(fc.A) sh+='<span class="eval-s-pill eval-s-h">A:'+fc.A+'</span>';
+  if(fc.B) sh+='<span class="eval-s-pill eval-s-m">B:'+fc.B+'</span>';
+  if(fc.C) sh+='<span class="eval-s-pill eval-s-l">C:'+fc.C+'</span>';
+  sh+='<span style="font-size:10px;color:var(--text-ter);margin-left:4px">|</span>';
+  if(wc[1]) sh+='<span class="eval-s-pill eval-s-h">確度1:'+wc[1]+'</span>';
+  if(wc[2]) sh+='<span class="eval-s-pill eval-s-m">確度2:'+wc[2]+'</span>';
+  if(wc[3]) sh+='<span class="eval-s-pill eval-s-l">確度3:'+wc[3]+'</span>';
+  var hasQ = qc.Q1+qc.Q2+qc.Q3+qc.Q4;
+  if(hasQ){
+    sh+='<span style="font-size:10px;color:var(--text-ter);margin-left:4px">|</span>';
+    if(qc.Q1) sh+='<span class="eval-s-pill eval-s-m">Q1:'+qc.Q1+'</span>';
+    if(qc.Q2) sh+='<span class="eval-s-pill eval-s-m">Q2:'+qc.Q2+'</span>';
+    if(qc.Q3) sh+='<span class="eval-s-pill eval-s-l">Q3:'+qc.Q3+'</span>';
+    if(qc.Q4) sh+='<span class="eval-s-pill eval-s-l">Q4:'+qc.Q4+'</span>';
+  }
+  summaryEl.innerHTML = sh;
+  
+  var lh = '';
+  evs.sort(function(a,b){ return b.timestamp.localeCompare(a.timestamp); });
+  evs.forEach(function(e){
+    var fCls = 'ev-b'+e.fcst;
+    var wCls = 'ev-w'+e.winProb;
+    var monthStr = '';
+    if(e.monthFrom) monthStr = e.monthFrom + (e.monthTo ? '〜'+e.monthTo : '');
+    var d = new Date(e.timestamp);
+    var dateStr = (d.getMonth()+1)+'/'+d.getDate();
+    var shortEmail = (e.email||'').split('@')[0];
+    
+    lh += '<div class="ev-row">'
+      +'<span class="ev-user">'+shortEmail+'</span>'
+      +'<span class="ev-badge '+fCls+'">'+e.fcst+'</span>'
+      +'<span class="ev-badge '+wCls+'">W'+e.winProb+'</span>'
+      +(monthStr?'<span class="ev-month">'+monthStr+'</span>':'')
+      +'<span class="ev-time">'+dateStr+'</span>'
+      +(e.email===currentUserEmail?'<button class="ev-del" data-pid="'+encodeURIComponent(pid)+'" data-ts="'+encodeURIComponent(e.timestamp)+'" data-em="'+encodeURIComponent(e.email)+'" onclick="deleteEvalBtn(this)">×</button>':'')
+      +(e.comment?'<div class="ev-comment">'+e.comment+'</div>':'')
+      +'</div>';
+  });
+  listEl.innerHTML = lh;
+}
+
+function showToast(msg){
+  var t = document.getElementById('evalToast');
+  if(!t){
+    t = document.createElement('div');
+    t.id = 'evalToast';
+    t.className = 'eval-toast';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(function(){ t.style.display = 'none'; }, 2000);
+}
+
+
+
+
+var customPersonas = [];
+
+function deleteCustomCard(btn){
+  var ts = btn.getAttribute('data-ts')||'';
+  var em = btn.getAttribute('data-em')||'';
+  try{ ts=decodeURIComponent(ts); }catch(e){}
+  try{ em=decodeURIComponent(em); }catch(e){}
+  if(em!==currentUserEmail){showToast('作成者のみ削除できます');return;}
+  var card = btn.closest('.p-card');
+  if(card) card.remove();
+  customPersonas=customPersonas.filter(function(cp){return cp.timestamp!==ts});
+  if(typeof google!=='undefined'&&google.script&&google.script.run){
+    google.script.run.withFailureHandler(function(){}).deleteCustomPersona({timestamp:ts});
+  }
+  renderAllEvals();
+  showToast('カスタムペルソナを削除しました');
+}
+
+function loadCustomPersonas(){
+  if(typeof google!=='undefined' && google.script && google.script.run){
+    google.script.run
+      .withSuccessHandler(function(data){
+        customPersonas = data||[];
+        customPersonas.forEach(function(cp){ injectCustomCardV2(cp); });
+        if(typeof allEvals !== 'undefined' && allEvals.length > 0) renderAllEvals();
+      })
+      .withFailureHandler(function(){})
+      .getCustomPersonas();
+  }
+}
+
+window.addEventListener('DOMContentLoaded', function(){ loadCustomPersonas(); initEvalSystem(); });
+
+// ==========================================
+// Section 7: Dashboard
+// ==========================================
+var FCST_SCORE = {S:4,A:3,B:2,C:1};
+var WIN_SCORE = {1:3,2:2,3:1,'1':3,'2':2,'3':1};
+var PRIORITY_CLASS = {12:'mx-p1',9:'mx-p1',8:'mx-p1',6:'mx-p2',4:'mx-p2',3:'mx-p3',2:'mx-p3',1:'mx-p4'};
+var PRIORITY_LABEL = {12:'最優先',9:'優先',8:'優先',6:'標準',4:'検討',3:'検討',2:'保留',1:'保留'};
+
+function calcScore(fcst, win){ return (FCST_SCORE[fcst]||0) * (WIN_SCORE[win]||0); }
+function getPriorityClass(score){
+  if(score>=8) return 'mx-p1';
+  if(score>=6) return 'mx-p2';
+  if(score>=3) return 'mx-p3';
+  return 'mx-p4';
+}
+function getPriorityLabel(score){
+  if(score>=9) return '最優先';
+  if(score>=6) return '優先';
+  if(score>=3) return '標準';
+  return '保留';
+}
+
+function renderDashboard(){
+  if(!allEvals || allEvals.length===0){
+    document.getElementById('dashMatrix').innerHTML='<div class="dash-empty">まだ評価がありません。各ペルソナカードの「Impact評価」から入力してください。</div>';
+    document.getElementById('dashRanking').innerHTML='<div class="dash-empty">評価データがありません</div>';
+    document.getElementById('dashTimeline').innerHTML='<div class="dash-empty">出稿想定月のデータがありません</div>';
+    document.getElementById('dashAssets').innerHTML='<div class="dash-empty">高評価データがありません</div>';
+    return;
+  }
+  
+  // Aggregate: best score per persona
+  var best = {};
+  allEvals.forEach(function(e){
+    var score = calcScore(e.fcst, e.winProb);
+    if(!best[e.personaId] || score > best[e.personaId].score){
+      best[e.personaId] = {score:score, fcst:e.fcst, win:e.winProb, monthFrom:e.monthFrom, monthTo:e.monthTo, comment:e.comment, email:e.email, count:0};
+    }
+    if(!best[e.personaId].count) best[e.personaId].count=0;
+    best[e.personaId].count++;
+  });
+  // Count all evals per persona
+  allEvals.forEach(function(e){ if(best[e.personaId]) best[e.personaId].count = allEvals.filter(function(x){return x.personaId===e.personaId}).length; });
+  
+  // 1. Matrix
+  renderMatrix(best);
+  // 2. Ranking
+  renderRanking(best);
+  // 3. Timeline
+  renderTimeline(best);
+  // 4. Asset frequency
+  renderAssetFreq(best);
+}
+
+function renderMatrix(best){
+  var matrix = {};
+  var fcsts = ['S','A','B','C'];
+  var wins = ['1','2','3'];
+  fcsts.forEach(function(f){ wins.forEach(function(w){ matrix[f+'-'+w]=[]; }); });
+  
+  for(var pid in best){
+    var b = best[pid];
+    var key = b.fcst+'-'+b.win;
+    if(matrix[key]) matrix[key].push(pidToName(pid));
+  }
+  
+  var h = '<div class="matrix-grid">';
+  h += '<div class="mx-hdr"></div><div class="mx-hdr">Win 1 (確度高)</div><div class="mx-hdr">Win 2 (見込み)</div><div class="mx-hdr">Win 3 (要開拓)</div>';
+  
+  fcsts.forEach(function(f){
+    h += '<div class="mx-row-lbl">'+f+' ('+{S:'3,000万+',A:'1-3,000万',B:'300-1,000万',C:'300万未満'}[f]+')</div>';
+    wins.forEach(function(w){
+      var items = matrix[f+'-'+w];
+      var score = calcScore(f,w);
+      var cls = getPriorityClass(score);
+      var lbl = getPriorityLabel(score);
+      var content = '<div style="font-size:10px;color:var(--text-ter);margin-bottom:2px">'+lbl+'('+score+'pt)</div>';
+      if(items.length>0){
+        content += items.map(function(n){ return '<div style="font-size:10px;font-weight:400;line-height:1.3">'+n+'</div>'; }).join('');
+      }
+      h += '<div class="mx-cell '+cls+'">'+content+'</div>';
+    });
+  });
+  h += '</div>';
+  document.getElementById('dashMatrix').innerHTML = h;
+}
+
+function renderRanking(best){
+  var arr = [];
+  for(var pid in best){
+    arr.push({pid:pid, name:pidToName(pid), score:best[pid].score, fcst:best[pid].fcst, win:best[pid].win, monthFrom:best[pid].monthFrom, monthTo:best[pid].monthTo, count:best[pid].count, comment:best[pid].comment});
+  }
+  arr.sort(function(a,b){ return b.score - a.score || a.name.localeCompare(b.name); });
+  
+  if(arr.length===0){
+    document.getElementById('dashRanking').innerHTML='<div class="dash-empty">評価データがありません</div>';
+    return;
+  }
+  
+  var h = '<div class="rank-list">';
+  h += '<div class="rank-row" style="background:transparent;font-size:10px;color:var(--text-ter);font-weight:500;padding:4px 12px"><div></div><div>ペルソナ / 業種</div><div style="text-align:center">FCST</div><div style="text-align:center">Win</div><div style="text-align:center">出稿想定</div><div style="text-align:center">Score</div></div>';
+  
+  arr.forEach(function(item,i){
+    var posCls = i<1?'rank-pos-1':i<3?'rank-pos-2':i<5?'rank-pos-3':'';
+    var fCls = item.fcst==='S'||item.fcst==='A'?'eval-s-h':item.fcst==='B'?'eval-s-m':'eval-s-l';
+    var wCls = item.win==='1'||item.win===1?'eval-s-h':item.win==='2'||item.win===2?'eval-s-m':'eval-s-l';
+    var monthStr = item.monthFrom?(item.monthFrom+(item.monthTo?'〜'+item.monthTo:'')):'--';
+    var scoreCls = getPriorityClass(item.score);
+    
+    h += '<div class="rank-row">';
+    h += '<div class="rank-pos '+posCls+'">'+(i+1)+'</div>';
+    h += '<div class="rank-name">'+item.name+'<small>'+item.count+'件の評価</small></div>';
+    h += '<div><span class="rank-badge eval-s-pill '+fCls+'">'+item.fcst+'</span></div>';
+    h += '<div><span class="rank-badge eval-s-pill '+wCls+'">W'+item.win+'</span></div>';
+    h += '<div class="rank-month">'+monthStr+'</div>';
+    h += '<div class="rank-score" style="color:'+({12:'#0F6E56',9:'#0F6E56',8:'#185FA5',6:'#185FA5',4:'#854F0B',3:'#854F0B',2:'#888780',1:'#888780'}[item.score]||'#888780')+'">'+item.score+'pt</div>';
+    h += '</div>';
+  });
+  h += '</div>';
+  document.getElementById('dashRanking').innerHTML = h;
+}
+
+function renderTimeline(best){
+  var hasMonth = false;
+  for(var pid in best){ if(best[pid].monthFrom){ hasMonth=true; break; } }
+  if(!hasMonth){
+    document.getElementById('dashTimeline').innerHTML='<div class="dash-empty">出稿想定月のデータがありません</div>';
+    return;
+  }
+  
+  var arr = [];
+  for(var pid in best){
+    if(best[pid].monthFrom) arr.push({pid:pid, name:pidToName(pid), fcst:best[pid].fcst, from:parseInt(best[pid].monthFrom), to:best[pid].monthTo?parseInt(best[pid].monthTo):parseInt(best[pid].monthFrom)});
+  }
+  arr.sort(function(a,b){ return a.from - b.from || a.name.localeCompare(b.name); });
+  
+  var h = '<div class="tl-wrap"><div class="tl-grid">';
+  h += '<div class="tl-hdr"></div>';
+  for(var m=1;m<=12;m++) h += '<div class="tl-hdr">'+m+'月</div>';
+  
+  arr.forEach(function(item){
+    h += '<div class="tl-name">'+item.name+'</div>';
+    var barCls = 'tl-bar-'+item.fcst.toLowerCase();
+    for(var m=1;m<=12;m++){
+      var inRange = m>=item.from && m<=item.to;
+      h += '<div class="tl-cell">'+(inRange?'<div class="tl-bar '+barCls+'" style="width:80%"></div>':'')+'</div>';
+    }
+  });
+  h += '</div></div>';
+  document.getElementById('dashTimeline').innerHTML = h;
+}
+
+function renderAssetFreq(best){
+  var highPids = [];
+  for(var pid in best){ if(best[pid].score>=6) highPids.push(pid); }
+  
+  if(highPids.length===0){
+    document.getElementById('dashAssets').innerHTML='<div class="dash-empty">スコア6pt以上の評価がありません</div>';
+    return;
+  }
+  
+  var assetCount = {};
+  highPids.forEach(function(pid){
+    var card = document.querySelector('[data-pid="'+pid+'"]');
+    if(!card) return;
+    var chips = card.querySelectorAll('.chip, .ind-asset b');
+    chips.forEach(function(chip){
+      var name = chip.textContent.trim();
+      if(name && name.length>1 && name!=='×'){
+        assetCount[name] = (assetCount[name]||0)+1;
+      }
+    });
+  });
+  
+  var arr = [];
+  for(var name in assetCount) arr.push({name:name, count:assetCount[name]});
+  arr.sort(function(a,b){ return b.count - a.count; });
+  if(arr.length>15) arr = arr.slice(0,15);
+  
+  var maxCount = arr.length>0?arr[0].count:1;
+  var h = '<div class="asset-freq">';
+  arr.forEach(function(item){
+    var pct = Math.round((item.count/maxCount)*100);
+    h += '<div class="af-item"><span class="af-name">'+item.name+'</span><div class="af-bar" style="width:'+pct+'px"></div><span class="af-count">'+item.count+'回</span></div>';
+  });
+  h += '</div>';
+  document.getElementById('dashAssets').innerHTML = h;
+}
+
+</script>
+</body>
+</html>
