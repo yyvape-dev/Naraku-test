@@ -380,6 +380,46 @@ img.frm{display:block;width:100%;height:100%}
 .acts button.opt{height:auto;min-height:54px;padding:7px 10px;line-height:1.35;letter-spacing:.06em}
 .acts button small{display:block;font-size:10.5px;letter-spacing:0;color:var(--bone);opacity:.85}
 
+/* 宝箱専用。報酬・保存は既存の到着処理のまま、開錠は表示だけを切り替える。 */
+.screen.node.chest{padding:0;align-items:stretch;text-align:left;overflow:hidden;background:#17110c}
+.chest-head{flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:calc(9px + env(safe-area-inset-top)) 14px 9px;border-bottom:1px solid #80613b;background:linear-gradient(#302317,#17110c);color:#dcc49a;font-size:10px;letter-spacing:.14em}
+.chest-head strong{font-size:12px;color:#f1dab0;font-weight:400}
+.chest-sound{width:32px;height:28px;border:1px solid #80613b;border-radius:3px;background:#21180f;color:#e6c382;display:grid;place-items:center}
+.chest-sound svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.5}
+.chest-sound[aria-pressed="false"] .sound-waves{display:none}
+.screen.chest>.pstrip{padding:7px 10px;gap:5px;background:#17110c;border-bottom:1px solid #51402b}
+.chest-art{flex:1;min-height:180px;position:relative;overflow:hidden;background:#20130d}
+.chest-art img{display:block;width:100%;height:100%;position:absolute;inset:0;object-fit:cover;object-position:50% 62%}
+.chest-art::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 35px rgba(19,10,4,.22);background:linear-gradient(transparent 82%,rgba(21,12,6,.6))}
+.chest-caption{position:absolute;left:14px;bottom:13px;z-index:1;display:flex;align-items:center;gap:7px;color:#f1d7a8;font-size:10px;letter-spacing:.2em;text-shadow:0 1px 4px #000}
+.chest-caption::before{content:"◆";color:#dab777;font-size:8px}
+.chest-flash{position:absolute;left:72%;top:77%;width:180%;aspect-ratio:1;transform:translate(-50%,-50%) scale(.2);opacity:0;pointer-events:none;z-index:2;background:radial-gradient(circle,rgba(255,246,191,.85),rgba(255,196,87,.5) 12%,rgba(255,163,44,.18) 28%,transparent 52%)}
+.chest.unlocking .chest-flash{animation:chestUnlock .65s ease-out both}
+@keyframes chestUnlock{0%{opacity:0;transform:translate(-50%,-50%) scale(.15)}22%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
+.chest-body{flex:none;position:relative;padding:15px 22px 13px;border-top:3px double #b18b4d;border-bottom:3px double #876536;color:#49311b;background:radial-gradient(ellipse at 45% 0%,#f4e6c5,transparent 70%),repeating-linear-gradient(6deg,rgba(102,67,27,.035) 0 1px,transparent 1px 4px),linear-gradient(105deg,#c4a775,#ead8ad 22%,#e6d0a4 78%,#c3a16b);box-shadow:inset 0 0 22px rgba(104,65,18,.2)}
+.chest-body::before,.chest-body::after{content:"◆";position:absolute;top:14px;font-size:9px;color:#88602b;text-shadow:0 1px #fff0cd}
+.chest-body::before{left:9px}.chest-body::after{right:9px}
+.chest-kicker{display:block;font-size:9px;letter-spacing:.22em;color:#856238;margin-bottom:3px}
+.screen.chest h1{margin:0;font-size:24px;line-height:1.35;letter-spacing:.22em;color:#4a2e13;text-shadow:0 1px #f8e7bf}
+.screen.chest p.chest-description{margin:7px 0 0;font-size:12px;line-height:1.75;color:#61452a;max-width:none}
+.chest-results{list-style:none;margin-top:9px;padding-top:7px;border-top:1px solid rgba(125,85,37,.32);display:grid;gap:5px}
+.chest-results li{display:flex;align-items:center;gap:8px;font-size:12px;line-height:1.55;color:#49311b}
+.chest-results li::before{content:"✦";color:#8b641f;font-size:11px;flex:none}
+.chest-controls{flex:none;padding:12px 18px;background:linear-gradient(#2b2116,#18110c)}
+.chest-open,.chest-next{width:100%;min-height:48px;padding:10px 14px;border:1px solid #b99655;border-radius:3px;font-size:14px;letter-spacing:.18em;color:#ffe9b6;background:linear-gradient(#6b4a23,#3a2613);box-shadow:inset 0 0 0 3px rgba(18,10,3,.35),inset 0 4px 12px rgba(235,181,83,.14),0 2px 8px #0c0805;touch-action:manipulation}
+.chest-open:active,.chest-next:active{filter:brightness(1.16);transform:translateY(1px)}
+.chest-open:disabled,.chest-next:disabled{cursor:default;opacity:.42;transform:none}
+.chest-confirmed{display:flex;align-items:center;justify-content:center;min-height:48px;font-size:12px;letter-spacing:.12em;color:#d9bf8b}
+.chest-confirmed::before{content:"✓";margin-right:9px;color:#dbb56e}
+.chest.opened .chest-confirmed{min-height:24px}
+.chest.opened .chest-controls{padding-top:8px;padding-bottom:8px}
+.chest-foot{flex:none;padding:10px 18px calc(14px + env(safe-area-inset-bottom));margin-top:auto;border-top:1px solid #493820;background:#17110c}
+.chest-next{background:linear-gradient(#34271b,#21170f);color:#e5d0a3;border-color:#80633d;font-size:13px}
+.chest-error{padding:8px 14px;color:#ffd7bd;background:#4b2014;font-size:12px;line-height:1.6}
+@media(max-height:700px){.chest-head{padding-top:calc(6px + env(safe-area-inset-top));padding-bottom:6px}.screen.chest>.pstrip{padding-top:5px;padding-bottom:5px}.chest-body{padding-top:11px;padding-bottom:10px}.chest-controls{padding-top:9px;padding-bottom:9px}.chest-foot{padding-top:8px;padding-bottom:calc(10px + env(safe-area-inset-bottom))}.screen.chest h1{font-size:22px}}
+@media(max-height:700px){.chest-art img{object-position:50% 100%}}
+@media(prefers-reduced-motion:reduce){.chest.unlocking .chest-flash{animation:none}.chest-open:active,.chest-next:active{transform:none}}
+
 /* モジュールA：街（酒場・鍛冶屋・商店・宿屋・教会・廃屋）。画面オーバーレイの中を、見出し・本文（縦に流れる）・足元の操作の3段に分ける */
 .screen.town{padding:0;align-items:stretch;text-align:left;overflow:hidden;background:radial-gradient(ellipse at 50% -10%,#5a3d24,#2a1a0d 72%)}
 .tw-head{flex:none;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 14px 9px;border-bottom:2px solid #c9a85a;background:repeating-linear-gradient(90deg,rgba(0,0,0,0) 0 67px,rgba(30,17,8,.3) 67px 68px),linear-gradient(#6a4a2c,#4a3019);box-shadow:0 6px 14px -8px rgba(30,17,8,.9);position:relative;z-index:1}
@@ -1153,6 +1193,8 @@ const UPARTS=/*__UPARTS_START__*/{}/*__UPARTS_END__*/;
 /* UIの素材。assets/ui_<名前>.webp がビルド時に差し込まれる。leather=操作エリアとサイドエリアの地（継ぎ目なしタイル）/ rewind=逆転の右手の演出絵（黒背景）/ town=街の一枚絵（縦長 941×1672。建物の位置は HUB の表）/
    map=探索の盤面（縦長。上下反転で継ぐ）/ medals=マスのメダル（3×3のシート。透過）/ pieces=キャラクターの駒（横5コマ。透過）/ table=机に置いた地図盤（縦長1枚。盤の内側の位置は TABLE_IN）/ smoke=煙（横3コマ。透過）。どれも無ければコードで描いた代わりの見た目で動く */
 const UI=/*__UI_START__*/{}/*__UI_END__*/;
+// assets/event_<名前>.webp。配布版にも埋め込むので、公開先のパスに依存しない。
+const EVENT_ART=/*__EVENTS_START__*/{}/*__EVENTS_END__*/;
 /* 攻撃とスキルのVFX（assets/vfx_<名前>.webp）。黒背景の光もの＝加算合成で重ねる（黒は消える）。氷と地割れだけ透過の絵を普通に重ねる。
    動きはコードで付ける（拡大・回転・薄れ）。見た目だけで、戦闘の結果には一切関わらない。素材が無ければ従来のコード描画のまま */
 const VFX=/*__VFX_START__*/{}/*__VFX_END__*/;
@@ -3822,7 +3864,7 @@ function syncDOM(){
 /* ---- 画面オーバーレイの土台 ---- */
 let scrAt=0;
 function openScreen(html,node,town){ // node=各マスの画面（体力と狂気の帯を上に出して、見ながら選べるようにする）/ town=街の画面（見出し・本文・足元の3段）
-  elScreen.classList.toggle('node',!!node);elScreen.classList.toggle('town',!!town);elScreen.classList.remove('hub','fac');HUBS=null; // 画面を入れ替えたら、ハブの部品は手放す
+  elScreen.classList.toggle('node',!!node);elScreen.classList.toggle('town',!!town);elScreen.classList.remove('hub','fac','chest','unlocking','opened');HUBS=null; // 画面を入れ替えたら、ハブの部品は手放す
   elScreen.innerHTML=(node?'<div class="pstrip">'+partyHTML()+'</div>':'')+html;elScreen.classList.add('on');elScreen.scrollTop=0;scrAt=performance.now();
   if(node)mountParty();
 }
@@ -4659,8 +4701,53 @@ function giveUp(){
   return true;
 }
 /* ---- 各マスの画面 ---- */
+let chestAudio=null,chestMuted=false;
+function chestSound(){ // タップの中でだけ起動。音が使えない端末でも、取得・進行を止めない。
+  if(chestMuted)return;
+  try{
+    const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;
+    if(!chestAudio)chestAudio=new Audio();
+    const play=()=>{
+      const t=chestAudio.currentTime;
+      [[180,0,.09,'triangle'],[784,.07,.18,'sine'],[1047,.14,.24,'sine'],[1568,.21,.32,'sine']].forEach(([hz,delay,dur,type])=>{
+        const o=chestAudio.createOscillator(),g=chestAudio.createGain(),at=t+delay;
+        o.type=type;o.frequency.setValueAtTime(hz,at);if(delay===0)o.frequency.exponentialRampToValueAtTime(65,at+dur);
+        g.gain.setValueAtTime(.001,at);g.gain.exponentialRampToValueAtTime(.045,at+.008);g.gain.exponentialRampToValueAtTime(.001,at+dur);
+        o.connect(g);g.connect(chestAudio.destination);o.start(at);o.stop(at+dur+.02);
+      });
+    };
+    if(chestAudio.state==='suspended')chestAudio.resume().then(play).catch(()=>{});else play();
+  }catch(e){}
+}
+function chestArtError(){
+  if(!elScreen.classList.contains('chest'))return;
+  const err=elScreen.querySelector('.chest-error');err.hidden=false;
+  err.textContent='宝箱の画像を読み込めませんでした。画面を開き直してください。';
+  elScreen.querySelectorAll('.chest-open,.chest-next').forEach(b=>b.disabled=true);
+}
+function showChest(){
+  const N=R.node,opened=!!N.chestOpened,art=EVENT_ART.chest;
+  const sound='<button class="chest-sound" data-act="chest-sound" aria-label="宝箱の効果音" aria-pressed="'+!chestMuted+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="sound-waves" d="M16 8q5 4 0 8m3-11q8 7 0 14"/></svg></button>';
+  const h='<header class="chest-head"><strong>◆ 奈落探索</strong><span>第'+R.floor+'層・第'+KANSUJI[N.n.L]+'歩　灯り '+R.light+'%</span>'+sound+'</header>'
+    +'<div class="pstrip">'+partyHTML()+'</div>'
+    +'<div class="chest-art">'+(art?'<img src="'+art+'" alt="松明の灯る遺跡で、ユズナミキが宝箱の錠を調べている" width="1160" height="1280">':'')+'<span class="chest-caption">'+(opened?'闇の奥に眠っていたもの':'錆びた錠の、その向こうに')+'</span><i class="chest-flash" aria-hidden="true"></i></div>'
+    +'<div class="chest-error" role="alert"'+(art?' hidden':'')+'>'+(art?'':'宝箱の画像が未配置です（assets/event_chest.webp）。')+'</div>'
+    +'<section class="chest-body" aria-labelledby="chest-title"><small class="chest-kicker">'+(opened?'手に入れたもの':'探索イベント')+'</small><h1 id="chest-title">宝箱</h1>'
+    +(opened?'<ul class="chest-results" aria-live="polite" aria-label="取得した戦利品">'+N.res.map(s=>'<li>'+s+'</li>').join('')+'</ul>':'<p class="chest-description">朽ちた宝箱を見つけた。錠は、とうに壊れている。</p>')+'</section>'
+    +'<div class="chest-controls">'+(opened?'<div class="chest-confirmed" role="status">戦利品をしまった</div>':'<button class="chest-open" data-act="chest-open"'+(art?'':' disabled')+'>宝箱を開く</button>')+'</div>'
+    +'<footer class="chest-foot"><button class="chest-next" data-act="leave"'+(opened&&art?'':' disabled')+'>先へ進む</button></footer>';
+  openScreen(h,false);elScreen.classList.add('node','chest');elScreen.classList.toggle('opened',opened);mountParty();
+  const img=elScreen.querySelector('.chest-art img');if(img){img.addEventListener('error',chestArtError);if(img.complete&&!img.naturalWidth)chestArtError()}
+}
+function revealChest(){
+  const N=R&&R.node,img=elScreen.querySelector('.chest-art img');
+  if(mode!=='node'||!N||N.n.type!=='chest'||N.phase!=='done'||N.chestOpened||!img||!img.complete||!img.naturalWidth)return false;
+  // 報酬は openNode で一度だけ取得・保存済み。ここでは再抽選・applyFx・saveRun を呼ばない。
+  N.chestOpened=true;showChest();elScreen.classList.add('unlocking');chestSound();return true;
+}
 function showNode(){
   const N=R.node,n=N.n,d=NODES[n.type];let h;
+  if(n.type==='chest'&&N.phase==='done'){showChest();return}
   const head=(g,col,t,ix)=>'<div class="emb'+(UI.medals&&ix>=0?' mart':'')+'" style="--nc:'+col+(UI.medals&&ix>=0?';'+medalPos(ix):'')+'">'+g+'</div><h1>'+t+'</h1>',mix=MEDAL_IX[n.type];
   const purse='<div class="stats">未精算の金<b>'+R.gold+'</b>　装備<b>'+R.loot.length+'</b><br>灯り<b>'+R.light+'%</b></div>';
   if(N.phase==='retreat'){
@@ -4734,6 +4821,8 @@ elScreen.addEventListener('click',ev=>{
   const b=ev.target.closest('[data-act]');if(!b||b.disabled)return;
   const act=b.dataset.act;
   if(act==='town')showTown();
+  else if(act==='chest-open')revealChest();
+  else if(act==='chest-sound'){chestMuted=!chestMuted;b.setAttribute('aria-pressed',String(!chestMuted))}
   else if(act==='resume')resumeRun();
   else if(act==='next')afterVictory();
   else if(act==='giveup')giveUp();
