@@ -95,6 +95,8 @@ with sync_playwright() as p:
         check(f"{width}×{height}: 20回連打・画面再表示で再抽選・二重取得なし", duplicate['save'] == snapshot and duplicate['res'] == rewards)
         rendered = pg.locator('.chest-results li').all_text_contents()
         check(f"{width}×{height}: 装備・金・灯りの既存結果を表示", rendered == rewards, rendered)
+        narrative = pg.locator('.chest-description').inner_text()
+        check(f"{width}×{height}: 元のイベント本文と油の発見を省略せず表示", narrative == pg.evaluate('NARAKU.R.node.text') and '底には油の小瓶も転がっていた。' in narrative, narrative)
         pg.wait_for_timeout(300)
         pg.screenshot(path=str(out / f'{stem}-result.png'))
         check(f"{width}×{height}: 結果も画面内に収まる", pg.evaluate('document.querySelector("#screen").scrollHeight <= document.querySelector("#screen").clientHeight') and pg.locator('.chest-next').is_enabled())
