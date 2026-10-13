@@ -417,6 +417,29 @@ img.frm{display:block;width:100%;height:100%}
 @media(max-height:700px){.chest-head{padding-top:calc(6px + env(safe-area-inset-top));padding-bottom:6px}.screen.chest>.pstrip{padding-top:5px;padding-bottom:6px}.chest-body{margin-top:10px;padding:10px 12px}.chest-controls{padding-top:8px;padding-bottom:8px}.chest-foot{padding-top:6px;padding-bottom:calc(10px + env(safe-area-inset-bottom))}.screen.chest h1{font-size:22px}}
 @media(prefers-reduced-motion:reduce){.chest.unlocking .chest-flash,.chest.unlocking .chest-transition{animation:none}.chest-open:active,.chest-next:active{transform:none}}
 
+/* 骸の山：A案。画像→本文→選択肢／結果を自然に積み、長い場合だけ画面をスクロールする。 */
+.screen.node.bones{padding:0;align-items:stretch;text-align:left;overflow-y:auto;background:var(--soot)}
+.screen.bones>.pstrip{flex:none;padding:7px 10px 8px;gap:5px;background:var(--soot)}
+.bones-art{flex:none;width:100%;aspect-ratio:4/3;position:relative;background:var(--soot)}
+.bones-art img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain}
+.bones-content{flex:none;padding:17px 18px calc(22px + env(safe-area-inset-bottom));background:linear-gradient(#1b160f,var(--soot) 140px)}
+.bones-title{display:flex;align-items:center;gap:10px}
+.screen.bones .bones-title .emb{width:34px;height:34px;margin:0;font-size:18px;box-shadow:0 2px 6px #000}
+.bones-kicker{font-size:9px;letter-spacing:.16em;color:#938067;margin-bottom:3px}
+.screen.bones h1{margin:0;font-size:24px;line-height:1.3;letter-spacing:.18em;color:#e2c78f;text-shadow:0 2px 2px #000}
+.screen.bones p.bones-description{margin:12px 0 0;max-width:none;font-size:13px;line-height:1.8;color:var(--bone);letter-spacing:.015em}
+.bones-choices{display:grid;gap:10px;margin-top:17px}
+.bones-choice{width:100%;min-height:65px;display:flex;align-items:center;gap:12px;padding:12px 13px;text-align:left;border:1px solid #665139;border-radius:2px;background:linear-gradient(120deg,#271f15,#16120d);box-shadow:inset 0 0 0 1px rgba(230,198,134,.025)}
+.bones-choice>span{flex:1;min-width:0}.bones-choice b{display:block;font-size:15px;font-weight:400;line-height:1.45;letter-spacing:.09em;color:#e5d2ac}
+.bones-choice small{display:block;font-size:11px;line-height:1.65;margin-top:5px;color:#b7a187}
+.bones-choice i{flex:none;font-style:normal;font-size:25px;color:#9a7d4c}
+.bones-choice.quiet{border-color:#443b2e;background:#15120e}.bones-choice.quiet b{color:#c6baa1}.bones-choice.quiet small{color:#a99a81}
+.bones-choice:active{background:#322719;transform:translateY(1px)}.bones-choice:disabled{opacity:.4;cursor:default}
+.bones-result{list-style:none;margin-top:15px;padding:12px 13px;border-top:1px solid #5d4a31;border-bottom:1px solid #3a3023;display:grid;gap:6px;font-size:13px;line-height:1.65;color:#e2c78f;background:rgba(39,30,18,.35)}
+.bones-result.alert{border-color:#704839}.bones-threat{color:#b99a88;font-size:12px}
+.bones-foot{margin-top:16px}.bones-foot .chest-next{color:#dbc49a;font-size:14px}.bones-foot .danger{border-color:#74503c;color:#dcb7a1;background:linear-gradient(#2d2018,#19110d)}
+@media(max-height:700px){.screen.bones>.pstrip{padding-top:5px;padding-bottom:6px}.bones-content{padding-top:13px;padding-bottom:calc(18px + env(safe-area-inset-bottom))}.screen.bones h1{font-size:22px}.screen.bones p.bones-description{margin-top:10px;font-size:12.5px;line-height:1.75}.bones-choices{margin-top:14px;gap:9px}.bones-choice{padding-top:10px;padding-bottom:10px}}
+
 /* モジュールA：街（酒場・鍛冶屋・商店・宿屋・教会・廃屋）。画面オーバーレイの中を、見出し・本文（縦に流れる）・足元の操作の3段に分ける */
 .screen.town{padding:0;align-items:stretch;text-align:left;overflow:hidden;background:radial-gradient(ellipse at 50% -10%,#5a3d24,#2a1a0d 72%)}
 .tw-head{flex:none;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 14px 9px;border-bottom:2px solid #c9a85a;background:repeating-linear-gradient(90deg,rgba(0,0,0,0) 0 67px,rgba(30,17,8,.3) 67px 68px),linear-gradient(#6a4a2c,#4a3019);box-shadow:0 6px 14px -8px rgba(30,17,8,.9);position:relative;z-index:1}
@@ -3861,7 +3884,7 @@ function syncDOM(){
 /* ---- 画面オーバーレイの土台 ---- */
 let scrAt=0;
 function openScreen(html,node,town){ // node=各マスの画面（体力と狂気の帯を上に出して、見ながら選べるようにする）/ town=街の画面（見出し・本文・足元の3段）
-  elScreen.classList.toggle('node',!!node);elScreen.classList.toggle('town',!!town);elScreen.classList.remove('hub','fac','chest','unlocking','opened');HUBS=null; // 画面を入れ替えたら、ハブの部品は手放す
+  elScreen.classList.toggle('node',!!node);elScreen.classList.toggle('town',!!town);elScreen.classList.remove('hub','fac','chest','unlocking','opened','bones');HUBS=null; // 画面を入れ替えたら、ハブの部品は手放す
   elScreen.innerHTML=(node?'<div class="pstrip">'+partyHTML()+'</div>':'')+html;elScreen.classList.add('on');elScreen.scrollTop=0;scrAt=performance.now();
   if(node)mountParty();
 }
@@ -4745,9 +4768,25 @@ function revealChest(){
   // 報酬は openNode で一度だけ取得・保存済み。ここでは再抽選・applyFx・saveRun を呼ばない。
   N.chestOpened=true;showChest();elScreen.classList.add('unlocking');chestSound();return true;
 }
+function showBones(){
+  const N=R.node,art=EVENT_ART.bones,pick=N.phase==='pick';
+  const emblem='<span class="emb'+(UI.medals?' mart':'')+'" style="--nc:'+NODES.event.col+(UI.medals?';'+medalPos(MEDAL_IX.event):'')+'">'+NODES.event.g+'</span>';
+  const h='<header class="chest-head"><strong>◆ 奈落探索</strong><span>第'+R.floor+'層 · 第'+KANSUJI[N.n.L]+'歩</span><span>灯り '+R.light+'%</span></header><div class="pstrip">'+partyHTML()+'</div>'
+    +'<div class="bones-art">'+(art?'<img src="'+art+'" width="1280" height="960" alt="炎に包まれた廃墟で、仲間たちが亡骸の山の前に立っている">':'')+'</div>'
+    +'<div class="chest-error" role="alert"'+(art?' hidden':'')+'>骸の山の画像を読み込めませんでした。</div>'
+    +'<section class="bones-content"><div class="bones-title">'+emblem+'<div><div class="bones-kicker">探索 · 異変</div><h1>'+N.title+'</h1></div></div><p class="bones-description">'+N.text+'</p>'
+    +(pick?'<div class="bones-choices">'+N.opts.map((o,i)=>'<button class="bones-choice'+(i===N.opts.length-1?' quiet':'')+'" data-opt="'+i+'"'+(!art||(o.need&&R.gold<o.need)?' disabled':'')+'><span><b>'+o.label+'</b>'+(o.note?'<small>'+o.note+'</small>':'')+'</span><i aria-hidden="true">›</i></button>').join('')+'</div>'
+      :(N.res.length||N.ambush?'<ul class="bones-result'+(N.ambush?' alert':'')+'" aria-live="polite">'+N.res.map(s=>'<li>'+s+'</li>').join('')+(N.ambush?'<li class="bones-threat">闇の奥から、敵が迫ってくる。</li>':'')+'</ul>':'')
+      +'<div class="bones-foot"><button class="chest-next'+(N.ambush?' danger':'')+'" data-act="leave"'+(art?'':' disabled')+'>'+(!partyAlive()?'闇に呑まれる':N.ambush?'迎え撃つ':'先へ進む')+'</button></div>')+'</section>';
+  openScreen(h,false);elScreen.classList.add('node','bones');mountParty();
+  const img=elScreen.querySelector('.bones-art img');
+  const failed=()=>{if(!elScreen.classList.contains('bones'))return;elScreen.querySelector('.chest-error').hidden=false;elScreen.querySelectorAll('button').forEach(b=>b.disabled=true)};
+  if(img){img.addEventListener('error',failed);if(img.complete&&!img.naturalWidth)failed()}
+}
 function showNode(){
   const N=R.node,n=N.n,d=NODES[n.type];let h;
   if(n.type==='chest'&&N.phase==='done'){showChest();return}
+  if(n.type==='event'&&EVENTS[n.ev].id==='bones'&&(N.phase==='pick'||N.phase==='done')){showBones();return}
   const head=(g,col,t,ix)=>'<div class="emb'+(UI.medals&&ix>=0?' mart':'')+'" style="--nc:'+col+(UI.medals&&ix>=0?';'+medalPos(ix):'')+'">'+g+'</div><h1>'+t+'</h1>',mix=MEDAL_IX[n.type];
   const purse='<div class="stats">未精算の金<b>'+R.gold+'</b>　装備<b>'+R.loot.length+'</b><br>灯り<b>'+R.light+'%</b></div>';
   if(N.phase==='retreat'){
