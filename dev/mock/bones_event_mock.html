@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>骸の山 — UIモック</title>
+<style>
+:root{color-scheme:dark;--ink:#0c0a09;--panel:#17130f;--bone:#d8cdb4;--dim:#968d79;--brass:#8a7048;--gold:#e2c78f;--mincho:"Hiragino Mincho ProN","Yu Mincho","Noto Serif CJK JP",serif}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#080706}
+body{font-family:var(--mincho);color:var(--bone);-webkit-tap-highlight-color:transparent}
+button,a{font:inherit;color:inherit;touch-action:manipulation}
+button{cursor:pointer}button:focus-visible,a:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+[hidden]{display:none!important}
+#app{width:100%;max-width:520px;height:100vh;height:100dvh;margin:auto;display:flex;flex-direction:column;overflow:hidden;background:var(--ink)}
+.hud{flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:calc(12px + env(safe-area-inset-top)) 16px 11px;border-bottom:1px solid #44382a;background:linear-gradient(#201a13,#100d0a);font-size:10px;letter-spacing:.08em;color:var(--dim)}
+.hud strong{font-size:12px;font-weight:400;color:#ccb995}.hud i{font-style:normal;color:#bb985b;margin-right:6px}.hud b{font-weight:400;color:#d5c5a4}
+.party{flex:none;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:8px 12px;background:var(--ink)}
+.member{min-width:0;display:flex;align-items:center;gap:6px;padding:4px 5px;background:#15120e;border:1px solid #493d2b;border-radius:2px}
+.member img{flex:none;width:27px;height:27px;object-fit:cover;object-position:center 22%;border-radius:50%;border:1px solid #7f6742}
+.member div{min-width:0;flex:1}.member b{display:block;font-size:9px;font-weight:400;white-space:nowrap;overflow:hidden;color:#d5c6a5;line-height:1.4}
+.member span{display:flex;align-items:center;gap:4px;font-size:8px;color:#a69a84;line-height:1.2}.bar{flex:1;height:3px;background:#413128;position:relative}.bar::before{content:"";position:absolute;inset:0;background:#8b3830}.bar.mad::before{background:#6e5588;right:100%}
+#flow{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#5a4932 var(--ink);-webkit-overflow-scrolling:touch}
+.hero{position:relative;width:100%;aspect-ratio:4/3;overflow:hidden;background:var(--ink);display:flex;align-items:center;justify-content:center}
+.hero img{display:block;width:100%;height:100%;object-fit:contain}
+.compact .hero{aspect-ratio:auto;height:min(260px,35dvh)}
+.compact .hero img{width:auto;max-width:100%;height:100%}
+.content{padding:17px 18px calc(22px + env(safe-area-inset-bottom));background:linear-gradient(#1b160f,var(--ink) 140px)}
+.title-row{display:flex;align-items:center;gap:10px}.sigil{flex:none;width:34px;height:34px;background:url('../assets/ui_medals.webp') 0 50%/300% 300% no-repeat;filter:saturate(.7);border-radius:50%;box-shadow:0 2px 6px #000}
+.eyebrow{font-size:9px;letter-spacing:.16em;color:#938067;margin-bottom:3px}
+h1{font-size:24px;font-weight:600;letter-spacing:.18em;line-height:1.3;color:var(--gold);text-shadow:0 2px 2px #000}
+.description{margin-top:12px;font-size:13px;line-height:1.8;color:var(--bone);letter-spacing:.015em}
+.choices{display:grid;gap:10px;margin-top:17px}
+.choice{width:100%;min-height:65px;display:flex;align-items:center;gap:12px;padding:12px 13px;text-align:left;border:1px solid #665139;border-radius:2px;background:linear-gradient(120deg,#271f15,#16120d);box-shadow:inset 0 0 0 1px rgba(230,198,134,.025);transition:border-color .15s,background .15s}
+.choice:hover{border-color:#a38756}.choice:active{background:#322719;transform:translateY(1px)}
+.choice-body{flex:1;min-width:0}.choice-label{display:block;font-size:15px;line-height:1.45;letter-spacing:.09em;color:#e5d2ac}
+.choice-note{display:block;font-size:11px;line-height:1.65;margin-top:5px;color:#a99a81}.choice-note.risk{color:#b7a187}
+.chevron{flex:none;font-family:serif;font-size:25px;font-weight:400;color:#9a7d4c}
+.choice.quiet{border-color:#443b2e;background:#15120e}.choice.quiet .choice-label{color:#c6baa1}.choice.quiet .chevron{color:#80745f}
+.result{margin-top:15px;padding:12px 13px;border-top:1px solid #5d4a31;border-bottom:1px solid #3a3023;display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--gold);background:rgba(39,30,18,.35)}
+.result.alert{color:#d1a591;border-color:#704839;line-height:1.65;display:block}
+.result.alert span{display:block}.result.alert span:first-child{color:var(--gold)}.result.alert span+span{margin-top:6px;font-size:12px}
+.foot{margin-top:16px}
+.next{width:100%;min-height:48px;border:1px solid #826a43;border-radius:2px;background:linear-gradient(#2d2317,#16120d);font-size:14px;letter-spacing:.14em;color:#dbc49a}.next:active{background:#34291b}
+.next.danger{border-color:#74503c;color:#dcb7a1;background:linear-gradient(#2d2018,#19110d)}
+.busy .choices{pointer-events:none;opacity:.5}
+.glimmer{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 80%,rgba(222,164,73,.3),transparent 65%);opacity:0}
+.busy .glimmer{animation:glimmer .35s ease-out}
+@keyframes glimmer{0%,100%{opacity:0}40%{opacity:1}}
+#cue{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);z-index:3;padding:4px 11px;border:1px solid #5b4930;border-radius:20px;background:rgba(15,12,8,.92);color:#b9a785;font-size:10px;letter-spacing:.1em;pointer-events:none;box-shadow:0 2px 12px #000}
+.flow-wrap{position:relative;display:flex;flex:1;min-height:0;flex-direction:column}
+#image-error{padding:20px;color:#e7b4a0;background:#381b13;font-size:13px;line-height:1.7}
+.review{display:none}
+@media(min-width:720px){body{display:grid;grid-template-columns:210px 1fr;align-items:start;padding:24px 24px 24px 0;gap:24px}.review{display:block;padding:20px 0 20px 25px;color:#aa9a80;font-family:system-ui,sans-serif;font-size:12px;line-height:1.8}.review h2{font-size:15px;color:#d5c3a1;margin-bottom:9px}.review a{display:block;margin:10px 0;padding:9px 12px;border:1px solid #4a3c28;text-decoration:none;border-radius:3px}.review a.on{border-color:#9a7d4b;color:#e2c78f}.review p{margin-top:12px}#app{width:390px;height:844px;max-height:calc(100dvh - 48px);border:1px solid #3f3425;border-radius:6px;box-shadow:0 8px 45px #000;margin:0 auto}}
+@media(max-height:700px){.hud{padding-top:calc(9px + env(safe-area-inset-top));padding-bottom:9px}.party{padding-top:6px;padding-bottom:6px}.content{padding-top:13px;padding-bottom:calc(18px + env(safe-area-inset-bottom))}h1{font-size:22px}.description{margin-top:10px;font-size:12.5px;line-height:1.75}.choices{margin-top:14px;gap:9px}.choice{padding-top:10px;padding-bottom:10px}}
+@media(prefers-reduced-motion:reduce){.busy .glimmer{animation:none}.choice{transition:none}.choice:active{transform:none}}
+</style>
+</head>
+<body>
+<aside class="review">
+<h2>骸の山 · UIモック</h2>
+<a href="?layout=full" data-layout="full">A · 画像を全幅の4:3で表示</a>
+<a href="?layout=compact" data-layout="compact">B · 選択肢に余裕を持たせる</a>
+<p>既存の本文と2つの選択肢を使った、ゲームに未接続の確認用画面です。</p>
+<p>「荷を漁る」で成功結果、「立ち去る」で通過結果を確認できます。</p>
+<a href="?layout=compact&outcome=ambush">敵に見つかった結果を見る</a>
+</aside>
+<main id="app">
+<header class="hud"><strong><i>◆</i>奈落探索</strong><span>第1層 · 第三歩</span><span>灯り <b>70%</b></span></header>
+<div class="party" aria-label="同行者の体力と狂気">
+<div class="member"><img src="../assets/face_fox.webp" alt=""><div><b>ユズナミキ</b><span><i class="bar"></i>100%</span><span><i class="bar mad"></i>0%</span></div></div>
+<div class="member"><img src="../assets/face_sword.webp" alt=""><div><b>ラナ</b><span><i class="bar"></i>100%</span><span><i class="bar mad"></i>0%</span></div></div>
+<div class="member"><img src="../assets/face_mage.webp" alt=""><div><b>シェリ</b><span><i class="bar"></i>100%</span><span><i class="bar mad"></i>0%</span></div></div>
+</div>
+<div class="flow-wrap">
+<div id="flow">
+<figure class="hero"><img id="art" src="assets/event_bones.webp" alt="炎に包まれた廃墟で、仲間たちが折り重なる亡骸の前に立っている" width="1280" height="960"><div class="glimmer" aria-hidden="true"></div></figure>
+<p id="image-error" role="alert" hidden>画像を読み込めませんでした。</p>
+<section class="content" aria-labelledby="event-title">
+<div class="title-row"><i class="sigil" aria-hidden="true"></i><div><div class="eyebrow">探索 · 異変</div><h1 id="event-title">骸の山</h1></div></div>
+<p id="description" class="description"></p>
+<div id="choices" class="choices">
+<button class="choice" data-choice="search"><span class="choice-body"><span class="choice-label">荷を漁る</span><span class="choice-note risk">金と装備が手に入る。敵に見つかることもある</span></span><span class="chevron" aria-hidden="true">›</span></button>
+<button class="choice quiet" data-choice="leave"><span class="choice-body"><span class="choice-label">立ち去る</span><span class="choice-note">何も起きない</span></span><span class="chevron" aria-hidden="true">›</span></button>
+</div>
+<div id="result" class="result" role="status" hidden></div>
+<footer id="foot" class="foot" hidden><button id="next" class="next">先へ進む</button></footer>
+</section>
+</div>
+<div id="cue" hidden>下に続く ↓</div>
+</div>
+</main>
+<script>
+'use strict';
+const params=new URLSearchParams(location.search),app=document.querySelector('#app'),flow=document.querySelector('#flow');
+const layout=params.get('layout')==='full'?'full':'compact';
+app.classList.toggle('compact',layout==='compact');
+document.querySelectorAll('[data-layout]').forEach(a=>a.classList.toggle('on',a.dataset.layout===layout));
+const TEXT='冒険者の亡骸が折り重なっている。荷はまだ残っているが、何かが潜んでいる気配もする。';
+const desc=document.querySelector('#description'),choices=document.querySelector('#choices'),result=document.querySelector('#result'),foot=document.querySelector('#foot'),next=document.querySelector('#next'),cue=document.querySelector('#cue');
+let state='choose',imageOK=false,timer=null;
+function scrollCue(){cue.hidden=flow.scrollHeight-flow.clientHeight-flow.scrollTop<12}
+function show(s){
+ clearTimeout(timer);app.classList.remove('busy');state=s;
+ choices.hidden=s!=='choose';result.hidden=s==='choose'||s==='leave';foot.hidden=s==='choose';
+ next.classList.toggle('danger',s==='ambush');result.classList.toggle('alert',s==='ambush');
+ desc.textContent=s==='choose'?TEXT:s==='safe'?'誰にも気づかれずに、使えそうな物を持ち出せた。':s==='ambush'?'金貨の鳴る音に、闇の奥の何かが振り向いた。':'亡骸に祈り、静かに通り過ぎた。';
+ result.replaceChildren();
+ const rewards=s==='safe'?['金 +90','装備 ×1']:s==='ambush'?['金 +40','闇の奥から、敵が迫ってくる。']:[];
+ rewards.forEach(t=>{const span=document.createElement('span');span.textContent=t;result.append(span)});
+ next.textContent=s==='ambush'?'迎え撃つ':'先へ進む';
+ choices.querySelectorAll('button').forEach(b=>b.disabled=!imageOK);
+ flow.scrollTop=0;requestAnimationFrame(scrollCue);
+}
+choices.addEventListener('click',ev=>{
+ const b=ev.target.closest('[data-choice]');if(!b||b.disabled||state!=='choose'||app.classList.contains('busy'))return;
+ if(b.dataset.choice==='leave'){show('leave');return}
+ app.classList.add('busy');timer=setTimeout(()=>show(params.get('outcome')==='ambush'?'ambush':'safe'),350);
+});
+next.addEventListener('click',()=>show('choose'));
+const art=document.querySelector('#art');
+function loaded(){imageOK=true;show(state)}
+function failed(){imageOK=false;document.querySelector('#image-error').hidden=false;choices.querySelectorAll('button').forEach(b=>b.disabled=true)}
+art.addEventListener('load',loaded);art.addEventListener('error',failed);
+show('choose');if(art.complete){if(art.naturalWidth)loaded();else failed()}
+flow.addEventListener('scroll',scrollCue,{passive:true});window.addEventListener('resize',scrollCue);new ResizeObserver(scrollCue).observe(flow);
+window.BONES_MOCK={show,get state(){return state},layout,get imageOK(){return imageOK}};
+</script>
+</body>
+</html>
