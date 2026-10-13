@@ -389,8 +389,11 @@ img.frm{display:block;width:100%;height:100%}
 .chest-sound[aria-pressed="false"] .sound-waves{display:none}
 .screen.chest>.pstrip{flex:none;padding:7px 10px 8px;gap:5px;background:var(--soot)}
 /* 絵の全体を同じ倍率で縮小する。顔・宝箱はトリミングせず、開く前後でも表示サイズを変えない。 */
-.chest-art{flex:none;height:clamp(240px,44dvh,380px);margin:0 12px;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--soot)}
-.chest-art img{display:block;width:auto;height:100%;max-width:100%;object-fit:contain}
+.chest-art{flex:none;width:100%;aspect-ratio:4/3;position:relative;overflow:hidden;background:var(--soot)}
+.chest-art img{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.chest-art img.chest-transition{opacity:0;pointer-events:none}
+.chest.unlocking .chest-transition{animation:chestDissolve .3s ease-out both}
+@keyframes chestDissolve{from{opacity:1}to{opacity:0}}
 .chest-flash{position:absolute;left:72%;top:77%;width:180%;aspect-ratio:1;transform:translate(-50%,-50%) scale(.2);opacity:0;pointer-events:none;z-index:2;background:radial-gradient(circle,rgba(255,246,191,.85),rgba(255,196,87,.5) 12%,rgba(255,163,44,.18) 28%,transparent 52%)}
 .chest.unlocking .chest-flash{animation:chestUnlock .65s ease-out both}
 @keyframes chestUnlock{0%{opacity:0;transform:translate(-50%,-50%) scale(.15)}22%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
@@ -412,7 +415,7 @@ img.frm{display:block;width:100%;height:100%}
 .chest-next{background:linear-gradient(#2a2118,#15110e);color:var(--bone);border-color:var(--gold-dim);font-size:13px}
 .chest-error{padding:8px 14px;color:#ffd7bd;background:#4b2014;font-size:12px;line-height:1.6}
 @media(max-height:700px){.chest-head{padding-top:calc(6px + env(safe-area-inset-top));padding-bottom:6px}.screen.chest>.pstrip{padding-top:5px;padding-bottom:6px}.chest-body{margin-top:10px;padding:10px 12px}.chest-controls{padding-top:8px;padding-bottom:8px}.chest-foot{padding-top:6px;padding-bottom:calc(10px + env(safe-area-inset-bottom))}.screen.chest h1{font-size:22px}}
-@media(prefers-reduced-motion:reduce){.chest.unlocking .chest-flash{animation:none}.chest-open:active,.chest-next:active{transform:none}}
+@media(prefers-reduced-motion:reduce){.chest.unlocking .chest-flash,.chest.unlocking .chest-transition{animation:none}.chest-open:active,.chest-next:active{transform:none}}
 
 /* モジュールA：街（酒場・鍛冶屋・商店・宿屋・教会・廃屋）。画面オーバーレイの中を、見出し・本文（縦に流れる）・足元の操作の3段に分ける */
 .screen.town{padding:0;align-items:stretch;text-align:left;overflow:hidden;background:radial-gradient(ellipse at 50% -10%,#5a3d24,#2a1a0d 72%)}
@@ -4720,24 +4723,25 @@ function chestArtError(){
   elScreen.querySelectorAll('.chest-open,.chest-next').forEach(b=>b.disabled=true);
 }
 function showChest(){
-  const N=R.node,opened=!!N.chestOpened,art=EVENT_ART.chest;
+  const N=R.node,opened=!!N.chestOpened,before=EVENT_ART.chest,after=EVENT_ART.chest_open,ready=!!(before&&after),art=opened?after:before,other=opened?before:after;
   const emblem='<span class="emb'+(UI.medals?' mart':'')+'" style="--nc:'+NODES.chest.col+(UI.medals?';'+medalPos(MEDAL_IX.chest):'')+'">'+NODES.chest.g+'</span>';
   const sound='<button class="chest-sound" data-act="chest-sound" aria-label="宝箱の効果音" aria-pressed="'+!chestMuted+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="sound-waves" d="M16 8q5 4 0 8m3-11q8 7 0 14"/></svg></button>';
   const h='<header class="chest-head"><strong>◆ 奈落探索</strong><span>第'+R.floor+'層・第'+KANSUJI[N.n.L]+'歩　灯り '+R.light+'%</span>'+sound+'</header>'
     +'<div class="pstrip">'+partyHTML()+'</div>'
-    +'<div class="chest-art">'+(art?'<img src="'+art+'" alt="松明の灯る遺跡で、ユズナミキが宝箱の錠を調べている" width="1160" height="1280">':'')+'<i class="chest-flash" aria-hidden="true"></i></div>'
-    +'<div class="chest-error" role="alert"'+(art?' hidden':'')+'>'+(art?'':'宝箱の画像が未配置です（assets/event_chest.webp）。')+'</div>'
+    +'<div class="chest-art">'+(art?'<img class="chest-illustration" src="'+art+'" alt="'+(opened?'ユズナミキが宝箱を開け、金貨と宝石を見つけた':'ユズナミキが閉じた宝箱の鍵を開けようとしている')+'" width="1280" height="960">':'')
+    +(other?'<img class="chest-transition" src="'+other+'" alt="" aria-hidden="true" width="1280" height="960">':'')+'<i class="chest-flash" aria-hidden="true"></i></div>'
+    +'<div class="chest-error" role="alert"'+(ready?' hidden':'')+'>'+(ready?'':'宝箱の画像が未配置です（assets/event_chest.webp / event_chest_open.webp）。')+'</div>'
     +'<section class="chest-body" aria-labelledby="chest-title"><div class="chest-title">'+emblem+'<h1 id="chest-title">'+N.title+'</h1></div>'
     +'<p class="chest-description">'+(opened?N.text:'朽ちた宝箱を見つけた。錠は、とうに壊れている。')+'</p>'
     +(opened?'<ul class="chest-results" aria-live="polite" aria-label="取得した戦利品">'+N.res.map(s=>'<li>'+s+'</li>').join('')+'</ul>':'')+'</section>'
-    +'<div class="chest-controls">'+(opened?'':'<button class="chest-open" data-act="chest-open"'+(art?'':' disabled')+'>宝箱を開く</button>')+'</div>'
-    +'<footer class="chest-foot"><button class="chest-next" data-act="leave"'+(opened&&art?'':' disabled')+'>先へ進む</button></footer>';
+    +'<div class="chest-controls">'+(opened?'':'<button class="chest-open" data-act="chest-open"'+(ready?'':' disabled')+'>宝箱を開く</button>')+'</div>'
+    +'<footer class="chest-foot"><button class="chest-next" data-act="leave"'+(opened&&ready?'':' disabled')+'>先へ進む</button></footer>';
   openScreen(h,false);elScreen.classList.add('node','chest');elScreen.classList.toggle('opened',opened);mountParty();
-  const img=elScreen.querySelector('.chest-art img');if(img){img.addEventListener('error',chestArtError);if(img.complete&&!img.naturalWidth)chestArtError()}
+  elScreen.querySelectorAll('.chest-art img').forEach(img=>{img.addEventListener('error',chestArtError);if(img.complete&&!img.naturalWidth)chestArtError()});
 }
 function revealChest(){
   const N=R&&R.node,img=elScreen.querySelector('.chest-art img');
-  if(mode!=='node'||!N||N.n.type!=='chest'||N.phase!=='done'||N.chestOpened||!img||!img.complete||!img.naturalWidth)return false;
+  if(mode!=='node'||!N||N.n.type!=='chest'||N.phase!=='done'||N.chestOpened||!EVENT_ART.chest||!EVENT_ART.chest_open||!img||![...elScreen.querySelectorAll('.chest-art img')].every(i=>i.complete&&i.naturalWidth))return false;
   // 報酬は openNode で一度だけ取得・保存済み。ここでは再抽選・applyFx・saveRun を呼ばない。
   N.chestOpened=true;showChest();elScreen.classList.add('unlocking');chestSound();return true;
 }
