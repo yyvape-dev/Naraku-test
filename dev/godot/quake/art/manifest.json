@@ -1,0 +1,58 @@
+{
+  "slash": {
+    "file": "slash.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 1251201
+  },
+  "impact": {
+    "file": "impact.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 1715800
+  },
+  "rock": {
+    "file": "rock.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 1408227
+  },
+  "dust": {
+    "file": "dust.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alphaRange": [
+      0,
+      254
+    ],
+    "bytes": 1112018
+  },
+  "motion_board": {
+    "file": "motion_board.png",
+    "size": [
+      1672,
+      941
+    ],
+    "purpose": "six-keyframe animation direction; not a runtime sprite sheet"
+  }
+}

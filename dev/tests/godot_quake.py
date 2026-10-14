@@ -19,14 +19,14 @@ with sync_playwright() as p:
  b=p.chromium.launch();snapshots=[];errors=[]
  for path in [old,html]:
   pg=b.new_page(viewport={'width':393,'height':659});pg.on('pageerror',lambda e:errors.append(str(e)))
-  pg.goto(path.as_uri());pg.wait_for_function('window.NARAKU_READY');pg.wait_for_timeout(300)
+  pg.goto(path.as_uri()+('?quakefx=godot' if path==html else ''));pg.wait_for_function('window.NARAKU_READY');pg.wait_for_timeout(300)
   snapshots.append(pg.evaluate(script));pg.close()
  assert [r['state'] for r in snapshots[0]]==[r['state'] for r in snapshots[1]],'combat state changed'
  assert all(r['pending'] and r['visual']==2 for r in snapshots[1]),snapshots[1]
  result={'sameCombatState':True,'seeds':3,'impactDelayPreserved':True,'quakeLayersPerHit':2,'screens':{}}
  for w,h in [(375,667),(393,852)]:
   pg=b.new_page(viewport={'width':w,'height':h});pg.on('pageerror',lambda e:errors.append(str(e)))
-  pg.goto(html.as_uri());pg.wait_for_function('window.NARAKU_READY');pg.wait_for_timeout(200)
+  pg.goto(html.as_uri()+"?quakefx=godot");pg.wait_for_function('window.NARAKU_READY');pg.wait_for_timeout(200)
   pg.evaluate("NARAKU.start(['sword','fox','mage'],4242);document.querySelector('#btnPause').click();NARAKU.QUAKE_VFX.preview=true;NARAKU.sim(12);NARAKU.FX.sh.length=0;NARAKU.FX.parts.length=0;NARAKU.FX.dust.length=0;NARAKU.FX.floats.length=0;NARAKU.B.slots[0].card=NARAKU.CARDS.find(c=>c.id==='sw_quake');NARAKU.useCard(0,180,235);NARAKU.FX.cut=null;NARAKU.sim(.2)")
   for t in [0,.05,.15,.3,.55,.875]:
    pg.evaluate("t=>NARAKU.FX.sh.forEach(s=>{if(s.k==='quake')s.t=t;else s.t=s.life*.98})",t)

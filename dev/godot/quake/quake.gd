@@ -1,155 +1,170 @@
 extends Node2D
-## Deterministic timeline: sharp impact, floor shock, stone shards, then dust.
-## Run normally to preview; -- --bake exports two transparent layers at 40 fps.
+## GPT Image materials + image-designed keyframes, animated by Godot.
 const FRAME_COUNT = 36
 const FPS = 40.0
-const CENTER = Vector2(200, 225)
+const CENTER = Vector2(200,225)
 var clock := 0.0
 var layer := "all"
+var baking := false
+var art := {}
 var shards: Array = []
 var rays: Array = []
 var cracks: Array = []
-var clouds: Array = []
 var textures := {}
-var baking := false
+var slash: Sprite2D
+var impact: Sprite2D
+var smoke: Sprite2D
+var trail: Sprite2D
+var shader = load("res://reveal.gdshader")
+
+func material(seed_value:float) -> ShaderMaterial:
+ var m=ShaderMaterial.new()
+ m.shader=shader
+ m.set_shader_parameter("seed",seed_value)
+ return m
+
+func sprite(texture_name:String,seed_value:float) -> Sprite2D:
+ var s=Sprite2D.new()
+ s.texture=art[texture_name]
+ s.position=CENTER
+ s.material=material(seed_value)
+ add_child(s)
+ return s
 
 func _ready():
- get_viewport().transparent_bg = true
- var rng = RandomNumberGenerator.new()
- rng.seed = 621409
- for i in range(23):
-  var angle = rng.randf_range(-PI, PI)
-  shards.append({"v":Vector2(cos(angle)*rng.randf_range(65,155),rng.randf_range(-255,-95)),"size":rng.randf_range(3.2,9.5),"rot":rng.randf_range(-PI,PI),"spin":rng.randf_range(-8,8),"delay":rng.randf_range(0.015,0.08)})
- for i in range(38):
-  rays.append({"a":rng.randf_range(-PI,PI),"speed":rng.randf_range(130,370),"delay":rng.randf_range(0.0,0.065),"life":rng.randf_range(0.19,0.43)})
- for i in range(9):
-  var points = PackedVector2Array([Vector2.ZERO])
-  var angle = TAU*i/9.0+rng.randf_range(-.16,.16)
-  for j in range(1,6):
-   points.append(Vector2(cos(angle)*j*23+ rng.randf_range(-8,8),sin(angle)*j*13+rng.randf_range(-5,5)))
+ get_viewport().transparent_bg=true
+ for name in ["slash","impact","rock","dust"]:
+  var img=Image.load_from_file("res://art/"+name+".png")
+  if img.is_empty():
+   push_error("Missing GPT Image material: "+name)
+   get_tree().quit(1)
+   return
+  art[name]=ImageTexture.create_from_image(img)
+ var rng=RandomNumberGenerator.new()
+ rng.seed=621409
+ for i in range(12):
+  var angle=TAU*i/12.0+rng.randf_range(-.2,.2)
+  shards.append({"v":Vector2(cos(angle)*rng.randf_range(80,170),rng.randf_range(-280,-100)),"size":rng.randf_range(9,21),"rot":rng.randf_range(-PI,PI),"spin":rng.randf_range(-6,6),"delay":rng.randf_range(.07,.105)})
+ for i in range(27):
+  rays.append({"a":rng.randf_range(-PI,PI),"speed":rng.randf_range(120,310),"delay":rng.randf_range(.055,.10),"life":rng.randf_range(.16,.32)})
+ for i in range(8):
+  var points=PackedVector2Array([Vector2.ZERO])
+  var angle=TAU*i/8.0+rng.randf_range(-.18,.18)
+  for j in range(1,8):
+   points.append(Vector2(cos(angle)*j*17+rng.randf_range(-6,6),sin(angle)*j*9+rng.randf_range(-4,4)))
   cracks.append(points)
- for i in range(17):
-  clouds.append({"p":Vector2(rng.randf_range(-90,90),rng.randf_range(-22,20)),"r":rng.randf_range(13,28),"phase":rng.randf(),"delay":rng.randf_range(.05,.23)})
- baking = "--bake" in OS.get_cmdline_user_args()
+ # Smoke belongs under enemies. Slash/impact are above them in the web bake.
+ smoke=sprite("dust",7)
+ trail=sprite("slash",11)
+ slash=sprite("slash",3)
+ impact=sprite("impact",5)
+ baking="--bake" in OS.get_cmdline_user_args()
  if baking:
   set_process(false)
   call_deferred("bake")
+ else:
+  animate(0)
 
 func _process(dt):
- clock = fmod(clock+dt, 1.65)
+ clock=fmod(clock+dt,1.7)
+ animate(clock)
+
+func configure(s:Sprite2D,width:float,alpha:float,reveal:float=1.1,dissolve:float=-.2):
+ s.scale=Vector2.ONE*width/1254.0
+ s.material.set_shader_parameter("opacity",alpha)
+ s.material.set_shader_parameter("reveal",reveal)
+ s.material.set_shader_parameter("dissolve",dissolve)
+
+func animate(t:float):
+ var airborne=layer!="floor"
+ smoke.visible=layer!="air" and t>.095 and t<.78
+ slash.visible=airborne and t<.18
+ impact.visible=airborne and t>.035 and t<.22
+ trail.visible=airborne and t>.06 and t<.36
+ # Fast direction reveal, minimal scaling: a strike, rather than a popping sticker.
+ var slash_alpha=pow(clampf(1-(t-.045)/.135,0,1),1.2)
+ configure(slash,280,slash_alpha,lerpf(.23,1.1,clampf(t/.048,0,1)),lerpf(-.2,.98,clampf((t-.075)/.105,0,1)))
+ slash.position=CENTER+Vector2(0,-11)
+ var age=maxf(0,t-.035)
+ var grow=1-pow(1-clampf(age/.05,0,1),3)
+ configure(impact,lerpf(60,210,grow),clampf(age/.015,0,1)*pow(clampf(1-(t-.08)/.14,0,1),1.6),1.1,lerpf(-.2,1.0,clampf((t-.11)/.11,0,1)))
+ impact.position=CENTER
+ configure(trail,285,pow(clampf(1-(t-.06)/.3,0,1),1.8)*.25,1.1,clampf((t-.09)/.26,0,1))
+ trail.position=CENTER+Vector2(-5,-10-t*15)
+ trail.self_modulate=Color(.55,.12,.05,1)
+ var dust_age=maxf(0,t-.095)
+ configure(smoke,lerpf(150,310,1-exp(-dust_age*5)),clampf(dust_age/.06,0,1)*pow(maxf(0,1-dust_age/.685),1.5)*.32,1.1,lerpf(-.15,.97,clampf((dust_age-.15)/.54,0,1)))
+ smoke.position=CENTER+Vector2(0,-18-dust_age*20)
+ smoke.scale.y*=.60
  queue_redraw()
 
-func radial(color: Color) -> Texture2D:
- var key = color.to_html()
- if textures.has(key): return textures[key]
- var g = Gradient.new()
- g.offsets = PackedFloat32Array([0.0,.15,.42,.7,1.0])
- g.colors = PackedColorArray([color,Color(color,color.a*.8),Color(color,color.a*.35),Color(color,color.a*.07),Color(color,0)])
- var tex = GradientTexture2D.new()
- tex.gradient = g
- tex.width = 128
- tex.height = 128
- tex.fill = GradientTexture2D.FILL_RADIAL
- tex.fill_from = Vector2(.5,.5)
- tex.fill_to = Vector2(1,.5)
- textures[key] = tex
+func radial(color:Color) -> Texture2D:
+ var key=color.to_html()
+ if textures.has(key):return textures[key]
+ var g=Gradient.new()
+ g.offsets=PackedFloat32Array([0,.15,.42,.7,1])
+ g.colors=PackedColorArray([color,Color(color,color.a*.8),Color(color,color.a*.35),Color(color,color.a*.07),Color(color,0)])
+ var tex=GradientTexture2D.new()
+ tex.gradient=g
+ tex.width=128
+ tex.height=128
+ tex.fill=GradientTexture2D.FILL_RADIAL
+ tex.fill_from=Vector2(.5,.5)
+ tex.fill_to=Vector2(1,.5)
+ textures[key]=tex
  return tex
 
-func glow(p:Vector2, size:Vector2, color:Color):
- draw_texture_rect(radial(color), Rect2(p-size*.5,size),false)
-
-func ellipse(radius:float, aspect:float, color:Color, width:float, gap:float=0):
- var pts = PackedVector2Array()
- for i in range(97):
-  var a = TAU*i/96.0
-  pts.append(CENTER+Vector2(cos(a)*radius,sin(a)*radius*aspect))
- draw_polyline(pts,color,width,true)
+func glow(p:Vector2,size:Vector2,color:Color):
+ draw_texture_rect(radial(color),Rect2(p-size*.5,size),false)
 
 func _draw():
- var t = clock
- if t >= .9: return
- if layer != "air": draw_floor(t)
- if layer != "floor": draw_air(t)
-
-func draw_floor(t:float):
- var fade = pow(maxf(0,1-t/.9),1.3)
- glow(CENTER+Vector2(0,8),Vector2(235,88),Color(.07,.04,.02,.35*fade))
- var reveal = clampf(t/.085,0,1)
- for points in cracks:
-  var n = clampi(int(reveal*points.size()),2,points.size())
-  var q = PackedVector2Array()
-  for j in range(n): q.append(CENTER+points[j])
-  draw_polyline(q,Color(.045,.025,.012,.85*fade),3.8,true)
-  draw_polyline(q+PackedVector2Array(),Color(.92,.52,.18,.55*fade),.9,true)
- if t < .3:
-  var a = pow(1-t/.3,1.1)
-  var r = 22+125*(1-pow(1-t/.3,2))
-  ellipse(r,.43,Color(1,.64,.22,.14*a),12)
-  ellipse(r,.43,Color(1,.86,.55,.85*a),1.6)
-  ellipse(r*.86,.43,Color(.78,.48,.15,.45*a),1)
- glow(CENTER,Vector2(150,60),Color(1,.55,.12,.5*pow(maxf(0,1-t/.16),2)))
-
-func draw_air(t:float):
- # A sharp diagonal strike. Broad bloom is brief; the narrow core carries the hit.
- if t < .17:
-  var fade = pow(maxf(0,1-t/.17),1.5)
-  var a = CENTER+Vector2(-82,46)
-  var z = CENTER+Vector2(79,-76)
-  draw_line(a,z,Color(1,.39,.08,.065*fade),25,true)
-  draw_line(a,z,Color(1,.67,.26,.21*fade),11,true)
-  draw_line(a,z,Color(1,.9,.66,.9*fade),3.8,true)
-  draw_line(a+Vector2(7,1),z+Vector2(-3,9),Color(1,1,.91,fade),1.3,true)
- glow(CENTER,Vector2(116,103),Color(1,.72,.33,.72*pow(maxf(0,1-t/.16),2)))
- glow(CENTER,Vector2(44,45),Color(1,.97,.8,.95*pow(maxf(0,1-t/.095),1.2)))
- # Distinct hot streaks; no full-screen flash or large opaque cloud.
- for ray in rays:
-  var age = t-ray.delay
-  if age < 0 or age > ray.life: continue
-  var a = pow(1-age/ray.life,1.5)
-  var dir = Vector2(cos(ray.a),sin(ray.a)*.62)
-  var p = CENTER+dir*(10+ray.speed*age)
-  var tail = p-dir*(5+12*a)
-  draw_line(tail,p,Color(1,.57,.13,.45*a),3.1*a,true)
-  draw_line(tail,p,Color(1,.91,.65,.95*a),.9,true)
- # Rock fragments have dark silhouettes and separate illuminated faces.
- for rock in shards:
-  var age = t-rock.delay
-  if age < 0: continue
-  var alpha = clampf((.66-age)/.22,0,1)
-  if alpha <= 0: continue
-  var p = CENTER+rock.v*age+Vector2(0,255*age*age)
-  var rotation = rock.rot+rock.spin*age
-  var r = rock.size*(1-age*.28)
-  var vertices = PackedVector2Array()
-  for v in [Vector2(-.8,-.5),Vector2(.05,-1),Vector2(.95,-.18),Vector2(.45,.7),Vector2(-.65,.5)]:
-   vertices.append(p+v.rotated(rotation)*r)
-  draw_colored_polygon(vertices,Color(.12,.095,.075,alpha))
-  draw_colored_polygon(PackedVector2Array([vertices[0],vertices[1],p,vertices[4]]),Color(.48,.36,.2,alpha))
-  draw_colored_polygon(PackedVector2Array([vertices[1],vertices[2],p]),Color(.83,.65,.37,alpha))
-  draw_polyline(PackedVector2Array([vertices[0],vertices[1],vertices[2]]),Color(1,.8,.45,.7*alpha),.65,true)
- # Warm fine dust remains low, moves outward, and fades rather than concealing enemies.
- for cloud in clouds:
-  var age = t-cloud.delay
-  if age < 0: continue
-  var f = clampf(age/.09,0,1)*pow(maxf(0,1-age/.65),1.7)
-  var p = CENTER+cloud.p*(.3+age*1.1)+Vector2(0,-age*(13+cloud.phase*20))
-  var radius = cloud.r*(.6+age*1.5)
-  glow(p,Vector2(radius*2.8,radius*1.6),Color(.61,.47,.30,.085*f))
+ var t=clock
+ if t>=.9:return
+ if layer!="air":
+  var reveal=clampf(t/.11,0,1)
+  var fade=pow(maxf(0,1-t/.9),1.7)
+  for path in cracks:
+   var pts=PackedVector2Array()
+   for i in range(clampi(int(reveal*path.size()),2,path.size())):pts.append(CENTER+path[i])
+   draw_polyline(pts,Color(.035,.018,.012,.75*fade),3,true)
+   draw_polyline(pts,Color(.86,.17,.035,.55*fade),1.1,true)
+   draw_polyline(pts,Color(1,.63,.23,.7*pow(maxf(0,1-t/.3),2)),.55,true)
+ if layer!="floor":
+  # Tiny center flash, never an opaque white disk.
+  var peak=clampf(1-abs(t-.075)/.055,0,1)
+  glow(CENTER,Vector2(68,48),Color(1,.80,.48,.48*peak))
+  for ray in rays:
+   var age=t-ray.delay
+   if age<0 or age>ray.life:continue
+   var fade=pow(1-age/ray.life,1.7)
+   var dir=Vector2(cos(ray.a),sin(ray.a)*.55)
+   var p=CENTER+dir*(12+ray.speed*age)
+   draw_line(p-dir*(3+7*fade),p,Color(1,.68,.24,.8*fade),.9,true)
+  for rock in shards:
+   var age=t-rock.delay
+   if age<0:continue
+   var alpha=clampf((.57-age)/.18,0,1)*clampf(age/.025,0,1)
+   if alpha<=0:continue
+   var pos=CENTER+rock.v*age+Vector2(0,280*age*age)
+   var size=rock.size*(1-age*.2)
+   draw_set_transform(pos,rock.rot+rock.spin*age,Vector2.ONE)
+   draw_texture_rect(art.rock,Rect2(-size*.5,-size*.5,size,size),false,Color(1,1,1,alpha))
+   draw_set_transform(Vector2.ZERO)
 
 func bake():
  DirAccess.make_dir_recursive_absolute("res://frames")
  for pass_name in ["floor","air"]:
-  layer = pass_name
+  layer=pass_name
   for frame in range(FRAME_COUNT):
-   clock = frame/FPS
-   queue_redraw()
+   clock=frame/FPS
+   animate(clock)
    await get_tree().process_frame
    await RenderingServer.frame_post_draw
-   var img = get_viewport().get_texture().get_image()
-   var err = img.save_png("res://frames/%s_%02d.png" % [pass_name,frame])
-   if err != OK:
+   var img=get_viewport().get_texture().get_image()
+   var err=img.save_png("res://frames/%s_%02d.png" % [pass_name,frame])
+   if err!=OK:
     push_error("PNG export failed: %s" % err)
     get_tree().quit(1)
     return
- print("BAKE OK: 36 frames x 2 transparent layers at 40 fps")
+ print("BAKE OK: GPT Image materials + motion board, 36 frames x 2 transparent layers")
  get_tree().quit()

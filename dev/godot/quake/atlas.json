@@ -3,14 +3,14 @@
     "tile": 192,
     "frames": 36,
     "fps": 40,
-    "bytes": 176518,
+    "bytes": 162368,
     "decodedBytes": 5308416
   },
   "air": {
     "tile": 256,
     "frames": 36,
     "fps": 40,
-    "bytes": 168144,
+    "bytes": 228026,
     "decodedBytes": 9437184
   }
 }

@@ -1478,7 +1478,7 @@ function vtex(n,col){ // col を渡すと、白い光をその色に染めた写
   x.globalCompositeOperation='lighter';x.globalAlpha=0.3;x.drawImage(im,0,0);VC[key]=c;return c;
 }
 // Godot-baked 大地割り: one shared atlas per layer; no per-frame Image objects.
-const QUAKE_VFX={enabled:new URLSearchParams(location.search).get('quakefx')!=='legacy',fps:40,frames:36,cols:6,life:.9};
+const QUAKE_VFX={enabled:new URLSearchParams(location.search).get('quakefx')==='godot',fps:40,frames:36,cols:6,life:.9};
 function fxQuake(x,y,r){
   if(!QUAKE_VFX.enabled||!vtex('quake_floor')||!vtex('quake_air'))return false;
   const w=r*3;
