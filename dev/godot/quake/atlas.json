@@ -80,14 +80,14 @@
     "tile": 256,
     "frames": 58,
     "timing": "variable-rate",
-    "bytes": 632428,
+    "bytes": 817944,
     "decodedBytes": 16777216
   },
   "air": {
     "tile": 224,
     "frames": 58,
     "timing": "variable-rate",
-    "bytes": 210102,
+    "bytes": 212968,
     "decodedBytes": 12845056
   }
 }

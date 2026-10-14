@@ -7,10 +7,14 @@ uniform float opacity = 1.0;
 uniform float pulse = 0.0;
 uniform float seed = 0.0;
 uniform float red_tone = 0.0;
+uniform float blade_light = 0.0;
 uniform int mask_frame = 0;
 uniform sampler2D dust_mask : filter_linear, repeat_disable;
 float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7))+seed)*43758.5453);}
 float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);}
+float emission(vec4 sample_color){
+ return max(0.0,sample_color.r-max(sample_color.g,sample_color.b)*1.12)*sample_color.a;
+}
 void fragment(){
  vec4 tex=texture(TEXTURE,UV);
  float progress=(UV.x+1.0-UV.y)*0.5;
@@ -38,8 +42,27 @@ void fragment(){
   float crack=max(0.0,tex.r-max(tex.g,tex.b)*1.12);
   float front=exp(-pow((progress-reveal)/.055,2.0));
   float fissure_mask=smoothstep(.08,.35,crack);
-  color*=mix(1.0,.28+clamp(pulse,0.0,1.2)*.90,fissure_mask);
-  color+=vec3(1.0,.055,.015)*crack*(pulse*.50+front*.75);
+  color*=mix(1.0,.42+clamp(pulse,0.0,1.2)*1.18,fissure_mask);
+  color+=vec3(1.0,.055,.015)*crack*(pulse*.72+front*.95);
  }
- COLOR=vec4(color,tex.a*wipe*breakup*opacity*mask)*tint;
+ // A soft, local halo expands luminous gaps without brightening the stone.
+ float halo=0.0;
+ if(mode==1||mode==2||blade_light>0.0){
+  for(int i=0;i<8;i++){
+   float a=float(i)*.785398;
+   vec2 direction=vec2(cos(a),sin(a));
+   vec4 near_sample=texture(TEXTURE,clamp(UV+direction*.012,vec2(0.0),vec2(1.0)));
+   vec4 far_sample=texture(TEXTURE,clamp(UV+direction*.025,vec2(0.0),vec2(1.0)));
+   if(blade_light>0.0){
+    halo+=(near_sample.r*near_sample.a*.65+far_sample.r*far_sample.a*.35)/8.0;
+   }else{halo+=(emission(near_sample)*.65+emission(far_sample)*.35)/8.0;}
+  }
+ }
+ float halo_alpha=halo*(blade_light>0.0?blade_light*.30:(.20+pulse*.48))*wipe*breakup*opacity;
+ float base_alpha=tex.a*wipe*breakup*opacity*mask;
+ if(blade_light>0.0){color+=vec3(.32,.07,.025)*blade_light*tex.r;}
+ vec3 glow_color=vec3(1.0,.11,.035);
+ float alpha=base_alpha+halo_alpha*(1.0-base_alpha);
+ vec3 combined=(color*base_alpha+glow_color*halo_alpha*(1.0-base_alpha))/max(alpha,.00001);
+ COLOR=vec4(combined,alpha)*tint;
 }

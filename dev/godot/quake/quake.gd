@@ -113,11 +113,13 @@ func animate(t:float):
  slash.scale.y*=.60
  slash.position=CENTER+Vector2(0,-4)
  slash.material.set_shader_parameter("red_tone",.84)
+ slash.material.set_shader_parameter("blade_light",1.0)
  impact.visible=t>.025 and t<.24
  var age=maxf(0,t-.025)
  configure(impact,lerpf(65,175,1-pow(1-clampf(age/.055,0,1),3)),clampf(age/.015,0,1)*pow(clampf(1-(t-.10)/.14,0,1),1.6),1.1,lerpf(-.2,1,clampf((t-.135)/.105,0,1)))
  impact.scale.y*=.75
  impact.material.set_shader_parameter("red_tone",.80)
+ impact.material.set_shader_parameter("blade_light",.65)
  trail.visible=flags.blade and t>.06 and t<.5
  configure(trail,293,pow(clampf(1-(t-.06)/.44,0,1),1.5)*.25,1.1,clampf((t-.15)/.35,0,1))
  trail.scale.y*=.61
