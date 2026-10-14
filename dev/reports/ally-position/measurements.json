@@ -1,0 +1,248 @@
+[
+  {
+    "lineY": 428.6333333333333,
+    "bottom": 524,
+    "allies": [
+      {
+        "id": "sword",
+        "tune": {
+          "s": 100,
+          "x": 0,
+          "y": 0
+        },
+        "renderAnchor": 499.9833333333333,
+        "baseAnchor": 499.9833333333333
+      },
+      {
+        "id": "fox",
+        "tune": {
+          "s": 100,
+          "x": 0,
+          "y": 0
+        },
+        "renderAnchor": 499.9833333333333,
+        "baseAnchor": 499.9833333333333
+      },
+      {
+        "id": "mage",
+        "tune": {
+          "s": 101,
+          "x": 0,
+          "y": 0
+        },
+        "renderAnchor": 499.9833333333333,
+        "baseAnchor": 499.9833333333333
+      }
+    ],
+    "viewport": [
+      393,
+      659
+    ],
+    "testY": null
+  },
+  {
+    "lineY": 428.6333333333333,
+    "bottom": 524,
+    "allies": [
+      {
+        "id": "sword",
+        "tune": {
+          "s": 100,
+          "x": 0,
+          "y": 26
+        },
+        "renderAnchor": 528.3666666666666,
+        "baseAnchor": 499.9833333333333
+      },
+      {
+        "id": "fox",
+        "tune": {
+          "s": 100,
+          "x": 0,
+          "y": 26
+        },
+        "renderAnchor": 528.3666666666666,
+        "baseAnchor": 499.9833333333333
+      },
+      {
+        "id": "mage",
+        "tune": {
+          "s": 101,
+          "x": 0,
+          "y": 26
+        },
+        "renderAnchor": 528.3666666666666,
+        "baseAnchor": 499.9833333333333
+      }
+    ],
+    "viewport": [
+      393,
+      659
+    ],
+    "testY": 26
+  },
+  {
+    "lineY": 593.6666666666666,
+    "bottom": 688,
+    "allies": [
+      {
+        "id": "sword",
+        "tune": {
+          "s": 100,
+          "x": 0,
+          "y": 0
+        },
+        "renderAnchor": 664.1666666666666,
+        "baseAnchor": 664.1666666666666
+      },
+      {
+        "id": "fox",
+        "tune": {
+          "s": 100,
+          "x": 0,
+          "y": 0
+        },
+        "renderAnchor": 664.1666666666666,
+        "baseAnchor": 664.1666666666666
+      },
+      {
+        "id": "mage",
+        "tune": {
+          "s": 101,
+          "x": 0,
+          "y": 0
+        },
+        "renderAnchor": 664.1666666666666,
+        "baseAnchor": 664.1666666666666
+      }
+    ],
+    "viewport": [
+      390,
+      844
+    ],
+    "testY": null
+  },
+  {
+    "lineY": 593.6666666666666,
+    "bottom": 688,
+    "allies": [
+      {
+        "id": "sword",
+        "tune": {
+          "s": 100,
+          "x": 0,
+          "y": 26
+        },
+        "renderAnchor": 692.3333333333333,
+        "baseAnchor": 664.1666666666666
+      },
+      {
+        "id": "fox",
+        "tune": {
+          "s": 100,
+          "x": 0,
+          "y": 26
+        },
+        "renderAnchor": 692.3333333333333,
+        "baseAnchor": 664.1666666666666
+      },
+      {
+        "id": "mage",
+        "tune": {
+          "s": 101,
+          "x": 0,
+          "y": 26
+        },
+        "renderAnchor": 692.3333333333333,
+        "baseAnchor": 664.1666666666666
+      }
+    ],
+    "viewport": [
+      390,
+      844
+    ],
+    "testY": 26
+  },
+  {
+    "lineY": 447.8333333333333,
+    "bottom": 537,
+    "allies": [
+      {
+        "id": "sword",
+        "tune": {
+          "s": 100,
+          "x": 0,
+          "y": 0
+        },
+        "renderAnchor": 514.0833333333334,
+        "baseAnchor": 514.0833333333334
+      },
+      {
+        "id": "fox",
+        "tune": {
+          "s": 100,
+          "x": 0,
+          "y": 0
+        },
+        "renderAnchor": 514.0833333333334,
+        "baseAnchor": 514.0833333333334
+      },
+      {
+        "id": "mage",
+        "tune": {
+          "s": 101,
+          "x": 0,
+          "y": 0
+        },
+        "renderAnchor": 514.0833333333334,
+        "baseAnchor": 514.0833333333334
+      }
+    ],
+    "viewport": [
+      375,
+      667
+    ],
+    "testY": null
+  },
+  {
+    "lineY": 447.8333333333333,
+    "bottom": 537,
+    "allies": [
+      {
+        "id": "sword",
+        "tune": {
+          "s": 100,
+          "x": 0,
+          "y": 26
+        },
+        "renderAnchor": 541.1666666666667,
+        "baseAnchor": 514.0833333333334
+      },
+      {
+        "id": "fox",
+        "tune": {
+          "s": 100,
+          "x": 0,
+          "y": 26
+        },
+        "renderAnchor": 541.1666666666667,
+        "baseAnchor": 514.0833333333334
+      },
+      {
+        "id": "mage",
+        "tune": {
+          "s": 101,
+          "x": 0,
+          "y": 26
+        },
+        "renderAnchor": 541.1666666666667,
+        "baseAnchor": 514.0833333333334
+      }
+    ],
+    "viewport": [
+      375,
+      667
+    ],
+    "testY": 26
+  }
+]
