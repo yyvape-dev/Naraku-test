@@ -682,3 +682,6 @@ Godot quakeを赤黒い剣戟→亀裂→隆起岩→粉塵・脈動→崩壊に
 
 ## 2026-10-14 乾坤一擲候補
 ?riftfx=godotで赤黒い剣戟が縦に進行し、尖った隆起岩と脈動・振動を表示。通常版・超必殺は従来。既存の初撃＋3秒継続ダメージを維持。Godot rift.gd、rift.tscn、pack.py --rift、原画rift_spikes.png。比較dev/mock/rift_demo.html、確認dev/reports/godot-rift/REPORT.md。
+
+## 2026-10-14 乾坤一擲の作り直し
+rift_scar.pngを追加生成、同じ岩塊の反復を廃止。連続した深いジグザグの裂け目と剥離岩盤を不均等に切り開く。赤黒い光が亀裂から突き出し、飛散岩と薄い粉塵を伴う。初撃・3秒継続ダメージ・通常版の扱いは維持。dev/godot/quake/rift.gdとREADME、dev/reports/godot-rift参照。

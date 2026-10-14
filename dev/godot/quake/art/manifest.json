@@ -119,5 +119,19 @@
     ],
     "bytes": 1758802,
     "origin": "GPT Image"
+  },
+  "rift_scar": {
+    "file": "rift_scar.png",
+    "size": [
+      724,
+      2172
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 1853838,
+    "origin": "GPT Image",
+    "purpose": "connected irregular ground scar for rift remake"
   }
 }
