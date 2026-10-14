@@ -4992,7 +4992,7 @@ function showIllustratedEvent(key){
   const N=R.node,art=EVENT_ART[key],pick=N.phase==='pick',camp=key==='camp';
   const d=NODES[camp?'camp':'event'],title=camp?d.name:N.title;
   const description=camp?(N.last||'焚き火のそばで、商人が荷をほどいて待っている。'+(N.first?'一息ついて、全員の体力が少し戻った。':'')):N.text;
-  const alt={bones:'炎に包まれた廃墟で、仲間たちが亡骸の山の前に立っている',spring:'紫に光る泉に手を伸ばすフード姿の人物',camp:'焚き火とテントの周りで休む冒険者たち',altar:'血に染まった祭壇と女神像の前で祈る人物',wounded:'大木の根元で倒れた冒険者たちに近づく人物'}[key];
+  const alt={bones:'炎に包まれた廃墟で、仲間たちが亡骸の山の前に立っている',spring:'紫に光る泉に手を伸ばすフード姿の人物',camp:'焚き火とテントの周りで休む冒険者たち',altar:'血に染まった祭壇と女神像の前で祈る人物',wounded:'大木の根元で倒れた冒険者たちに近づく人物',collapse:'松明で照らされた崩れた通路で、仲間たちが壁を押しのけようとしている'}[key];
   const stock=camp?R.stock[N.n.id]:null;
   const shop=camp?'<div class="stats">未精算の金<b>'+R.gold+'</b>　装備<b>'+R.loot.length+'</b><br>灯り<b>'+R.light+'%</b></div><div class="bones-choices">'+SHOP.map(s=>'<button class="bones-choice" data-buy="'+s.id+'"'+(!art||stock[s.id]<=0||R.gold<s.price?' disabled':'')+'><span><b>'+s.name+'　金 '+s.price+'</b><small>'+s.note+'　'+(stock[s.id]>0?'残り'+stock[s.id]:'売り切れ')+'</small></span><i aria-hidden="true">›</i></button>').join('')+'</div><div class="bones-foot"><button class="chest-next" data-act="leave"'+(art?'':' disabled')+'>キャンプを発つ</button></div>':'';
   const emblem='<span class="emb'+(UI.medals?' mart':'')+'" style="--nc:'+d.col+(UI.medals?';'+medalPos(MEDAL_IX[camp?'camp':'event']):'')+'">'+d.g+'</span>';
@@ -5011,7 +5011,7 @@ function showIllustratedEvent(key){
 function showNode(){
   const N=R.node,n=N.n,d=NODES[n.type];let h;
   if(n.type==='chest'&&N.phase==='done'){showChest();return}
-  if(n.type==='event'&&['bones','spring','altar','wounded'].includes(EVENTS[n.ev].id)&&(N.phase==='pick'||N.phase==='done')){showIllustratedEvent(EVENTS[n.ev].id);return}
+  if(n.type==='event'&&['bones','spring','altar','wounded','collapse'].includes(EVENTS[n.ev].id)&&(N.phase==='pick'||N.phase==='done')){showIllustratedEvent(EVENTS[n.ev].id);return}
   if(n.type==='camp'&&N.phase==='shop'){showIllustratedEvent('camp');return}
   const head=(g,col,t,ix)=>'<div class="emb'+(UI.medals&&ix>=0?' mart':'')+'" style="--nc:'+col+(UI.medals&&ix>=0?';'+medalPos(ix):'')+'">'+g+'</div><h1>'+t+'</h1>',mix=MEDAL_IX[n.type];
   const purse='<div class="stats">未精算の金<b>'+R.gold+'</b>　装備<b>'+R.loot.length+'</b><br>灯り<b>'+R.light+'%</b></div>';
