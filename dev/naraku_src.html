@@ -933,6 +933,9 @@ img.frm{display:block;width:100%;height:100%}
 #app.battle-ui #hand .card.strategy .sn{background:linear-gradient(90deg,transparent,#12352bdc 18%,#12352bdc 82%,transparent);color:#d5ffe8}
 #app.battle-ui #hand .card.strategy .fr{filter:hue-rotate(65deg) saturate(.7) brightness(1.12)}
 #app.battle-ui #hand .strategy .ki{color:#124530}
+#app.battle-ui .card.strategy.chase .ar{background:radial-gradient(ellipse at 50% 40%,#985230,#30130b 70%)}
+#app.battle-ui .card.strategy.rare .ar{background:radial-gradient(ellipse at 50% 40%,#76502d,#251327 70%)}
+#app.battle-ui #hand .card.strategy.rare .ki{color:#ffe6a8}
 .strategy-motif{position:absolute;left:25%;right:25%;top:20%;width:50%;height:45%;color:#c9ffe0;filter:drop-shadow(0 0 5px #65dd9a)}
 #app.battle-ui #ops{position:absolute;right:8px;bottom:6px;display:flex;flex-direction:column;gap:4px;margin:0;z-index:25}
 #app.battle-ui #ops button{width:40px;height:38px;padding:0!important;border:1px solid #b39355!important;border-radius:7px;background:linear-gradient(#291c12,#100b08)!important;color:#f0dfb7;font-size:11px!important;box-shadow:inset 0 0 0 2px #100b08,0 2px 4px #000}
@@ -1096,10 +1099,14 @@ const CARDS=[
 ];
 
 const STRATEGIES=[
- {id:'st_heal',category:'strategy',effect:'heal',name:'癒しの光',kind:'instant',reload:18,desc:'生存中の味方全員を最大体力の35%回復する',healPct:.35,pal:['#ffffff','#bff0c0','#3a8a5a']},
- {id:'st_redraw',category:'strategy',effect:'redraw',name:'運命の引き直し',kind:'instant',reload:14,desc:'他の手札を山札へ戻し、ランダムに引き直す'},
- {id:'st_reset',category:'strategy',effect:'reset',name:'再起の号令',kind:'instant',reload:20,desc:'他の空き手札の装填待ちを解除する（通常攻撃は変わらない）'}
+ {id:'st_heal',category:'strategy',effect:'heal',name:'マディオス',kind:'instant',reload:30,weight:23,desc:'生存中の味方全員を最大HPの25%回復する',healPct:.25,pal:['#ffffff','#bff0c0','#3a8a5a']},
+ {id:'st_redraw',category:'strategy',effect:'redraw',name:'隊列変更',kind:'instant',reload:30,weight:23,desc:'左4枠のスキル札を引き直す。空枠の装填待ちは維持'},
+ {id:'st_reset',category:'strategy',effect:'reset',name:'決戦準備',kind:'instant',reload:30,weight:23,desc:'左4枠の装填待ちをすべて解除し、即時補充する'},
+ {id:'st_chase',category:'strategy',effect:'chase',name:'追撃',kind:'instant',reload:30,weight:23,duration:10,desc:'10秒間、味方全員の通常攻撃を3回出す（多重撃は別途加算）'},
+ {id:'st_revive',category:'strategy',effect:'revive',name:'逆転の右手：起',kind:'instant',reload:30,weight:4,rare:true,desc:'戦闘不能の味方全員をHP50%で復帰し、狂気を全回復する'},
+ {id:'st_ult',category:'strategy',effect:'ult',name:'逆転の右手：結',kind:'instant',reload:30,weight:4,rare:true,desc:'生存味方1人の超必殺をランダム発動。通常の使用権は変わらない'}
 ];
+const SKILL_SLOTS=4,STRATEGY_SLOT=4;
 
 const ENEMIES={
   skel:  {name:'骸骨の曲刀兵',  kind:'melee', hp:26,  spd:36,dmg:5, cd:1.3,h:78, r:13,col:'#c79bff'},
@@ -2218,7 +2225,7 @@ function newBattle(seed){
      stat:{},statX:0, // 与ダメージの集計（味方ごと。statX=禁忌など持ち主のいないもの）
      sp:0,need:UPCFG.first,lv:0,up:{},M:null,offer:null,echoes:[],judgeT:0,ru:mulberry32(hash32(seed^0x3C6EF372^Math.imul(P.rewinds+1,0x9E3779B1))),rk:mulberry32(hash32(seed^0x1B873593)),
      loot:[],kills:0,idx:0,acc:0,rs,rc,rd:mulberry32(hash32(seed^0x6A09E667)),nextWave:30,nextElite:CFG.eliteEvery*K.elite,bossOut:false,lineY:0,zones:[],combo:null,ultUsed:{},
-     enemies:[],shots:[],impacts:[],sel:null,slots:[],queue:[],
+     enemies:[],shots:[],impacts:[],sel:null,slots:[],queue:[],chaseUntil:0,
      allies:P.members.map((m,i)=>{const d=CHARS[m.id],g=gearStats(m),max=d.hp*(1+g.hp/100);return{m,d,g,tags:g.tags,M:null,rg:1,sk:1,slot:i,x:0,y:0,animHit:HIT_AT,hp:m.collapsed?0:max*m.hpR,max,alive:!m.collapsed,deadBy:m.collapsed?'mad':null,cdT:0.3+i*0.1,animT:-1,animDur:0.4,pend:null,lunge:0,hitT:0,ph:i*1.7}})};
   recalc();
   B.allies.forEach(a=>{B.stat[a.d.id]={atk:0,skill:0,taken:0};if(a.alive)B.life+=a.g.life}); // 二つ名「守護の」：拠点ライフの上乗せ
@@ -2226,9 +2233,9 @@ function newBattle(seed){
   B.allies.forEach(a=>{if(a.alive)CARDS.forEach(c=>{if(c.owner===a.d.id)deck.push(c)})});
   // Keep the legacy rc consumption unchanged: ranged enemies also use rc for targets.
   for(let i=deck.length-1;i>0;i--){const j=Math.floor(rc()*(i+1));const t=deck[i];deck[i]=deck[j];deck[j]=t}
-  deck.push(...STRATEGIES);
   for(let i=deck.length-1;i>0;i--){const j=Math.floor(B.rd()*(i+1));const t=deck[i];deck[i]=deck[j];deck[j]=t}
-  for(let i=0;i<CFG.handSize;i++)B.slots.push({card:deck.shift()||null,refill:0,max:1});
+  for(let i=0;i<SKILL_SLOTS;i++)B.slots.push({card:deck.shift()||null,refill:0,max:1});
+  B.slots.push({card:drawStrategyCard(),refill:0,max:30});
   B.queue=deck;layout();clearFX();aim.on=false;stopUlt();
 }
 
@@ -2513,11 +2520,11 @@ function hitFrom(a,e,k){
   if(m.knock&&e.knT<=0){e.knT=0.7;e.y-=(8+5*m.knock)*(e.d.boss?0.1:e.elite?0.3:1)}
   hurt(e,dmg,a.d.color,crit,false,a.d.id,'atk');
 }
-function allyHit(a,tg,rep){
+function allyHit(a,tg,rep,singleOnly=false){
   const d=a.d,m=a.M,rg=d.range*a.rg,wide=1+0.25*m.pierce;
   if(d.atk==='single'){
     // 多重撃：手前の敵から順に別々の的へ撃つ。的が足りなければ同じ敵に重ねる
-    const n=1+m.multi,tgs=n>1?pickTargets(a,n):[];
+    const n=singleOnly?1:1+m.multi,tgs=n>1?pickTargets(a,n):[];
     if(tgs.indexOf(tg)<0)tgs.unshift(tg);
     for(let i=0;i<n;i++){
       const t=tgs[i%tgs.length];
@@ -2717,17 +2724,37 @@ function useCard(si,x,y){
 }
 // Use the same slots and queue; never consume spawn, loot or critical-hit RNG.
 function drawHandCard(){return B.queue.length?B.queue.splice(Math.floor(B.rd()*B.queue.length),1)[0]:null}
+function drawStrategyCard(){
+  let r=B.rd()*STRATEGIES.reduce((n,c)=>n+c.weight,0);
+  for(const c of STRATEGIES){r-=c.weight;if(r<0)return c}
+  return STRATEGIES[STRATEGIES.length-1];
+}
 function useStrategy(si){
-  const s=B.slots[si],c=s&&s.card;if(!c||c.category!=='strategy'||mode!=='battle'||ULT)return false;
+  const s=B.slots[si],c=s&&s.card;if(si!==STRATEGY_SLOT||!c||c.category!=='strategy'||mode!=='battle'||ULT)return false;
   const alive=B.allies.filter(a=>a.alive);if(!alive.length)return false;
   s.card=null;s.refill=s.max=c.reload;B.sel=null;aim.on=false;B.combo=null;
-  if(c.effect==='heal')for(const a of alive){const v=Math.round(a.max*c.healPct);a.hp=Math.min(a.max,a.hp+v);floatTxt(a.x,a.y-ALLY_H-6,'+'+v,'#bff0c0',14)}
+  if(c.effect==='heal')for(const a of alive){const v=Math.min(a.max-a.hp,Math.round(a.max*c.healPct));a.hp+=v;floatTxt(a.x,a.y-ALLY_H-6,'+'+Math.round(v),'#bff0c0',14)}
   if(c.effect==='redraw'){
-    for(let i=0;i<B.slots.length;i++){const q=B.slots[i];if(i===si)continue;if(q.card)B.queue.push(q.card);q.card=null;q.refill=0}
-    for(let i=0;i<B.slots.length;i++)if(i!==si){const q=B.slots[i];q.card=drawHandCard();q.max=1}
+    const filled=[];
+    for(let i=0;i<SKILL_SLOTS;i++){const q=B.slots[i];if(!q.card)continue;filled.push(q);B.queue.push(q.card);q.card=null}
+    for(const q of filled){q.card=drawHandCard();q.refill=0;q.max=1}
   }
-  if(c.effect==='reset')for(let i=0;i<B.slots.length;i++){const q=B.slots[i];if(i!==si&&!q.card){q.refill=0;q.card=drawHandCard();q.max=1}}
-  B.queue.push(c);return true;
+  if(c.effect==='reset')for(let i=0;i<SKILL_SLOTS;i++){const q=B.slots[i];q.refill=0;if(!q.card)q.card=drawHandCard();q.max=1}
+  if(c.effect==='chase')B.chaseUntil=B.t+c.duration;
+  if(c.effect==='revive'){
+    for(const a of B.allies){if(a.alive)continue;
+      a.alive=true;a.deadBy=null;a.hp=a.max*.5;a.m.hpR=.5;a.m.collapsed=false;a.m.madness=0;a.m.surge=false;
+      a.pend=null;a.animT=-1;a.hitT=0;a.cdT=.3;
+      for(const skill of CARDS.filter(o=>o.owner===a.d.id)){
+        if(!B.queue.some(o=>o.id===skill.id)&&!B.slots.some(q=>q.card&&q.card.id===skill.id))B.queue.push(skill);
+      }
+      floatTxt(a.x,a.y-ALLY_H-6,'復帰','#ffe6a8',14);
+    }
+    recalc();
+  }
+  banner(c.name);
+  if(c.effect==='ult')startUlt(alive[Math.floor(B.rd()*alive.length)],false);
+  return true;
 }
 /* ---- 超必殺（同じキャラの札の2連続で発動。1戦闘1回） ----
    カットイン（透過の立ち絵が滑り込む1.3秒。戦場の枠の中だけを覆う）のあいだ戦闘は完全に止まり、明けた瞬間に必殺が着弾する */
@@ -2759,9 +2786,9 @@ function comboBar(c){const cb=comboArmed();return cb===c.owner?'<span class="cb"
    どのキャラも、戦場の (ULT_POS.x, ULT_POS.y) に顔が来て、顔の幅が戦場の幅×ULT_POS.face になるように置く（絵の幅は戦場の幅の1.0〜1.4倍に収める） */
 const ULT_ART={sword:{fx:.50,fy:.38,fw:.29},blue:{fx:.68,fy:.36,fw:.18},mage:{fx:.66,fy:.15,fw:.23},sister:{fx:.51,fy:.30,fw:.25},fox:{fx:.68,fy:.33,fw:.26}};
 const ULT_POS={x:.55,y:.36,face:.27};
-function startUlt(a){
+function startUlt(a,consume=true){
   const id=a.d.id,def=ULT_DEF[id];if(!def)return;
-  B.ultUsed[id]=true;aim.on=false;B.sel=null;FX.cut=null;
+  if(consume)B.ultUsed[id]=true;aim.on=false;B.sel=null;FX.cut=null;
   if(ultSeqOn(id))seqLoad(ULT_SEQ[id].n); // 連番はカットインの1.3秒の間に展開しておく
   const el=$('#ult'),AW=el.parentNode.clientWidth||W,AH=el.parentNode.clientHeight||H;
   let im=ULT_IMG[id],art=ULT_ART[id]||{fx:.5,fy:.35,fw:.3},ar=16/9;
@@ -2856,9 +2883,10 @@ function step(dt){
       a.pend.t-=dt;
       if(a.pend.t<=0){
         const p=a.pend;a.pend=null;
-        if(p.far){const tg=p.tg.dead?pickFar(a):p.tg;if(tg)farShot(a,tg)}
+        const chase=B.t<B.chaseUntil?2:0;
+        if(p.far){const tg=p.tg.dead?pickFar(a):p.tg;if(tg){farShot(a,tg);for(let k=1;k<=chase;k++)B.echoes.push({t:.11*k,a,k,far:true})}}
         else{const tg=p.tg.dead?pickTarget(a):p.tg;
-          if(tg){allyHit(a,tg,0);if(a.d.atk!=='single')for(let k=1;k<=m.multi;k++)B.echoes.push({t:0.11*k,a,k})}}
+          if(tg){allyHit(a,tg,0);const repeats=(a.d.atk==='single'?0:m.multi)+chase;for(let k=1;k<=repeats;k++)B.echoes.push({t:0.11*k,a,k,singleOnly:chase>0})}}
       }
     }
     else if(a.cdT<=0){let tg=pickTarget(a),far=false;if(!tg&&a.d.far){tg=pickFar(a);far=!!tg}
@@ -2867,7 +2895,7 @@ function step(dt){
   // 多重撃：斬撃や光線の「もう一振り」
   for(let i=B.echoes.length-1;i>=0;i--){
     const q=B.echoes[i];q.t-=dt;
-    if(q.t<=0){B.echoes.splice(i,1);if(q.a.alive){const tg=pickTarget(q.a);if(tg)allyHit(q.a,tg,q.k)}}
+    if(q.t<=0){B.echoes.splice(i,1);if(q.a.alive){const tg=q.far?pickFar(q.a):pickTarget(q.a);if(tg){if(q.far)farShot(q.a,tg);else allyHit(q.a,tg,q.k,q.singleOnly)}}}
   }
   // 禁忌「奈落の裁き」
   if(B.M.judge){B.judgeT-=dt;if(B.judgeT<=0){B.judgeT=UPCFG.judgeEvery;judgment()}}
@@ -2875,7 +2903,7 @@ function step(dt){
   updShots(dt);if(mode!=='battle')return;
   for(let i=B.impacts.length-1;i>=0;i--){const m=B.impacts[i];m.t-=dt;if(m.t<=0){B.impacts.splice(i,1);impact(m.c,m.x,m.y,m.k)}}
   updZones(dt);if(mode!=='battle')return;
-  for(const s of B.slots){if(s.card)continue;if(s.refill>0)s.refill-=dt;if(s.refill<=0&&B.queue.length)s.card=drawHandCard()}
+  B.slots.forEach((s,i)=>{if(s.card)return;if(s.refill>0)s.refill=Math.max(0,s.refill-dt);if(s.refill<=0)s.card=i===STRATEGY_SLOT?drawStrategyCard():drawHandCard()});
   let w=0;for(const e of B.enemies)if(!e.dead)B.enemies[w++]=e;B.enemies.length=w;
   if(B.t>=B.dur){win();return}
   if(B.sp>=B.need)openUp(); // ソウルが満ちたら、この一歩の終わりで完全停止して強化を選ぶ
@@ -3945,7 +3973,7 @@ function fitBattleUI(){
  [...elHand.children].forEach((e,i)=>{e.style.setProperty('--offset',((i-2)*step)+'px');e.style.setProperty('--angle',(compact?[-8,-4,0,4,8]:[-10,-5,0,5,10])[i]+'deg');e.style.setProperty('--fan-y',(compact?[14,8,4,8,14]:[20,11,6,11,20])[i]+'px');e.style.setProperty('--layer',[2,3,4,3,2][i]);const name=e.querySelector('.sn');if(name&&UI.battle_card_frame)name.style.fontSize=Math.min(11,cw*.76/Math.max(1,name.textContent.length))+'px'});
  fitExtractedControls(lower);updateBattleFloor();
 }
-function strategyMotif(effect){const paths={heal:'M45 15H55V40H80V50H55V75H45V50H20V40H45Z',redraw:'M20 40A30 30 0 0 1 75 25M75 25V8M75 25H58M80 60A30 30 0 0 1 25 75M25 75V92M25 75H42',reset:'M25 15H75L65 30 50 45 65 60 75 80H25L35 60 50 45 35 30Z'};return '<svg class="strategy-motif" viewBox="0 0 100 100" aria-hidden="true"><path d="'+paths[effect]+'" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/></svg>'}
+function strategyMotif(effect){const paths={heal:'M45 15H55V40H80V50H55V75H45V50H20V40H45Z',redraw:'M20 40A30 30 0 0 1 75 25M75 25V8M75 25H58M80 60A30 30 0 0 1 25 75M25 75V92M25 75H42',reset:'M25 15H75L65 30 50 45 65 60 75 80H25L35 60 50 45 35 30Z',chase:'M15 25L40 50 15 75M40 25L65 50 40 75M65 25L90 50 65 75',revive:'M50 85V15M25 40L50 15 75 40M20 65H80',ult:'M50 10L60 35 90 40 65 55 75 85 50 70 25 85 35 55 10 40 40 35Z'};return '<svg class="strategy-motif" viewBox="0 0 100 100" aria-hidden="true"><path d="'+paths[effect]+'" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/></svg>'}
 function buildRail(){
   elRail.innerHTML='';railEls=[];
   if(!P)return;
@@ -4055,11 +4083,11 @@ function syncDOM(){
     elHand.innerHTML=B.slots.map((s,i)=>{
       const kd=c=>c.kind!=='target'?'即時':c.shape==='row'?'横一列':c.shape==='col'?'縦一列':'範囲';
       if(SKF){ // 羊皮紙の札
-        if(!s.card)return'<div class="card back" data-i="'+i+'"><span class="ar"><span class="fill"></span></span><img class="fr" alt="" draggable="false" src="'+BATTLE_CARD_FRAME+'"><span class="ki">'+(B.queue.length||s.refill>0?'装填中':'札なし')+'</span></div>';
+        if(!s.card)return'<div class="card back" data-i="'+i+'"><span class="ar"><span class="fill"></span></span><img class="fr" alt="" draggable="false" src="'+BATTLE_CARD_FRAME+'"><span class="ki">'+(i===STRATEGY_SLOT?'戦略 装填中':B.queue.length||s.refill>0?'装填中':'札なし')+'</span></div>';
         const c=s.card,art=c.category==='strategy'?UI['battle_strategy_'+c.effect]:UI['card_'+c.owner];
-        return'<button class="card'+(c.category==='strategy'?' strategy '+c.effect:'')+(B.sel===i?' sel':'')+(cb===c.owner?' combo':'')+'" data-i="'+i+'" aria-label="'+c.name+'：'+c.desc+'">'+comboBar(c)+'<span class="ar">'+(art?'<img alt="" draggable="false" src="'+art+'">':c.category==='strategy'?strategyMotif(c.effect):'')+'</span><span class="sn'+(c.name.length>4?' lg':'')+'">'+c.name+'</span><img class="fr" alt="" draggable="false" src="'+BATTLE_CARD_FRAME+'"><span class="ki">'+(c.category==='strategy'?'戦略':'スキル')+'</span></button>';
+        return'<button class="card'+(c.category==='strategy'?' strategy '+c.effect+(c.rare?' rare':''):'')+(B.sel===i?' sel':'')+(cb===c.owner?' combo':'')+'" data-i="'+i+'" aria-label="'+c.name+'：'+c.desc+'">'+comboBar(c)+'<span class="ar">'+(art?'<img alt="" draggable="false" src="'+art+'">':c.category==='strategy'?strategyMotif(c.effect):'')+'</span><span class="sn'+(c.name.length>4?' lg':'')+'">'+c.name+'</span><img class="fr" alt="" draggable="false" src="'+BATTLE_CARD_FRAME+'"><span class="ki">'+(c.category==='strategy'?(c.rare?'希少戦略':'戦略'):'スキル')+'</span></button>';
       }
-      if(!s.card)return'<div class="card empty" data-i="'+i+'"><span class="fill"></span><span class="ds">'+(B.queue.length||s.refill>0?'装填中':'札なし')+'</span></div>';
+      if(!s.card)return'<div class="card empty" data-i="'+i+'"><span class="fill"></span><span class="ds">'+(i===STRATEGY_SLOT?'戦略 装填中':B.queue.length||s.refill>0?'装填中':'札なし')+'</span></div>';
       const c=s.card,o=CHARS[c.owner]||{color:'#71c999',short:'戦略'};
       return'<button class="card'+(B.sel===i?' sel':'')+(cb===c.owner?' combo':'')+'" data-i="'+i+'" style="--oc:'+o.color+'">'+comboBar(c)+'<span class="own">'+o.short+'</span><span class="nm">'+c.name+'</span><span class="ds">'+c.desc+'</span><span class="kd">'+kd(c)+'</span></button>';
     }).join('');

@@ -1,0 +1,81 @@
+{
+  "checks": {
+    "fixed slots": true,
+    "rare probabilities": true,
+    "25% heal without revive": true,
+    "30 second strategy cooldown": true,
+    "redraw conserves skills and empty wait": true,
+    "prepare fills all skill slots only": true,
+    "chase lasts ten seconds": true,
+    "triple normal attack sword": true,
+    "triple normal attack fox": true,
+    "triple normal attack mage": true,
+    "triple normal attack blue": true,
+    "triple normal attack sister": true,
+    "triple ranged fallback sword 20.39999999999418/61.19999999998254": true,
+    "triple ranged fallback blue 10.80000000000291/32.40000000000873": true,
+    "multi remains additive": true,
+    "chase expiry": true,
+    "test collapsed ally": true,
+    "revive HP and madness": true,
+    "restore collapsed skills": true,
+    "no duplicate revival skills": true,
+    "revived ally resumes": true,
+    "ult uses living ally": true,
+    "ult preserves normal rights false": true,
+    "ult completes false": true,
+    "ult preserves normal rights true": true,
+    "ult completes true": true,
+    "strategy not early": true,
+    "strategy replenishes at 30": true
+  },
+  "counts": {
+    "heal": 1235,
+    "redraw": 1199,
+    "reset": 1189,
+    "chase": 1167,
+    "revive": 203,
+    "ult": 207
+  },
+  "attacks": {
+    "sword": {
+      "normal": 34,
+      "triple": 102
+    },
+    "fox": {
+      "normal": 8,
+      "triple": 24
+    },
+    "mage": {
+      "normal": 24,
+      "triple": 72
+    },
+    "blue": {
+      "normal": 18,
+      "triple": 54
+    },
+    "sister": {
+      "normal": 14,
+      "triple": 42
+    }
+  },
+  "touch": {
+    "375x667": {
+      "skillSlots": 4,
+      "strategyEffects": 6
+    },
+    "390x664": {
+      "skillSlots": 4,
+      "strategyEffects": 6
+    },
+    "393x659": {
+      "skillSlots": 4,
+      "strategyEffects": 6
+    },
+    "393x852": {
+      "skillSlots": 4,
+      "strategyEffects": 6
+    }
+  },
+  "errors": []
+}
