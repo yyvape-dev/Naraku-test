@@ -1,0 +1,19 @@
+{
+  "oldHeldFrameDelta": 0,
+  "newInterpolatedFrameDelta": 34005,
+  "constantFlameStart": [
+    229,
+    100,
+    30,
+    128
+  ],
+  "constantFlameMidpoint": [
+    229,
+    100,
+    30,
+    128
+  ],
+  "frameCount": 33,
+  "maxInitialStep": 0.01666666666666669,
+  "endAlpha": 0
+}

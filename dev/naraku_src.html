@@ -1478,20 +1478,39 @@ function vtex(n,col){ // col を渡すと、白い光をその色に染めた写
   x.globalCompositeOperation='lighter';x.globalAlpha=0.3;x.drawImage(im,0,0);VC[key]=c;return c;
 }
 // Candidate only. Dedicated Godot fox impact and visual-only enemy reaction.
-const HIT_VFX={enabled:new URLSearchParams(location.search).get('hitfx')==='godot',layerFlags:{floor:true,air:true},recoil:true,frames:24,cols:8,life:.8,times:Array.from({length:24},(_,i)=>i<16?i/40:.4+(i-16)/20)};
+const HIT_MODE=new URLSearchParams(location.search).get('hitfx');
+const HIT_VFX={enabled:HIT_MODE==='godot'||HIT_MODE==='godot-v1',version:HIT_MODE==='godot-v1'?1:2,layerFlags:{floor:true,air:true},recoil:true,frames:33,cols:8,life:.8,times:Array.from({length:33},(_,i)=>i<18?i/60:.3+(i-18)/30)};
+const FOX_V1_TIMES=Array.from({length:24},(_,i)=>i<16?i/40:.4+(i-16)/20);
+// One reusable premultiplied frame-mix surface, shared by all hits and layers.
+const FOX_MIX=document.createElement('canvas');FOX_MIX.width=FOX_MIX.height=192;
+const FOX_MIX_CTX=FOX_MIX.getContext('2d');
+function foxAtlas(layer){return vtex((HIT_VFX.version===1?'foximpact_v1_':'foximpact_')+layer)}
 const HIT_REACTIONS=new WeakMap();
 function fxFoxImpact(x,y,angle){
-  if(!HIT_VFX.enabled||!vtex('foximpact_floor')||!vtex('foximpact_air'))return false;
+  if(!HIT_VFX.enabled||!foxAtlas('floor')||!foxAtlas('air'))return false;
   for(const layer of ['floor','air'])FX.sh.push({k:'foximpact',layer,x,y,angle:angle+Math.PI/4,w:106,t:0,life:HIT_VFX.life});
   return true;
 }
 function drawFoxImpact(g,s){
   if(!HIT_VFX.layerFlags[s.layer])return;
-  const im=vtex('foximpact_'+s.layer);if(!im||s.t<0)return;
-  let f=0;while(f+1<HIT_VFX.frames&&HIT_VFX.times[f+1]<=s.t)f++;
+  const im=foxAtlas(s.layer);if(!im||s.t<0)return;
+  const times=HIT_VFX.version===1?FOX_V1_TIMES:HIT_VFX.times;
+  let f=0;while(f+1<times.length&&times[f+1]<=s.t)f++;
   const tile=im.width/HIT_VFX.cols;
   g.save();g.globalAlpha=1;g.globalCompositeOperation='source-over';g.translate(s.x,s.y);g.rotate(s.angle);
-  g.drawImage(im,f%8*tile,Math.floor(f/8)*tile,tile,tile,-s.w*.390625,-s.w*.625,s.w,s.w);g.restore();
+  if(HIT_VFX.version===1){
+    g.drawImage(im,f%8*tile,Math.floor(f/8)*tile,tile,tile,-s.w*.390625,-s.w*.625,s.w,s.w);
+  }else{
+    const next=f+1<times.length?times[f+1]:HIT_VFX.life,mix=clamp((s.t-times[f])/(next-times[f]),0,1),m=FOX_MIX_CTX;
+    m.clearRect(0,0,192,192);m.globalCompositeOperation='source-over';m.globalAlpha=1-mix;
+    m.drawImage(im,f%8*tile,Math.floor(f/8)*tile,tile,tile,0,0,192,192);
+    // Add weighted premultiplied RGBA, then composite once onto the battlefield.
+    // Two source-over fades would dim overlapping fire at the midpoint.
+    if(f+1<times.length){m.globalCompositeOperation='lighter';m.globalAlpha=mix;m.drawImage(im,(f+1)%8*tile,Math.floor((f+1)/8)*tile,tile,tile,0,0,192,192)}
+    m.globalAlpha=1;m.globalCompositeOperation='source-over';
+    g.drawImage(FOX_MIX,-s.w*.390625,-s.w*.625,s.w,s.w);
+  }
+  g.restore();
 }
 function fxHitReaction(e,who,kind,crit){
   if(!HIT_VFX.enabled||!HIT_VFX.recoil)return;
@@ -5340,7 +5359,7 @@ window.NARAKU={
   go(id){if(!stepTo(id))return false;arrive();return mode},
   info:id=>nodeInfo(id),light:()=>lightState(),nodeXY:id=>{R.camY=null;const q=mapXY(R.map.nodes[id]);return{x:q.x/W,y:q.y/H}},choose:chooseNode,buy:buyItem,leave:leaveNode,next:afterVictory,giveUp,
   retreat(){if(mode!=='map'||R.walk)return false;endRun('return');return true},
-  HIT_VFX,foxPreviewHit(e){const a=B.allies.find(a=>a.d.id==='fox');B.shots.push({from:1,a,tg:e,x:e.x,y:e.y-e.d.h*.35,tx:e.x,ty:e.y-e.d.h*.35,spd:640,k:1,chain:0,seen:[],col:a.d.color});updShots(0)},vfx:{foxReady:()=>!!(vtex('foximpact_floor')&&vtex('foximpact_air')),tick:updFX,ready:()=>!!(vtex('quake_floor')&&vtex('quake_air')),riftReady:()=>!!(vtex('rift_floor')&&vtex('rift_air'))},QUAKE_VFX,RIFT_VFX,useCard,startRewind,updRewind,dropSig,dropFor,get ULT(){return ULT},ULT_DEF,startUlt,SEQ,ULT_SEQ,
+  HIT_VFX,foxPreviewHit(e){const a=B.allies.find(a=>a.d.id==='fox');B.shots.push({from:1,a,tg:e,x:e.x,y:e.y-e.d.h*.35,tx:e.x,ty:e.y-e.d.h*.35,spd:640,k:1,chain:0,seen:[],col:a.d.color});updShots(0)},vfx:{foxReady:()=>!!(foxAtlas('floor')&&foxAtlas('air')),tick:updFX,ready:()=>!!(vtex('quake_floor')&&vtex('quake_air')),riftReady:()=>!!(vtex('rift_floor')&&vtex('rift_air'))},QUAKE_VFX,RIFT_VFX,useCard,startRewind,updRewind,dropSig,dropFor,get ULT(){return ULT},ULT_DEF,startUlt,SEQ,ULT_SEQ,
   pick:chooseUp,
   grant(id){const u=UPS.find(x=>x.id===id);if(!u||!B)return false;applyUp(u);return true},
   // bot=スキルを撃つ自動操縦 / pick=強化を選ぶ関数（提示3枚と B を受け取り番号を返す。省略すると何も取らない）

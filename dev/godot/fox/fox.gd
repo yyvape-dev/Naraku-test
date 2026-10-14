@@ -26,8 +26,8 @@ func _ready():
  sprite("flame","res://art/flame.png")
  sprite("fragments","res://art/fragments.png")
  sprite("embers","res://art/embers.png")
- for i in range(16):times.append(i/40.0)
- for i in range(8):times.append(.4+i/20.0)
+ for i in range(18):times.append(i/60.0)
+ for i in range(15):times.append(.3+i/30.0)
  if "--bake" in OS.get_cmdline_user_args():
   set_process(false)
   call_deferred("bake")
@@ -41,14 +41,18 @@ func place(key:String,width:float,pos:Vector2,alpha:float,reveal:float,erosion:f
  s.material.set_shader_parameter("reveal",reveal)
  s.material.set_shader_parameter("erosion",erosion)
  s.material.set_shader_parameter("seed",float(key.length())*2.3)
+ s.material.set_shader_parameter("thermal",1.0 if key in ["flame","fragments","embers"] else 0.0)
+ s.material.set_shader_parameter("cooling",smoothstep(.08,.43,t))
  s.visible=alpha>.001
 
 func animate(t:float):
  var air=layer!="floor"
  var floor_on=layer!="air"
- var launch=1.0-exp(-t*55.0)
+ var launch=1.0-exp(-t*38.0)
  var decay=pow(clampf(1.0-(t-.06)/.29,0,1),1.5)
- place("flame",lerpf(83,150,launch),CENTER+Vector2(48,-45)*launch,decay if air else 0.0,lerpf(.20,1.2,clampf(t/.075,0,1)),lerpf(-.2,.95,clampf((t-.13)/.23,0,1)),t)
+ var flame_width=lerpf(73,150,launch)
+ # Keep the piercing root at the contact point as the fire expands.
+ place("flame",flame_width,CENTER+Vector2(.42*flame_width,-.42*flame_width*681.0/725.0),decay if air else 0.0,lerpf(.12,1.2,smoothstep(0,.085,t)),lerpf(-.2,.95,clampf((t-.13)/.23,0,1)),t)
  var a=maxf(0,t-.045)
  var frag=clampf(a/.025,0,1)*pow(clampf(1-a/.38,0,1),1.8)
  place("fragments",lerpf(68,100,1-exp(-a*12)),CENTER+Vector2(48+40*a,-40-70*a),frag*.85 if air else 0.0,1.2,lerpf(-.2,1.05,clampf((a-.08)/.32,0,1)),t)
@@ -57,6 +61,7 @@ func animate(t:float):
  place("smoke",lerpf(74,121,1-exp(-smoke_age*5)),CENTER+Vector2(25+smoke_age*13,-10-smoke_age*27),sm*.23 if floor_on else 0.0,1.2,-.2+smoke_age*.9,t)
  place("support",lerpf(35,74,1-exp(-smoke_age*5)),CENTER+Vector2(5,-smoke_age*14),sm*.11 if floor_on else 0.0,1.2,-.2+smoke_age,t)
  place("jettelly",lerpf(46,90,1-exp(-smoke_age*5)),CENTER+Vector2(13,-10-smoke_age*26),sm*.14 if floor_on else 0.0,1.2,-.2+smoke_age,t)
+ sprites.jettelly.material.set_shader_parameter("flow",0.0)
  sprites.jettelly.frame=clampi(8+int(smoke_age*62),8,60)
  sprites.jettelly.material.set_shader_parameter("tint",Color(.22,.12,.24,1))
  sprites.support.material.set_shader_parameter("flow",.25)
