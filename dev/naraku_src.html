@@ -975,6 +975,21 @@ img.frm{display:block;width:100%;height:100%}
 #app.battle-ui.battle-materials .orb-gauges circle{stroke-width:3}
 #app.battle-ui.battle-materials .unit .fate{inset:21.5%;z-index:5}
 
+/* Extracted mock layers: fixed lower ornament and independent movable card borders. */
+#app.battle-ui.battle-extracted #cmd:not(.tuning){border-top-color:transparent;background:var(--battle-floor,#0c0a09) center top/100% 100% no-repeat;background-origin:border-box}
+#app.battle-ui.battle-extracted #handRow{right:0}
+#app.battle-ui.battle-extracted #hand .ar{top:11%;bottom:8%;left:11%;right:11%;border-radius:4px}
+#app.battle-ui.battle-extracted #hand .sn{left:12%;right:12%;top:75%;height:12%;background:linear-gradient(90deg,transparent,rgba(5,3,2,.85) 12%,rgba(5,3,2,.85) 88%,transparent)}
+#app.battle-ui.battle-extracted #hand .ki{left:22%;right:22%;top:88.5%;height:6.5%;background:rgba(5,3,2,.75);border-radius:2px}
+#app.battle-ui.battle-extracted #hand .strategy .sn{background:linear-gradient(90deg,transparent,rgba(3,24,18,.86) 12%,rgba(3,24,18,.86) 88%,transparent)}
+#app.battle-ui.battle-extracted #ops{inset:0;display:block;pointer-events:none}
+#app.battle-ui.battle-extracted #ops button{position:absolute;margin:0;pointer-events:auto}
+#app.battle-ui.battle-extracted #ops .btn-skin{display:none}
+#app.battle-ui.battle-extracted #ops .btn-label{left:0;right:0;bottom:auto;height:18px;transform:translateY(-50%)}
+#app.battle-ui.battle-extracted #btnTune{opacity:1}
+#app.battle-ui.battle-extracted #cmd.tuning #handRow,#app.battle-ui.battle-extracted #cmd.tuning #ops,#app.battle-ui.battle-extracted #cmd.tuning #battleTray{display:none}
+#app.battle-ui.battle-extracted #btnTune .btn-label{height:14px;font-size:9px}
+
 </style>
 <script>
 /* 起動の見張り。本体のスクリプトより前に置く。本体が読み込めない・途中で止まったときに、真っ暗な戦闘画面のまま黙らないようにする */
@@ -3368,6 +3383,7 @@ function buildBG(){
     for(let x=9;x<W;x+=18)g.fillRect(x-0.5,ly-4,1,8);
   }
   gr=g.createRadialGradient(W/2,H*0.5,H*0.25,W/2,H*0.5,H*0.78);gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,'rgba(0,0,0,'+(img?BGFX.vig:0.62)+')');g.fillStyle=gr;g.fillRect(0,0,W,H);
+  updateBattleFloor();
 }
 // 絵の名前とコマ数から、緩急の表を選ぶ（コマ数が合わなければ仮の配分。それも無ければ等間隔）
 function motionOf(name,n){const m=MOTION[name];return m&&m.ms.length===n?m:MOTION_DEF[n]||null}
@@ -3876,8 +3892,9 @@ const BATTLE_ART={
  frame:UI.battle_status_frame||svgImage('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="g" x2="1" y2="1"><stop stop-color="#ffe9b2"/><stop offset=".4" stop-color="#8c5429"/><stop offset=".65" stop-color="#e8ba6c"/><stop offset="1" stop-color="#5c301b"/></linearGradient></defs><g fill="none" stroke="url(#g)"><circle cx="50" cy="50" r="39" stroke-width="3"/><circle cx="50" cy="50" r="47" stroke-width="1.5"/><path d="M50 1L56 10 50 17 44 10Z M50 83L56 90 50 99 44 90Z M1 50L10 44 17 50 10 56Z M83 50L90 44 99 50 90 56Z" fill="#b78a47"/><path d="M16 26Q5 10 26 16 M74 16Q95 10 84 26 M16 74Q5 90 26 84 M74 84Q95 90 84 74" stroke-width="2"/></g></svg>'),
  crest:UI.battle_tray_crest||svgImage('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 65"><path d="M5 5Q25 40 45 22L60 5 75 22Q95 40 115 5L100 48 78 40 60 62 42 40 20 48Z" fill="#201109" stroke="#b39355" stroke-width="3"/><path d="M60 16L72 32 60 49 48 32Z" fill="#573017" stroke="#f2cf83" stroke-width="2"/></svg>')
 };
-const BATTLE_CARD_FRAME=UI.battle_card_frame||UI.card_frame;
+const BATTLE_CARD_FRAME=UI.battle_extracted_card_frame||UI.battle_card_frame||UI.card_frame;
 app.classList.toggle('battle-materials',!!UI.battle_tray_full);
+app.classList.toggle('battle-extracted',!!(UI.battle_extracted_base&&UI.battle_extracted_card_frame));
 if(UI.battle_button_frame)app.style.setProperty('--battle-button','url('+UI.battle_button_frame+')');
 function setControlLabel(el,v){
  if(!UI.battle_button_frame){setTxt(el,v);return}
@@ -3887,7 +3904,26 @@ function setControlLabel(el,v){
  const name=el.id==='btnPause'?(v==='Ⅱ'?'一時停止':'再開'):el.id==='btnSpeed'?'速度 '+(v==='×1'?'等速':'倍速')+'、タップで切り替え':'調整';
  el.setAttribute('aria-label',name);el.title=name;
 }
-setControlLabel($('#btnTune'),'調整');
+setControlLabel($('#btnTune'),'調整');setControlLabel($('#btnPause'),'Ⅱ');setControlLabel($('#btnSpeed'),'×1');
+let battleFloorCache=null;
+function updateBattleFloor(){
+ if(!B||!bgC||!app.classList.contains('battle-extracted'))return;
+ const box=$('#cmd'),width=app.clientWidth,height=box.getBoundingClientRect().height;
+ if(width<1||height<1)return;
+ if(battleFloorCache&&battleFloorCache.source===bgC&&battleFloorCache.width===width&&battleFloorCache.height===height)return;
+ // Continue only the static floor under the transparent ornament; gameplay canvas stays unchanged.
+ const sh=Math.min(bgC.height,Math.ceil(height*bgC.width/width)),floor=mkCanvas(bgC.width,sh),g=floor.getContext('2d');
+ g.translate(0,sh);g.scale(1,-1);g.drawImage(bgC,0,bgC.height-sh,bgC.width,sh,0,0,bgC.width,sh);
+ app.style.setProperty('--battle-floor','url('+floor.toDataURL('image/webp',.85)+')');
+ battleFloorCache={source:bgC,width,height};
+}
+function fitExtractedControls(lower){
+ if(!app.classList.contains('battle-extracted'))return;
+ const w=app.clientWidth,inner=lower-1,artH=Math.min(inner,w*443/1280),top=inner-artH;
+ const pauseY=top+artH*.47-19,controlX=w*.943-20;
+ const specs=[['btnPause',controlX,pauseY,40,38,top+artH*.51],['btnSpeed',controlX,pauseY+42,40,38,top+artH*.72],['btnTune',w*.07-20,top+artH*.76-11,40,22,top+artH*.76]];
+ for(const [id,x,y,width,height,cy] of specs){const el=$('#'+id);el.style.left=x+'px';el.style.top=y+'px';el.style.width=width+'px';el.style.height=height+'px';const label=el.querySelector('.btn-label');if(label)label.style.top=(cy-y)+'px'}
+}
 let battleFitKey='';
 function fitBattleUI(){
  if(!app.classList.contains('battle-ui'))return;
@@ -3899,9 +3935,10 @@ function fitBattleUI(){
  const lower=Math.ceil(ch+(compact?25:42));
  app.style.setProperty('--battle-lower',lower+'px');
  app.style.setProperty('--card-w',cw+'px');app.style.setProperty('--card-h',ch+'px');
- const half=(app.clientWidth-54)/2;
+ const extracted=app.classList.contains('battle-extracted'),half=(app.clientWidth-(extracted?0:54))/2;
  const step=Math.min((app.clientWidth-150)/4,(half-cw*.56-5)/2);
- [...elHand.children].forEach((e,i)=>{e.style.setProperty('--offset',((i-2)*step)+'px');e.style.setProperty('--angle',(compact?[-8,-4,0,4,8]:[-10,-5,0,5,10])[i]+'deg');e.style.setProperty('--fan-y',(compact?[14,8,4,8,14]:[20,11,6,11,20])[i]+'px');e.style.setProperty('--layer',[2,3,4,3,2][i]);const name=e.querySelector('.sn');if(name&&UI.battle_card_frame)name.style.fontSize=Math.min(11,cw*.78/Math.max(1,name.textContent.length))+'px'});
+ [...elHand.children].forEach((e,i)=>{e.style.setProperty('--offset',((i-2)*step)+'px');e.style.setProperty('--angle',(compact?[-8,-4,0,4,8]:[-10,-5,0,5,10])[i]+'deg');e.style.setProperty('--fan-y',(compact?[14,8,4,8,14]:[20,11,6,11,20])[i]+'px');e.style.setProperty('--layer',[2,3,4,3,2][i]);const name=e.querySelector('.sn');if(name&&UI.battle_card_frame)name.style.fontSize=Math.min(11,cw*.76/Math.max(1,name.textContent.length))+'px'});
+ fitExtractedControls(lower);updateBattleFloor();
 }
 function strategyMotif(effect){const paths={heal:'M45 15H55V40H80V50H55V75H45V50H20V40H45Z',redraw:'M20 40A30 30 0 0 1 75 25M75 25V8M75 25H58M80 60A30 30 0 0 1 25 75M25 75V92M25 75H42',reset:'M25 15H75L65 30 50 45 65 60 75 80H25L35 60 50 45 35 30Z'};return '<svg class="strategy-motif" viewBox="0 0 100 100" aria-hidden="true"><path d="'+paths[effect]+'" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/></svg>'}
 function buildRail(){
@@ -4844,7 +4881,7 @@ function enterMap(){
 function beginBattle(seed,opt){
   BOPT=opt||{kind:'trial',depth:0,bg:null};
   app.classList.remove('exploring');app.classList.add('battle-ui');elHand.classList.remove('dest');fitBattleUI();
-  if(UI.battle_tray_full)$('#battleTrayArt').src=UI.battle_tray_full;
+  if(UI.battle_extracted_base||UI.battle_tray_full)$('#battleTrayArt').src=UI.battle_extracted_base||UI.battle_tray_full;
   $('#battleTray .tray-crest').src=BATTLE_ART.crest;if(UI.battle_tray)app.style.setProperty('--battle-tray','url('+UI.battle_tray+')');
   B=null;resize();newBattle(seed==null?newSeed():seed>>>0);buildBG();buildRail();handSig='';accum=0;paused=false;
   setControlLabel($('#btnPause'),'Ⅱ');setControlLabel($('#btnSpeed'),speed===1?'×1':'×2');

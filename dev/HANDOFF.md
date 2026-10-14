@@ -1,3 +1,12 @@
+## 最新：抽出モックを固定下枠と可動カードに分離（2026-10-14）
+
+- 添付画像から透過派生素材を生成。固定下枠 ui_battle_extracted_base.webp と可動カード枠 ui_battle_extracted_card_frame.webp を導入。元画像・透過PNGは dev/cardart/battle_ui_extracted/。
+- 固定側に5枚のカード枠を残さない。下部の透過には静的背景下端の反転延長を使用。人物やVFXは複製しない。
+- 手札を全幅の中央へ。サイズ・角度・浮き維持。右の二枠は停止・速度、左の丸枠は調整。
+- 戦場寸法は直前と完全一致。4画面の全5枚タッチ・停止速度・調整・装填確認、戦闘比較、smoke、boot成功。実機Safari未確認。
+- 計測・画像：dev/reports/battle-extracted/REPORT.md。中央メダルは未差し替え。
+- 本番・公開URL未更新、ローカル作業ブランチのみ。
+
 ## 最新：戦闘UIの4素材を組み込み（2026-10-14）
 
 - 添付の下部全体・カード枠・ボタン枠・円形装飾枠を透過化して実装。元JPEGと透過PNGはdev/cardart/battle_ui_materials/、配布WebPはdev/assets/ui_battle_{tray_full,card_frame,button_frame,status_frame}.webp。

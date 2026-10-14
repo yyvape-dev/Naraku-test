@@ -14,3 +14,12 @@ for name,width in [('tray_full',1280),('card_frame',720),('button_frame',320),('
     out=root/'dev/assets'/f'ui_battle_{name}.webp'
     im.resize((width,height),Image.Resampling.LANCZOS).save(out,quality=94,method=4)
     print(name,f'{width}x{height}',out.stat().st_size,'bytes')
+
+# Optional UI layers extracted from the supplied mock.
+for name,width in [('base',1280),('card_frame',720)]:
+    src=root/'dev/cardart/battle_ui_extracted'/f'transparent_{name}.png'
+    if not src.exists():continue
+    im=Image.open(src).convert('RGBA');height=round(im.height*width/im.width)
+    out=root/'dev/assets'/f'ui_battle_extracted_{name}.webp'
+    im.resize((width,height),Image.Resampling.LANCZOS).save(out,quality=94,method=4)
+    print('extracted_'+name,f'{width}x{height}',out.stat().st_size,'bytes')
