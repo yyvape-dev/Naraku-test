@@ -3411,7 +3411,7 @@ function updFX(dt){
   if(dt<=0)return;
   FX.shake*=Math.pow(0.0006,dt);if(FX.breach>0)FX.breach-=dt*1.6;
   for(let i=FX.parts.length-1;i>=0;i--){const p=FX.parts[i];p.t+=dt;if(p.t>=p.life){FX.parts[i]=FX.parts[FX.parts.length-1];FX.parts.pop();continue}const k=Math.exp(-p.drag*dt);p.vx*=k;p.vy*=k;p.vy+=p.grav*dt;p.x+=p.vx*dt;p.y+=p.vy*dt}
-  for(let i=FX.sh.length-1;i>=0;i--){const s=FX.sh[i];s.t+=dt;if(s.k==='rift'&&s.layer==='floor'){const hit=s.t<.6?6*(1-s.t/.6):2.5*Math.exp(-Math.pow(((s.t-.5)% .5)/.065,2))*(1-s.t/3);FX.shake=Math.max(FX.shake,hit)}if(s.t>=s.life)FX.sh.splice(i,1)}
+  for(let i=FX.sh.length-1;i>=0;i--){const s=FX.sh[i];s.t+=dt;if(s.k==='rift'&&s.layer==='floor'){let hit=0;for(const [at,force] of [[0,5],[.085,4],[.175,6],[.29,3.5],[.355,5],[.48,4],[.575,6],[.70,3],[.86,2],[1.16,3],[1.49,1.8],[1.83,2.5],[2.19,1.6],[2.43,2]]){const age=s.t-at;if(age>=0&&age<.12)hit=Math.max(hit,force*Math.exp(-age*30))}FX.shake=Math.max(FX.shake,hit)}if(s.t>=s.life)FX.sh.splice(i,1)}
   for(const id in ULT_SEQ){const L=ULT_SEQ[id],U=FX[L.fx];if(U){U.t+=dt;if(U.t>L.end){FX[L.fx]=null;seqFree(L.n)}}}
   for(let i=FX.dust.length-1;i>=0;i--){const d=FX.dust[i];d.t+=dt;if(d.t>=d.life){FX.dust[i]=FX.dust[FX.dust.length-1];FX.dust.pop();continue}
     const k=Math.exp(-d.drag*dt);d.vx*=k;d.vy*=k;d.vy+=d.grav*dt;d.x+=d.vx*dt;d.y+=d.vy*dt;d.rot+=d.vr*dt;if(d.wob)d.x+=Math.sin(d.t*d.wob+d.ph)*12*dt}

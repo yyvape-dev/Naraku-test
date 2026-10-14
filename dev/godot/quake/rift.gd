@@ -7,18 +7,18 @@ var scar:Sprite2D
 var art={}
 var debris=[]
 var dust=[]
-var path_points=[Vector2(225,369),Vector2(181,326),Vector2(201,277),Vector2(235,230),Vector2(180,183),Vector2(223,139),Vector2(207,88),Vector2(193,33)]
+var path_points=[Vector2(215,369),Vector2(225,326),Vector2(168,277),Vector2(208,230),Vector2(222,183),Vector2(217,139),Vector2(225,88),Vector2(208,33)]
 var strikes=[0.0,.085,.175,.29,.355,.48,.575,.70]
 func _ready():
  get_viewport().transparent_bg=true
- for name in ["rift_scar","rock","support_smoke"]:
+ for name in ["rift_jagged","rock","support_smoke"]:
   art[name]=ImageTexture.create_from_image(Image.load_from_file("res://art/"+name+".png"))
  scar=Sprite2D.new()
- scar.texture=art.rift_scar
+ scar.texture=art.rift_jagged
  scar.position=Vector2(200,200)
  scar.scale=Vector2(290.0/scar.texture.get_width(),385.0/scar.texture.get_height())
  var mat=ShaderMaterial.new()
- mat.shader=load("res://reveal.gdshader")
+ mat.shader=load("res://rift_flow.gdshader")
  mat.set_shader_parameter("mode",2)
  mat.set_shader_parameter("seed",61.0)
  scar.material=mat
@@ -50,7 +50,7 @@ func animate(t):
  scar.material.set_shader_parameter("reveal",lerpf(-.03,1.08,front))
  scar.material.set_shader_parameter("opacity",1-fade*.85)
  scar.material.set_shader_parameter("dissolve",lerpf(-.2,1.15,fade))
- scar.material.set_shader_parameter("pulse",exp(-pow(fmod(maxf(0,t),.5)/.085,2))*maxf(0,1-t/3)*1.2)
+ scar.material.set_shader_parameter("magma_time",t)
  queue_redraw()
 func _draw():
  var t=clock
@@ -75,15 +75,19 @@ func _draw():
   draw_line(path_points[i],end,Color(1,.025,.045,a*.55),9-i*.5,true)
   draw_line(path_points[i],end,Color(1,.18,.09,a),3.8-i*.25,true)
   draw_line(path_points[i],end,Color(1,.86,.67,a),1.3,true)
- # Narrow, irregular red-black blades of light thrust from the wound on damage pulses.
- for i in range(1,7):
-  if t<strikes[i]:continue
-  var phase=fmod(t+float(i)*.022,.5)
-  var strength=exp(-pow(phase/.085,2))*clampf((3-t)/.55,0,1)
-  var p=path_points[i]
-  var tip=p+Vector2((-1 if i%2==0 else 1)*(8+i*2),-12-i*2)*strength
-  draw_colored_polygon(PackedVector2Array([p+Vector2(-3,1),tip,p+Vector2(4,2)]),Color(.55,.005,.026,strength*.9))
-  draw_line(p,tip,Color(1,.16,.065,strength*.8),1.2,true)
+ # Repeated uneven sword cuts rake selected parts of the wound, never all at once.
+ var events=[.86,1.16,1.49,1.83,2.19,2.43]
+ var sections=[2,5,1,6,3,4]
+ for j in range(events.size()):
+  var age=t-events[j]
+  if age<0 or age>.18:continue
+  var i=sections[j]
+  var a=pow(1-age/.18,1.5)*.72
+  var start=path_points[i]
+  var end=start.lerp(path_points[i-1],clampf(age/.065,0,1))
+  draw_line(start,end,Color(.20,.002,.012,a),11,true)
+  draw_line(start,end,Color(1,.06,.025,a*.6),5,true)
+  draw_line(start,end,Color(1,.44,.16,a),1.3,true)
  for p in debris:
   var age=t-p.start
   if age<0 or age>p.life:continue

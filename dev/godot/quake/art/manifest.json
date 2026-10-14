@@ -133,5 +133,19 @@
     "bytes": 1853838,
     "origin": "GPT Image",
     "purpose": "connected irregular ground scar for rift remake"
+  },
+  "rift_jagged": {
+    "file": "rift_jagged.png",
+    "size": [
+      1024,
+      1536
+    ],
+    "alphaRange": [
+      0,
+      254
+    ],
+    "bytes": 2245624,
+    "origin": "GPT Image",
+    "purpose": "large uneven pointed rocks with minimal flat rim and molten cavity"
   }
 }
