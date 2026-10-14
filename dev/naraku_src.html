@@ -2205,7 +2205,8 @@ const aim={on:false,x:0,y:0};
 const FX={parts:[],dust:[],sh:[],floats:[],ghosts:[],shake:0,banner:null,breach:0,cut:null};
 const cv=$('#cv'),ctx=cv.getContext('2d'),app=$('#app');
 
-function layout(){B.lineY=H-LINE_OFF;B.allies.forEach(a=>{a.x=W*[0.18,0.5,0.82][a.slot];a.y=H-FOOT_OFF})}
+function defenseLineY(){const r=$('#arena').getBoundingClientRect();return H-LINE_OFF+15*H/Math.max(1,r.height)}
+function layout(){B.lineY=defenseLineY();B.allies.forEach(a=>{a.x=W*[0.18,0.5,0.82][a.slot];a.y=H-FOOT_OFF})}
 function clearFX(){FX.parts.length=0;FX.dust.length=0;FX.ghosts.length=0;FX.sh.length=0;FX.floats.length=0;FX.shake=0;FX.banner=null;FX.breach=0;FX.cut=null;for(const id in ULT_SEQ){FX[ULT_SEQ[id].fx]=null;seqFree(ULT_SEQ[id].n)}if(typeof BAR!=='undefined')BAR.emb.length=0}
 
 function newBattle(seed){
@@ -3363,7 +3364,7 @@ function updFX(dt){
    dim＝全体の黒 / top・topH＝上端の闇（敵は闇の奥から現れる）の濃さと高さ / gate＝門の青い光 / foot＝防衛線より下の帯の黒 / vig＝周辺の暗さ */
 const BGFX={dim:0,top:0.85,topH:0.2,gate:0.15,foot:0,vig:0.4}; // 2026-10-11 ユーザー：暗くしすぎて全部同じ戦場に見える → 全体の黒と足元の帯を無しに（以前は dim .3 / top .92 / topH .24 / gate .4 / foot .5 / vig .62）
 function buildBG(){
-  bgC=mkCanvas(W*2,Math.round(H*2));const g=bgC.getContext('2d');g.scale(2,2);const ly=H-LINE_OFF,ts=45,img=B?SPR.bg[B.bg]:null;
+  bgC=mkCanvas(W*2,Math.round(H*2));const g=bgC.getContext('2d');g.scale(2,2);const ly=B?B.lineY:defenseLineY(),ts=45,img=B?SPR.bg[B.bg]:null;
   let gr;
   if(img){
     // 床の絵を、縦横比を保ったまま画面いっぱいに敷く（はみ出す分は中央基準で切る）
