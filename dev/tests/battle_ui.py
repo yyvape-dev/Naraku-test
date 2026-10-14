@@ -60,8 +60,8 @@ with sync_playwright() as p:
         assert not errors,errors
         results[f'{w}x{h}']={'selectable':5,'gauges':gauges,'heal':heal,'strategies':mechanics,'errors':errors}
         pg.close()
-    # Invariant: unchanged combat / skill / sprite / VFX bodies (except the hand queue update).
-    # For numerical comparison force the same hand and actions; hand RNG is independent of combat RNG.
+    # Expansion changes responsive world geometry. Compare engine behavior at equal geometry.
+    # Force the same arena dimensions, hand and actions to isolate any combat logic change.
     snapshots=[]
     script="""()=>{
      const N=NARAKU,out=[];
@@ -76,14 +76,15 @@ with sync_playwright() as p:
     for path in [before,html]:
         pg=b.new_page(viewport={'width':390,'height':844})
         pg.goto('file://'+os.path.abspath(path));pg.wait_for_function('window.NARAKU_READY')
-        # Stabilize the legacy hand geometry before comparing subsequent battle starts.
+        pg.add_style_tag(content='#app.battle-ui #arena{flex:none!important;width:282px!important;height:654.125px!important}')
+        # Stabilize the hand before comparing subsequent battle starts at equal geometry.
         pg.evaluate("NARAKU.start(['sword','fox','mage'],1);document.querySelector('#btnPause').click()")
         pg.wait_for_timeout(100)
         snapshots.append(pg.evaluate(script));pg.close()
     Path(f'{out}/combat-before.json').write_text(json.dumps(snapshots[0],indent=2))
     Path(f'{out}/combat-after.json').write_text(json.dumps(snapshots[1],indent=2))
     assert snapshots[0]==snapshots[1], 'existing combat changed'
-    results['combatRegression']={'seeds':4,'duration':60,'sameSkills':['fox_bind','sw_rift','mg_void'],'equal':True}
+    results['combatRegression']={'seeds':4,'duration':60,'sameSkills':['fox_bind','sw_rift','mg_void'],'equalAtSameGeometry':True,'arena':{'width':282,'height':654.125}}
     b.close()
 Path(f'{out}/checks.json').write_text(json.dumps(results,ensure_ascii=False,indent=2))
 print('RESULT OK',json.dumps(results,ensure_ascii=False))

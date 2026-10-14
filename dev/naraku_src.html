@@ -889,20 +889,21 @@ img.frm{display:block;width:100%;height:100%}
 @media (prefers-reduced-motion:reduce){.fac-npc img,.fac-npc .hop.hit,.fac-card.hit{animation:none}}
 @media (prefers-reduced-motion:reduce){.sock.r3::before{animation:none}}
 
-/* Battle UI v2: reserve the original right rail and lower box. Never resize the field for decoration. */
+/* Battle UI v3: full-width arena and compact fan, authorized 2026-10-14. */
 #app.battle-ui{overflow:clip}
-#app.battle-ui #rail{position:static;flex:none;width:108px;padding:0;background:linear-gradient(90deg,#100b09,#211710 50%,#0b0807);overflow:visible;box-shadow:inset 1px 0 #6e5a36}
+#app.battle-ui #arena{border-right:0}
+#app.battle-ui #rail{position:static;flex:none;width:0;padding:0;background:none;overflow:visible;box-shadow:none}
 #app.battle-ui #rail::before{display:none}
-#app.battle-ui #hint{left:76px;right:5px;top:43px;font-size:11px;z-index:14}
+#app.battle-ui #hint{left:62px;right:5px;top:43px;font-size:11px;z-index:14}
 #battleDeck{display:none}
-#app.battle-ui #battleDeck{display:block;position:absolute;right:16px;top:62px;width:76px;height:117px;pointer-events:none;z-index:1}
+#app.battle-ui #battleDeck{display:none;position:absolute;right:16px;top:62px;width:76px;height:117px;pointer-events:none;z-index:1}
 #battleDeck::before,#battleDeck::after{content:'';position:absolute;inset:0;border:2px solid #846339;border-radius:5px;background:repeating-linear-gradient(45deg,#21150e 0 6px,#140d09 6px 12px);box-shadow:0 3px 6px #000;transform:rotate(-8deg)}
 #battleDeck::after{transform:rotate(4deg)}
 #battleDeck .deck-face{position:absolute;inset:0;z-index:1;border:3px double #c5a263;border-radius:5px;background:radial-gradient(ellipse,#3f2515,#100b08);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#e0c18a;font-size:11px;gap:8px}
 #battleDeck .deck-face::before{content:'◇';font-size:40px;line-height:1;color:#d4b16d;text-shadow:0 0 8px #b58442}
 #battleDeck b{font-size:17px;font-weight:400}
-#app.battle-ui #rail .unit{position:absolute;z-index:12;left:6px;top:calc(48px + var(--member) * 70px);width:64px;height:64px;display:block;min-height:0}
-#app.battle-ui .orb-face{position:absolute;inset:11px;border-radius:50%;overflow:hidden;background:#100907}
+#app.battle-ui #rail .unit{position:absolute;z-index:12;left:6px;top:calc(44px + var(--member) * 57px);width:52px;height:52px;display:block;min-height:0}
+#app.battle-ui .orb-face{position:absolute;inset:17%;border-radius:50%;overflow:hidden;background:#100907}
 #app.battle-ui .orb-face canvas,#app.battle-ui .orb-face img{width:100%;height:100%;display:block;object-fit:cover}
 #app.battle-ui .orb-frame,#app.battle-ui .orb-gauges{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 #app.battle-ui .orb-gauges{filter:drop-shadow(0 0 2px #100)}
@@ -911,10 +912,10 @@ img.frm{display:block;width:100%;height:100%}
 #app.battle-ui .orb-gauges .hp-ring{stroke:#f3423f}
 #app.battle-ui .orb-gauges .mad-ring{stroke:#b463ed}
 #app.battle-ui .unit.dead .orb-face{filter:grayscale(1) brightness(.4)}
-#app.battle-ui .unit .fate{font-size:9px;border-radius:50%;inset:11px;z-index:3}
+#app.battle-ui .unit .fate{font-size:8px;border-radius:50%;inset:17%;z-index:3}
 #app.battle-ui .unit.brink .mad-ring{filter:drop-shadow(0 0 2px #e37aff)}
 #app.battle-ui .unit.surge .orb-gauges{animation:surge .9s ease-out}
-#app.battle-ui #cmd:not(.tuning){height:var(--battle-lower,173px);flex:none;padding:0;border-top:1px solid var(--gold);background:linear-gradient(#160f0c,#080605)}
+#app.battle-ui #cmd:not(.tuning){height:var(--battle-lower,156px);flex:none;padding:0;border-top:1px solid var(--gold);background:linear-gradient(#160f0c,#080605)}
 #app.battle-ui #deco,#app.battle-ui #btnRewind{display:none}
 #app.battle-ui #handRow{position:absolute;left:0;right:54px;top:0;bottom:0;display:block}
 #app.battle-ui #hand{position:absolute;inset:0;display:block;min-height:0;z-index:2}
@@ -933,9 +934,9 @@ img.frm{display:block;width:100%;height:100%}
 #app.battle-ui #hand .card.strategy .fr{filter:hue-rotate(65deg) saturate(.7) brightness(1.12)}
 #app.battle-ui #hand .strategy .ki{color:#124530}
 .strategy-motif{position:absolute;left:25%;right:25%;top:20%;width:50%;height:45%;color:#c9ffe0;filter:drop-shadow(0 0 5px #65dd9a)}
-#app.battle-ui #ops{position:absolute;right:8px;bottom:8px;display:flex;flex-direction:column;gap:6px;margin:0;z-index:25}
-#app.battle-ui #ops button{width:40px;height:42px;padding:0!important;border:1px solid #b39355!important;border-radius:7px;background:linear-gradient(#291c12,#100b08)!important;color:#f0dfb7;font-size:11px!important;box-shadow:inset 0 0 0 2px #100b08,0 2px 4px #000}
-#app.battle-ui #btnTune{height:26px!important;font-size:9px!important;opacity:.7}
+#app.battle-ui #ops{position:absolute;right:8px;bottom:6px;display:flex;flex-direction:column;gap:4px;margin:0;z-index:25}
+#app.battle-ui #ops button{width:40px;height:38px;padding:0!important;border:1px solid #b39355!important;border-radius:7px;background:linear-gradient(#291c12,#100b08)!important;color:#f0dfb7;font-size:11px!important;box-shadow:inset 0 0 0 2px #100b08,0 2px 4px #000}
+#app.battle-ui #btnTune{height:22px!important;font-size:9px!important;opacity:.7}
 #battleTray{display:none;pointer-events:none}
 #app.battle-ui #battleTray{display:block;position:absolute;left:4px;right:54px;top:9px;bottom:5px;z-index:0;border:12px solid transparent;border-image:var(--battle-tray,var(--cb)) 66 fill/12px stretch;background:radial-gradient(ellipse at 50% 60%,#4c2813,#100806);filter:drop-shadow(0 2px 3px #000)}
 #battleTray .tray-crest{position:absolute;left:calc(50% - 28px);bottom:-12px;width:56px;height:31px;object-fit:contain}
@@ -3843,18 +3844,18 @@ const BATTLE_ART={
  frame:UI.battle_status_frame||svgImage('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="g" x2="1" y2="1"><stop stop-color="#ffe9b2"/><stop offset=".4" stop-color="#8c5429"/><stop offset=".65" stop-color="#e8ba6c"/><stop offset="1" stop-color="#5c301b"/></linearGradient></defs><g fill="none" stroke="url(#g)"><circle cx="50" cy="50" r="39" stroke-width="3"/><circle cx="50" cy="50" r="47" stroke-width="1.5"/><path d="M50 1L56 10 50 17 44 10Z M50 83L56 90 50 99 44 90Z M1 50L10 44 17 50 10 56Z M83 50L90 44 99 50 90 56Z" fill="#b78a47"/><path d="M16 26Q5 10 26 16 M74 16Q95 10 84 26 M16 74Q5 90 26 84 M74 84Q95 90 84 74" stroke-width="2"/></g></svg>'),
  crest:UI.battle_tray_crest||svgImage('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 65"><path d="M5 5Q25 40 45 22L60 5 75 22Q95 40 115 5L100 48 78 40 60 62 42 40 20 48Z" fill="#201109" stroke="#b39355" stroke-width="3"/><path d="M60 16L72 32 60 49 48 32Z" fill="#573017" stroke="#f2cf83" stroke-width="2"/></svg>')
 };
-const battleSizer=document.createElement('div');battleSizer.id='battleSizer';battleSizer.innerHTML='<i></i><i></i><i></i><i></i>';app.appendChild(battleSizer);
 let battleFitKey='';
 function fitBattleUI(){
  if(!app.classList.contains('battle-ui'))return;
- const key=app.clientWidth+'|'+elHand.classList.contains('sk')+'|'+handSig;if(key===battleFitKey)return;battleFitKey=key;
- battleSizer.style.width=(app.clientWidth-55)+'px';
- const cw=battleSizer.firstElementChild.getBoundingClientRect().width,ch=battleSizer.getBoundingClientRect().height;
- // Measured legacy geometry: hand rectangle + 67px (padding, border, operations row).
- app.style.setProperty('--battle-lower',(elHand.classList.contains('sk')?ch+67:173)+'px');
+ const key=app.clientWidth+'|'+handSig;if(key===battleFitKey)return;battleFitKey=key;
+ const cw=clamp(app.clientWidth*74/390,64,86),ch=cw*553/360;
+ // Fit a five-card fan and the vertical buttons without reserving a second operations row.
+ const lower=Math.ceil(ch+42);
+ app.style.setProperty('--battle-lower',lower+'px');
  app.style.setProperty('--card-w',cw+'px');app.style.setProperty('--card-h',ch+'px');
- const step=(app.clientWidth-150)/4;
- [...elHand.children].forEach((e,i)=>{e.style.setProperty('--offset',((i-2)*step)+'px');e.style.setProperty('--angle',[-10,-5,0,5,10][i]+'deg');e.style.setProperty('--fan-y',[24,14,8,14,24][i]+'px');e.style.setProperty('--layer',[2,3,4,3,2][i])});
+ const half=(app.clientWidth-54)/2;
+ const step=Math.min((app.clientWidth-150)/4,(half-cw*.56-5)/2);
+ [...elHand.children].forEach((e,i)=>{e.style.setProperty('--offset',((i-2)*step)+'px');e.style.setProperty('--angle',[-10,-5,0,5,10][i]+'deg');e.style.setProperty('--fan-y',[20,11,6,11,20][i]+'px');e.style.setProperty('--layer',[2,3,4,3,2][i])});
 }
 function strategyMotif(effect){const paths={heal:'M45 15H55V40H80V50H55V75H45V50H20V40H45Z',redraw:'M20 40A30 30 0 0 1 75 25M75 25V8M75 25H58M80 60A30 30 0 0 1 25 75M25 75V92M25 75H42',reset:'M25 15H75L65 30 50 45 65 60 75 80H25L35 60 50 45 35 30Z'};return '<svg class="strategy-motif" viewBox="0 0 100 100" aria-hidden="true"><path d="'+paths[effect]+'" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/></svg>'}
 function buildRail(){
