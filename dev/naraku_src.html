@@ -4768,14 +4768,19 @@ function revealChest(){
   // 報酬は openNode で一度だけ取得・保存済み。ここでは再抽選・applyFx・saveRun を呼ばない。
   N.chestOpened=true;showChest();elScreen.classList.add('unlocking');chestSound();return true;
 }
-function showBones(){
-  const N=R.node,art=EVENT_ART.bones,pick=N.phase==='pick';
-  const emblem='<span class="emb'+(UI.medals?' mart':'')+'" style="--nc:'+NODES.event.col+(UI.medals?';'+medalPos(MEDAL_IX.event):'')+'">'+NODES.event.g+'</span>';
+function showIllustratedEvent(key){
+  const N=R.node,art=EVENT_ART[key],pick=N.phase==='pick',camp=key==='camp';
+  const d=NODES[camp?'camp':'event'],title=camp?d.name:N.title;
+  const description=camp?(N.last||'焚き火のそばで、商人が荷をほどいて待っている。'+(N.first?'一息ついて、全員の体力が少し戻った。':'')):N.text;
+  const alt={bones:'炎に包まれた廃墟で、仲間たちが亡骸の山の前に立っている',spring:'紫に光る泉に手を伸ばすフード姿の人物',camp:'焚き火とテントの周りで休む冒険者たち',altar:'血に染まった祭壇と女神像の前で祈る人物',wounded:'大木の根元で倒れた冒険者たちに近づく人物'}[key];
+  const stock=camp?R.stock[N.n.id]:null;
+  const shop=camp?'<div class="stats">未精算の金<b>'+R.gold+'</b>　装備<b>'+R.loot.length+'</b><br>灯り<b>'+R.light+'%</b></div><div class="bones-choices">'+SHOP.map(s=>'<button class="bones-choice" data-buy="'+s.id+'"'+(!art||stock[s.id]<=0||R.gold<s.price?' disabled':'')+'><span><b>'+s.name+'　金 '+s.price+'</b><small>'+s.note+'　'+(stock[s.id]>0?'残り'+stock[s.id]:'売り切れ')+'</small></span><i aria-hidden="true">›</i></button>').join('')+'</div><div class="bones-foot"><button class="chest-next" data-act="leave"'+(art?'':' disabled')+'>キャンプを発つ</button></div>':'';
+  const emblem='<span class="emb'+(UI.medals?' mart':'')+'" style="--nc:'+d.col+(UI.medals?';'+medalPos(MEDAL_IX[camp?'camp':'event']):'')+'">'+d.g+'</span>';
   const h='<header class="chest-head"><strong>◆ 奈落探索</strong><span>第'+R.floor+'層 · 第'+KANSUJI[N.n.L]+'歩</span><span>灯り '+R.light+'%</span></header><div class="pstrip">'+partyHTML()+'</div>'
-    +'<div class="bones-art">'+(art?'<img src="'+art+'" width="1280" height="960" alt="炎に包まれた廃墟で、仲間たちが亡骸の山の前に立っている">':'')+'</div>'
-    +'<div class="chest-error" role="alert"'+(art?' hidden':'')+'>骸の山の画像を読み込めませんでした。</div>'
-    +'<section class="bones-content"><div class="bones-title">'+emblem+'<div><div class="bones-kicker">探索 · 異変</div><h1>'+N.title+'</h1></div></div><p class="bones-description">'+N.text+'</p>'
-    +(pick?'<div class="bones-choices">'+N.opts.map((o,i)=>'<button class="bones-choice'+(i===N.opts.length-1?' quiet':'')+'" data-opt="'+i+'"'+(!art||(o.need&&R.gold<o.need)?' disabled':'')+'><span><b>'+o.label+'</b>'+(o.note?'<small>'+o.note+'</small>':'')+'</span><i aria-hidden="true">›</i></button>').join('')+'</div>'
+    +'<div class="bones-art">'+(art?'<img src="'+art+'" width="1280" height="960" alt="'+alt+'">':'')+'</div>'
+    +'<div class="chest-error" role="alert"'+(art?' hidden':'')+'>'+title+'の画像を読み込めませんでした。</div>'
+    +'<section class="bones-content"><div class="bones-title">'+emblem+'<div><div class="bones-kicker">探索 · '+(camp?'中継キャンプ':'異変')+'</div><h1>'+title+'</h1></div></div><p class="bones-description">'+description+'</p>'
+    +(camp?shop:pick?'<div class="bones-choices">'+N.opts.map((o,i)=>'<button class="bones-choice'+(i===N.opts.length-1?' quiet':'')+'" data-opt="'+i+'"'+(!art||(o.need&&R.gold<o.need)?' disabled':'')+'><span><b>'+o.label+'</b>'+(o.note?'<small>'+o.note+'</small>':'')+'</span><i aria-hidden="true">›</i></button>').join('')+'</div>'
       :(N.res.length||N.ambush?'<ul class="bones-result'+(N.ambush?' alert':'')+'" aria-live="polite">'+N.res.map(s=>'<li>'+s+'</li>').join('')+(N.ambush?'<li class="bones-threat">闇の奥から、敵が迫ってくる。</li>':'')+'</ul>':'')
       +'<div class="bones-foot"><button class="chest-next'+(N.ambush?' danger':'')+'" data-act="leave"'+(art?'':' disabled')+'>'+(!partyAlive()?'闇に呑まれる':N.ambush?'迎え撃つ':'先へ進む')+'</button></div>')+'</section>';
   openScreen(h,false);elScreen.classList.add('node','bones');mountParty();
@@ -4786,7 +4791,8 @@ function showBones(){
 function showNode(){
   const N=R.node,n=N.n,d=NODES[n.type];let h;
   if(n.type==='chest'&&N.phase==='done'){showChest();return}
-  if(n.type==='event'&&EVENTS[n.ev].id==='bones'&&(N.phase==='pick'||N.phase==='done')){showBones();return}
+  if(n.type==='event'&&['bones','spring','altar','wounded'].includes(EVENTS[n.ev].id)&&(N.phase==='pick'||N.phase==='done')){showIllustratedEvent(EVENTS[n.ev].id);return}
+  if(n.type==='camp'&&N.phase==='shop'){showIllustratedEvent('camp');return}
   const head=(g,col,t,ix)=>'<div class="emb'+(UI.medals&&ix>=0?' mart':'')+'" style="--nc:'+col+(UI.medals&&ix>=0?';'+medalPos(ix):'')+'">'+g+'</div><h1>'+t+'</h1>',mix=MEDAL_IX[n.type];
   const purse='<div class="stats">未精算の金<b>'+R.gold+'</b>　装備<b>'+R.loot.length+'</b><br>灯り<b>'+R.light+'%</b></div>';
   if(N.phase==='retreat'){
