@@ -1,0 +1,90 @@
+{
+  "390x844": {
+    "selectable": 5,
+    "gauges": [
+      [
+        "20, 100",
+        "0, 100"
+      ],
+      [
+        "20, 100",
+        "45, 100"
+      ],
+      [
+        "20, 100",
+        "85, 100"
+      ]
+    ],
+    "heal": [
+      63,
+      33,
+      0
+    ],
+    "strategies": {
+      "conserved": true,
+      "ownWait": true,
+      "resetOk": true,
+      "mixed": 78,
+      "valid": true,
+      "randomPositions": [
+        3,
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    "errors": []
+  },
+  "375x667": {
+    "selectable": 5,
+    "gauges": [
+      [
+        "20, 100",
+        "0, 100"
+      ],
+      [
+        "20, 100",
+        "45, 100"
+      ],
+      [
+        "20, 100",
+        "85, 100"
+      ]
+    ],
+    "heal": [
+      63,
+      33,
+      0
+    ],
+    "strategies": {
+      "conserved": true,
+      "ownWait": true,
+      "resetOk": true,
+      "mixed": 78,
+      "valid": true,
+      "randomPositions": [
+        3,
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    "errors": []
+  },
+  "combatRegression": {
+    "seeds": 4,
+    "duration": 60,
+    "sameSkills": [
+      "fox_bind",
+      "sw_rift",
+      "mg_void"
+    ],
+    "equalAtSameGeometry": true,
+    "arena": {
+      "width": 282,
+      "height": 654.125
+    }
+  }
+}

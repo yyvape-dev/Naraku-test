@@ -1,3 +1,12 @@
+## 最新：戦闘UIの4素材を組み込み（2026-10-14）
+
+- 添付の下部全体・カード枠・ボタン枠・円形装飾枠を透過化して実装。元JPEGと透過PNGはdev/cardart/battle_ui_materials/、配布WebPはdev/assets/ui_battle_{tray_full,card_frame,button_frame,status_frame}.webp。
+- 下部全幅・右ボタン外枠まで一体の素材。カードの名札位置と文字の前後関係を調整。ボタン表示はⅡ／▶・×1／×2、枠を保持するsetControlLabelを使用。
+- 円形48px／52pxは維持。画像の内径に合わせ顔窓57%、ゲージ半径HP38・狂気34.5、線幅3（SVG100単位）。中央メダル画像はユーザーが作り直す予定で、現状は既存顔の仮置き。差し替え先ui_battle_face_<id>.webp。
+- 4サイズとも戦場・下部寸法は直前と完全一致。全5枚タッチ、ゲージ変化、戦略、同一論理寸法の戦闘比較、smoke RESULT OK、bootエラーなし。
+- 詳細・スクリーンショット：dev/reports/battle-materials/REPORT.md。
+- 再ビルドはpython3 dev/tools/dev/battle_materials.py → embed.py。本番・公開URLは未更新、作業ブランチのみ。
+
 ## 最新：iPhone・Safari通常表示を優先（2026-10-14）
 
 - 目標は直前の390×844スクリーンショット、ユーザーはSafari通常表示と回答。375×667前後の短い表示を優先。iPhone16想定の393px幅も検証。

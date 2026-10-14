@@ -1,0 +1,155 @@
+diff --git a/dev/naraku_src.html b/dev/naraku_src.html
+index 30eef5e..24a6061 100644
+--- a/dev/naraku_src.html
++++ b/dev/naraku_src.html
+@@ -949,6 +949,32 @@ img.frm{display:block;width:100%;height:100%}
+ #app.battle-ui.iphone-compact #battleTray{top:5px;border-width:10px;border-image-width:10px}
+ #app.battle-ui.iphone-compact #battleTray .tray-crest{width:42px;height:24px;left:calc(50% - 21px);bottom:-10px}
+ 
++/* Supplied antique-metal materials: ornament never participates in field layout or pointer hits. */
++#app.battle-ui.battle-materials #battleTray{inset:0;border:0;background:none;filter:none}
++#app.battle-ui.battle-materials #battleTrayArt{display:block;width:100%;height:100%;object-fit:contain;object-position:center bottom;pointer-events:none}
++#app.battle-ui.battle-materials #battleTray .tray-crest{display:none}
++#app.battle-ui.battle-materials #cmd:not(.tuning){background:linear-gradient(#100b08,#070504)}
++#app.battle-ui.battle-materials #hand .ar{left:7.6%;right:7.5%;top:8%;bottom:24%;border-radius:5px}
++#app.battle-ui.battle-materials #hand .fr{z-index:2;filter:brightness(.98) saturate(.95)}
++#app.battle-ui.battle-materials #hand .card.strategy .fr{filter:brightness(1.02) saturate(.95)}
++#app.battle-ui.battle-materials #hand .sn{z-index:3;left:11%;right:11%;top:77.5%;bottom:auto;height:12%;padding:0;display:flex;align-items:center;justify-content:center;background:none;color:#f3dfad}
++#app.battle-ui.battle-materials #hand .ki{z-index:3;left:16%;right:16%;top:90%;bottom:auto;height:6.2%;color:#dec898;text-shadow:0 1px 2px #000}
++#app.battle-ui.battle-materials #hand .strategy .sn,#app.battle-ui.battle-materials #hand .strategy .ki{color:#c9f4df;background:none}
++#app.battle-ui.battle-materials #hand .card.sel .fr{filter:brightness(1.18) drop-shadow(0 0 2px #e8c782)}
++#app.battle-ui.battle-materials #ops button{position:relative;border:0!important;background:none!important;box-shadow:none;border-radius:0}
++#app.battle-ui.battle-materials #ops .btn-skin{position:absolute;left:7px;right:3px;top:1px;bottom:1px;pointer-events:none;filter:brightness(.9) saturate(.9)}
++.btn-skin i{position:absolute;left:0;right:0;background-image:var(--battle-button);background-size:100% 36px;background-repeat:no-repeat}
++.btn-skin .cap-top{top:0;height:10px;background-position:center top}
++.btn-skin .cap-mid{top:10px;bottom:8px;background-position:center center}
++.btn-skin .cap-bottom{bottom:0;height:8px;background-position:center bottom}
++#app.battle-ui.battle-materials #ops .btn-label{position:absolute;left:7px;right:3px;top:0;bottom:0;display:flex;align-items:center;justify-content:center;color:#f4dfad;font-size:13px;text-shadow:0 1px 2px #000;pointer-events:none}
++#app.battle-ui.battle-materials #btnTune .btn-label{font-size:8px}
++#app.battle-ui.battle-materials .orb-face{inset:21.5%;z-index:1}
++#app.battle-ui.battle-materials .orb-frame{z-index:4}
++#app.battle-ui.battle-materials .orb-gauges{z-index:3;filter:drop-shadow(0 0 1px #000)}
++#app.battle-ui.battle-materials .orb-gauges circle{stroke-width:3}
++#app.battle-ui.battle-materials .unit .fate{inset:21.5%;z-index:5}
++
+ </style>
+ <script>
+ /* 起動の見張り。本体のスクリプトより前に置く。本体が読み込めない・途中で止まったときに、真っ暗な戦闘画面のまま黙らないようにする */
+@@ -979,7 +1005,7 @@ img.frm{display:block;width:100%;height:100%}
+   </div>
+   <div id="cmd">
+     <div id="party"></div>
+-    <div id="battleTray"><img class="tray-crest" alt=""></div><div id="handRow"><div id="hand"></div><div id="deco"><div class="bn"></div><div class="cdl"><i class="fl"></i></div></div></div>
++    <div id="battleTray"><img id="battleTrayArt" alt=""><img class="tray-crest" alt=""></div><div id="handRow"><div id="hand"></div><div id="deco"><div class="bn"></div><div class="cdl"><i class="fl"></i></div></div></div>
+     <div id="ops">
+       <button id="btnRewind">逆転の右手<small>全員の狂気 +35%</small></button>
+       <button id="btnPause">一時停止</button>
+@@ -3850,6 +3876,18 @@ const BATTLE_ART={
+  frame:UI.battle_status_frame||svgImage('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="g" x2="1" y2="1"><stop stop-color="#ffe9b2"/><stop offset=".4" stop-color="#8c5429"/><stop offset=".65" stop-color="#e8ba6c"/><stop offset="1" stop-color="#5c301b"/></linearGradient></defs><g fill="none" stroke="url(#g)"><circle cx="50" cy="50" r="39" stroke-width="3"/><circle cx="50" cy="50" r="47" stroke-width="1.5"/><path d="M50 1L56 10 50 17 44 10Z M50 83L56 90 50 99 44 90Z M1 50L10 44 17 50 10 56Z M83 50L90 44 99 50 90 56Z" fill="#b78a47"/><path d="M16 26Q5 10 26 16 M74 16Q95 10 84 26 M16 74Q5 90 26 84 M74 84Q95 90 84 74" stroke-width="2"/></g></svg>'),
+  crest:UI.battle_tray_crest||svgImage('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 65"><path d="M5 5Q25 40 45 22L60 5 75 22Q95 40 115 5L100 48 78 40 60 62 42 40 20 48Z" fill="#201109" stroke="#b39355" stroke-width="3"/><path d="M60 16L72 32 60 49 48 32Z" fill="#573017" stroke="#f2cf83" stroke-width="2"/></svg>')
+ };
++const BATTLE_CARD_FRAME=UI.battle_card_frame||UI.card_frame;
++app.classList.toggle('battle-materials',!!UI.battle_tray_full);
++if(UI.battle_button_frame)app.style.setProperty('--battle-button','url('+UI.battle_button_frame+')');
++function setControlLabel(el,v){
++ if(!UI.battle_button_frame){setTxt(el,v);return}
++ let label=el.querySelector('.btn-label');
++ if(!label){el.innerHTML='<span class="btn-skin" aria-hidden="true"><i class="cap-top"></i><i class="cap-mid"></i><i class="cap-bottom"></i></span><span class="btn-label"></span>';label=el.querySelector('.btn-label')}
++ setTxt(label,v);
++ const name=el.id==='btnPause'?(v==='Ⅱ'?'一時停止':'再開'):el.id==='btnSpeed'?'速度 '+(v==='×1'?'等速':'倍速')+'、タップで切り替え':'調整';
++ el.setAttribute('aria-label',name);el.title=name;
++}
++setControlLabel($('#btnTune'),'調整');
+ let battleFitKey='';
+ function fitBattleUI(){
+  if(!app.classList.contains('battle-ui'))return;
+@@ -3863,7 +3901,7 @@ function fitBattleUI(){
+  app.style.setProperty('--card-w',cw+'px');app.style.setProperty('--card-h',ch+'px');
+  const half=(app.clientWidth-54)/2;
+  const step=Math.min((app.clientWidth-150)/4,(half-cw*.56-5)/2);
+- [...elHand.children].forEach((e,i)=>{e.style.setProperty('--offset',((i-2)*step)+'px');e.style.setProperty('--angle',(compact?[-8,-4,0,4,8]:[-10,-5,0,5,10])[i]+'deg');e.style.setProperty('--fan-y',(compact?[14,8,4,8,14]:[20,11,6,11,20])[i]+'px');e.style.setProperty('--layer',[2,3,4,3,2][i])});
++ [...elHand.children].forEach((e,i)=>{e.style.setProperty('--offset',((i-2)*step)+'px');e.style.setProperty('--angle',(compact?[-8,-4,0,4,8]:[-10,-5,0,5,10])[i]+'deg');e.style.setProperty('--fan-y',(compact?[14,8,4,8,14]:[20,11,6,11,20])[i]+'px');e.style.setProperty('--layer',[2,3,4,3,2][i]);const name=e.querySelector('.sn');if(name&&UI.battle_card_frame)name.style.fontSize=Math.min(11,cw*.78/Math.max(1,name.textContent.length))+'px'});
+ }
+ function strategyMotif(effect){const paths={heal:'M45 15H55V40H80V50H55V75H45V50H20V40H45Z',redraw:'M20 40A30 30 0 0 1 75 25M75 25V8M75 25H58M80 60A30 30 0 0 1 25 75M25 75V92M25 75H42',reset:'M25 15H75L65 30 50 45 65 60 75 80H25L35 60 50 45 35 30Z'};return '<svg class="strategy-motif" viewBox="0 0 100 100" aria-hidden="true"><path d="'+paths[effect]+'" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/></svg>'}
+ function buildRail(){
+@@ -3872,7 +3910,7 @@ function buildRail(){
+   P.members.forEach(m=>{
+     const d=CHARS[m.id],u=document.createElement('div');u.className='unit';
+     u.style.setProperty('--member',railEls.length);
+-    u.innerHTML='<div class="orb-face">'+(UI['battle_face_'+m.id]?'<img alt="" src="'+UI['battle_face_'+m.id]+'">':'<canvas width="128" height="128"></canvas>')+'</div><img class="orb-frame" alt="" src="'+BATTLE_ART.frame+'"><svg class="orb-gauges" viewBox="0 0 100 100" aria-hidden="true"><circle class="track" cx="50" cy="50" r="44"/><circle class="hp-ring" cx="50" cy="50" r="44" pathLength="100" transform="rotate(-90 50 50)"/><circle class="track" style="stroke:#48265b" cx="50" cy="50" r="40.5"/><circle class="mad-ring" cx="50" cy="50" r="40.5" pathLength="100" transform="rotate(90 50 50)"/></svg><div class="fate"></div>';
++    u.innerHTML='<div class="orb-face">'+(UI['battle_face_'+m.id]?'<img alt="" src="'+UI['battle_face_'+m.id]+'">':'<canvas width="128" height="128"></canvas>')+'</div><img class="orb-frame" alt="" src="'+BATTLE_ART.frame+'"><svg class="orb-gauges" viewBox="0 0 100 100" aria-hidden="true"><circle class="track" cx="50" cy="50" r="'+(UI.battle_status_frame?38:44)+'"/><circle class="hp-ring" cx="50" cy="50" r="'+(UI.battle_status_frame?38:44)+'" pathLength="100" transform="rotate(-90 50 50)"/><circle class="track" style="stroke:#48265b" cx="50" cy="50" r="'+(UI.battle_status_frame?34.5:40.5)+'"/><circle class="mad-ring" cx="50" cy="50" r="'+(UI.battle_status_frame?34.5:40.5)+'" pathLength="100" transform="rotate(90 50 50)"/></svg><div class="fate"></div>';
+     if(u.querySelector('canvas'))paintHead(u.querySelector('canvas'),d.id);
+     elRail.appendChild(u);
+     railEls.push({u,id:d.id,fate:u.querySelector('.fate'),hp:u.querySelector('.hp-ring'),md:u.querySelector('.mad-ring')});
+@@ -3930,7 +3968,7 @@ function syncRail(){
+ const KANSUJI=['〇','一','二','三','四','五','六','七','八','九','十','十一','十二'];
+ const HINT_AIM='戦場をタップして放つ。押したまま動かすと狙いを調整できます';
+ let HFLASH=null; // 即時の札は選ばずに発動するので、使った直後に説明を一瞬だけ帯に出す
+-const SKF=!!UI.card_frame; // 羊皮紙の札の素材があるか
++const SKF=!!BATTLE_CARD_FRAME; // 羊皮紙の札の素材があるか
+ // 探索中の下部エリア：行き先の札（次に進めるマス）と、灯り・歩数・未精算の戦利品
+ function syncMap(){
+   const ls=lightState(),M=R.map,cur=M.nodes[R.at],busy=mode!=='map'||!!R.walk;
+@@ -3974,9 +4012,9 @@ function syncDOM(){
+     elHand.innerHTML=B.slots.map((s,i)=>{
+       const kd=c=>c.kind!=='target'?'即時':c.shape==='row'?'横一列':c.shape==='col'?'縦一列':'範囲';
+       if(SKF){ // 羊皮紙の札
+-        if(!s.card)return'<div class="card back" data-i="'+i+'"><span class="ar"><span class="fill"></span></span><img class="fr" alt="" draggable="false" src="'+UI.card_frame+'"><span class="ki">'+(B.queue.length||s.refill>0?'装填中':'札なし')+'</span></div>';
++        if(!s.card)return'<div class="card back" data-i="'+i+'"><span class="ar"><span class="fill"></span></span><img class="fr" alt="" draggable="false" src="'+BATTLE_CARD_FRAME+'"><span class="ki">'+(B.queue.length||s.refill>0?'装填中':'札なし')+'</span></div>';
+         const c=s.card,art=c.category==='strategy'?UI['battle_strategy_'+c.effect]:UI['card_'+c.owner];
+-        return'<button class="card'+(c.category==='strategy'?' strategy '+c.effect:'')+(B.sel===i?' sel':'')+(cb===c.owner?' combo':'')+'" data-i="'+i+'" aria-label="'+c.name+'：'+c.desc+'">'+comboBar(c)+'<span class="ar">'+(art?'<img alt="" draggable="false" src="'+art+'">':c.category==='strategy'?strategyMotif(c.effect):'')+'</span><span class="sn'+(c.name.length>4?' lg':'')+'">'+c.name+'</span><img class="fr" alt="" draggable="false" src="'+UI.card_frame+'"><span class="ki">'+(c.category==='strategy'?'戦略':'スキル')+'</span></button>';
++        return'<button class="card'+(c.category==='strategy'?' strategy '+c.effect:'')+(B.sel===i?' sel':'')+(cb===c.owner?' combo':'')+'" data-i="'+i+'" aria-label="'+c.name+'：'+c.desc+'">'+comboBar(c)+'<span class="ar">'+(art?'<img alt="" draggable="false" src="'+art+'">':c.category==='strategy'?strategyMotif(c.effect):'')+'</span><span class="sn'+(c.name.length>4?' lg':'')+'">'+c.name+'</span><img class="fr" alt="" draggable="false" src="'+BATTLE_CARD_FRAME+'"><span class="ki">'+(c.category==='strategy'?'戦略':'スキル')+'</span></button>';
+       }
+       if(!s.card)return'<div class="card empty" data-i="'+i+'"><span class="fill"></span><span class="ds">'+(B.queue.length||s.refill>0?'装填中':'札なし')+'</span></div>';
+       const c=s.card,o=CHARS[c.owner]||{color:'#71c999',short:'戦略'};
+@@ -4806,9 +4844,10 @@ function enterMap(){
+ function beginBattle(seed,opt){
+   BOPT=opt||{kind:'trial',depth:0,bg:null};
+   app.classList.remove('exploring');app.classList.add('battle-ui');elHand.classList.remove('dest');fitBattleUI();
++  if(UI.battle_tray_full)$('#battleTrayArt').src=UI.battle_tray_full;
+   $('#battleTray .tray-crest').src=BATTLE_ART.crest;if(UI.battle_tray)app.style.setProperty('--battle-tray','url('+UI.battle_tray+')');
+   B=null;resize();newBattle(seed==null?newSeed():seed>>>0);buildBG();buildRail();handSig='';accum=0;paused=false;
+-  setTxt($('#btnPause'),'一時停止');setTxt($('#btnSpeed'),speed===1?'等速':'倍速');
++  setControlLabel($('#btnPause'),'Ⅱ');setControlLabel($('#btnSpeed'),speed===1?'×1':'×2');
+   elScreen.classList.remove('on');mode='battle';
+   if(R){elRail.classList.remove('enter');void elRail.offsetWidth;elRail.classList.add('enter')} // 探索から戦闘へ：サイドエリアが右から入ってくる
+   banner({battle:'敵襲',elite:'強敵の気配',boss:'奈落の主',ambush:'奇襲'}[B.kind]||'防衛開始');
+@@ -5039,7 +5078,7 @@ function openTune(){
+ }
+ function closeTune(){
+   tuning=false;$('#cmd').classList.remove('tuning');
+-  paused=pausedBefore;setTxt($('#btnPause'),paused?'再開':'一時停止');
++  paused=pausedBefore;setControlLabel($('#btnPause'),paused?'▶':'Ⅱ');
+ }
+ $('#tune').addEventListener('input',ev=>{const r=ev.target.closest('.trow[data-k]');if(r&&ev.target.type==='range'){TUNE[tuneKey][r.dataset.k]=+ev.target.value;saveTune();syncTune()}});
+ $('#tune').addEventListener('click',ev=>{
+@@ -5095,14 +5134,14 @@ cv.addEventListener('pointermove',ev=>{if(!aim.on)return;const p=toArena(ev);aim
+ cv.addEventListener('pointerup',ev=>{if(!aim.on)return;aim.on=false;if(mode==='battle'&&!paused&&B.sel!=null)useCard(B.sel,aim.x,aim.y)});
+ cv.addEventListener('pointercancel',()=>{aim.on=false});
+ $('#btnRewind').addEventListener('click',()=>startRewind());
+-$('#btnPause').addEventListener('click',()=>{if(mode!=='battle')return;paused=!paused;aim.on=false;setTxt($('#btnPause'),paused?'再開':'一時停止')});
+-$('#btnSpeed').addEventListener('click',()=>{speed=speed===1?2:1;setTxt($('#btnSpeed'),speed===1?'等速':'倍速')});
++$('#btnPause').addEventListener('click',()=>{if(mode!=='battle')return;paused=!paused;aim.on=false;setControlLabel($('#btnPause'),paused?'▶':'Ⅱ')});
++$('#btnSpeed').addEventListener('click',()=>{speed=speed===1?2:1;setControlLabel($('#btnSpeed'),speed===1?'×1':'×2')});
+ $('#btnTune').addEventListener('click',openTune);
+ elRail.addEventListener('animationend',ev=>{if(ev.animationName==='railIn')elRail.classList.remove('enter')});
+ $('#btnGo').addEventListener('click',()=>{if(mode==='map'&&R.sel!=null)travel(R.sel)});
+ $('#btnBack').addEventListener('click',askRetreat);
+ $('#btnBag').addEventListener('click',askBag);
+-document.addEventListener('visibilitychange',()=>{if(document.hidden&&mode==='battle'&&!paused){paused=true;setTxt($('#btnPause'),'再開')}});
++document.addEventListener('visibilitychange',()=>{if(document.hidden&&mode==='battle'&&!paused){paused=true;setControlLabel($('#btnPause'),'▶')}});
+ 
+ /* =========================================================
+    9. メインループ
+diff --git a/dev/tools/dev/iphone_preview.py b/dev/tools/dev/iphone_preview.py
+index 2ce2eb9..dccd161 100644
+--- a/dev/tools/dev/iphone_preview.py
++++ b/dev/tools/dev/iphone_preview.py
+@@ -11,6 +11,7 @@ with sync_playwright() as p:
+   pg.goto(html.as_uri());pg.wait_for_function('window.NARAKU_READY')
+   pg.evaluate("NARAKU.start(['sword','fox','mage'],4242);document.querySelector('#btnPause').click();NARAKU.sim(12)")
+   pg.wait_for_timeout(500)
++  pg.wait_for_function("()=>[...document.querySelectorAll('#hand img,.orb-frame,#battleTrayArt')].every(e=>!e.getAttribute('src')||(e.complete&&e.naturalWidth>0))")
+   result[f'{w}x{h}']=pg.evaluate("""()=>{const rect=e=>{const r=e.getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height}};return{viewport:{width:innerWidth,height:innerHeight},canvas:rect(document.querySelector('#cv')),lower:rect(document.querySelector('#cmd'))}}""")
+   pg.screenshot(path=str(out/f'current-{w}x{h}.png'))
+   pg.evaluate("NARAKU.start(['sword','fox','mage'],4242);document.querySelector('#btnPause').click()")

@@ -11,6 +11,7 @@ with sync_playwright() as p:
   pg.goto(html.as_uri());pg.wait_for_function('window.NARAKU_READY')
   pg.evaluate("NARAKU.start(['sword','fox','mage'],4242);document.querySelector('#btnPause').click();NARAKU.sim(12)")
   pg.wait_for_timeout(500)
+  pg.wait_for_function("()=>[...document.querySelectorAll('#hand img,.orb-frame,#battleTrayArt')].every(e=>!e.getAttribute('src')||(e.complete&&e.naturalWidth>0))")
   result[f'{w}x{h}']=pg.evaluate("""()=>{const rect=e=>{const r=e.getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height}};return{viewport:{width:innerWidth,height:innerHeight},canvas:rect(document.querySelector('#cv')),lower:rect(document.querySelector('#cmd'))}}""")
   pg.screenshot(path=str(out/f'current-{w}x{h}.png'))
   pg.evaluate("NARAKU.start(['sword','fox','mage'],4242);document.querySelector('#btnPause').click()")
