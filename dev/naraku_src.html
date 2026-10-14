@@ -2205,7 +2205,7 @@ const aim={on:false,x:0,y:0};
 const FX={parts:[],dust:[],sh:[],floats:[],ghosts:[],shake:0,banner:null,breach:0,cut:null};
 const cv=$('#cv'),ctx=cv.getContext('2d'),app=$('#app');
 
-function defenseLineY(){const r=$('#arena').getBoundingClientRect();return H-LINE_OFF+40*H/Math.max(1,r.height)}
+function defenseLineY(){const r=$('#arena').getBoundingClientRect();return H-LINE_OFF+60*H/Math.max(1,r.height)}
 function layout(){B.lineY=defenseLineY();B.allies.forEach(a=>{a.x=W*[0.18,0.5,0.82][a.slot];a.y=H-FOOT_OFF})}
 function clearFX(){FX.parts.length=0;FX.dust.length=0;FX.ghosts.length=0;FX.sh.length=0;FX.floats.length=0;FX.shake=0;FX.banner=null;FX.breach=0;FX.cut=null;for(const id in ULT_SEQ){FX[ULT_SEQ[id].fx]=null;seqFree(ULT_SEQ[id].n)}if(typeof BAR!=='undefined')BAR.emb.length=0}
 
