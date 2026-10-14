@@ -1494,15 +1494,15 @@ function drawQuake(g,s){
   g.drawImage(im,(frame%QUAKE_VFX.cols)*tile,Math.floor(frame/QUAKE_VFX.cols)*tile,tile,tile,s.x-s.w*.5,s.y-s.w*.5625,s.w,s.w);
   g.restore();
 }
-const RIFT_VFX={enabled:new URLSearchParams(location.search).get('riftfx')==='godot',frames:75,cols:8,life:3,layerFlags:{floor:true,air:true}};
+const RIFT_VFX={enabled:new URLSearchParams(location.search).get('riftfx')==='godot',frames:93,cols:8,life:4.2,layerFlags:{floor:true,air:true}};
 function fxRift(x,hw){
   if(!RIFT_VFX.enabled||!vtex('rift_floor')||!vtex('rift_air'))return false;
-  for(const layer of ['floor','air'])FX.sh.push({k:'rift',layer,x,y:0,w:Math.max(180,hw*8),h:B.lineY+28,t:0,life:3});
+  for(const layer of ['floor','air'])FX.sh.push({k:'rift',layer,x,y:0,w:Math.max(180,hw*8),h:B.lineY+28,t:0,life:RIFT_VFX.life});
   FX.shake=Math.min(16,FX.shake+9);return true;
 }
 function drawRift(g,s){
   const im=vtex('rift_'+s.layer);if(!im||s.t<0||!RIFT_VFX.layerFlags[s.layer])return;
-  const frame=Math.min(74,Math.floor(s.t*25)),tile=im.width/8;
+  const frame=Math.min(92,s.t<3?Math.floor(s.t*25):75+Math.floor((s.t-3)*15)),tile=im.width/8;
   g.save();g.globalAlpha=1;g.globalCompositeOperation='source-over';
   g.drawImage(im,(frame%8)*tile,Math.floor(frame/8)*tile,tile,tile,s.x-s.w*.5,-12,s.w,s.h);g.restore();
 }

@@ -1,6 +1,6 @@
 extends Node2D
 ## One connected torn ground scar, revealed by an irregular advancing cut.
-const LIFE=3.0
+const LIFE=4.2
 var clock=0.0
 var layer="all"
 var scar:Sprite2D
@@ -37,7 +37,7 @@ func _ready():
   call_deferred("bake")
  else:animate(0.0)
 func _process(dt):
- clock=fmod(clock+dt,3.7)
+ clock=fmod(clock+dt,5.0)
  animate(clock)
 func front_at(t):
  for i in range(7):
@@ -45,11 +45,12 @@ func front_at(t):
  return 1.0
 func animate(t):
  var front=front_at(t)
- var fade=clampf((t-2.52)/.48,0,1)
+ var fade=clampf((t-2.8)/1.4,0,1)
+ fade=fade*fade*(3.0-2.0*fade)
  scar.visible=layer!="air" and t<LIFE
  scar.material.set_shader_parameter("reveal",lerpf(-.03,1.08,front))
- scar.material.set_shader_parameter("opacity",1-fade*.85)
- scar.material.set_shader_parameter("dissolve",lerpf(-.2,1.15,fade))
+ scar.material.set_shader_parameter("opacity",1-fade)
+ scar.material.set_shader_parameter("dissolve",lerpf(-.2,.20,fade))
  scar.material.set_shader_parameter("magma_time",t)
  queue_redraw()
 func _draw():
@@ -100,6 +101,7 @@ func bake():
  DirAccess.make_dir_recursive_absolute("res://rift_frames")
  var times=[]
  for i in range(75):times.append(i/25.0)
+ for i in range(18):times.append(3.0+i/15.0)
  for pass_name in ["floor","air"]:
   layer=pass_name
   for frame in range(times.size()):
@@ -110,6 +112,6 @@ func bake():
    var err=get_viewport().get_texture().get_image().save_png("res://rift_frames/%s_%02d.png" % [pass_name,frame])
    if err!=OK:get_tree().quit(1);return
  var f=FileAccess.open("res://rift_timeline.json",FileAccess.WRITE)
- f.store_string(JSON.stringify({"frames":75,"cols":8,"life":LIFE,"times":times,"anchor":[.5,.5]},"  "))
- print("RIFT BAKE OK: connected gouged scar, irregular cuts, emissive blades; 75 frames x 2 layers")
+ f.store_string(JSON.stringify({"frames":93,"cols":8,"life":LIFE,"times":times,"anchor":[.5,.5]},"  "))
+ print("RIFT BAKE OK: connected gouged scar, irregular cuts, emissive blades; 93 frames x 2 layers")
  get_tree().quit()
