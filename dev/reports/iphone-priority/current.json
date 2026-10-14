@@ -1,0 +1,74 @@
+{
+  "375x667": {
+    "viewport": {
+      "width": 375,
+      "height": 667
+    },
+    "canvas": {
+      "x": 0,
+      "y": 0,
+      "width": 375,
+      "height": 515
+    },
+    "lower": {
+      "x": 0,
+      "y": 515,
+      "width": 375,
+      "height": 152
+    }
+  },
+  "390x664": {
+    "viewport": {
+      "width": 390,
+      "height": 664
+    },
+    "canvas": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 508
+    },
+    "lower": {
+      "x": 0,
+      "y": 508,
+      "width": 390,
+      "height": 156
+    }
+  },
+  "393x659": {
+    "viewport": {
+      "width": 393,
+      "height": 659
+    },
+    "canvas": {
+      "x": 0,
+      "y": 0,
+      "width": 393,
+      "height": 502
+    },
+    "lower": {
+      "x": 0,
+      "y": 502,
+      "width": 393,
+      "height": 157
+    }
+  },
+  "393x852": {
+    "viewport": {
+      "width": 393,
+      "height": 852
+    },
+    "canvas": {
+      "x": 0,
+      "y": 0,
+      "width": 393,
+      "height": 695
+    },
+    "lower": {
+      "x": 0,
+      "y": 695,
+      "width": 393,
+      "height": 157
+    }
+  }
+}
