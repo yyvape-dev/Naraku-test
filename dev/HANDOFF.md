@@ -1,3 +1,15 @@
+## 次チャットへの引き継ぎ（2026-10-14）
+
+- 作業対象は **`yyvape-dev/Naraku-test` のみ**。本番 `yyvape-dev/Naraku` は変更しない。
+- 画像追加は完了、main に push 済み。実装コミット：`103d1a7`（泉・キャンプ・祭壇・遭難冒険者の4枚）。
+- テストURL： https://yyvape-dev.github.io/Naraku-test/?v=103d1a7 。公開URLのHTTP 200と更新日時を確認済み。ユーザーの評価は「グッド」。
+- 最新の追加順：怪しい泉→spring、中継キャンプ→camp、地の祭壇→altar、遭難冒険者→wounded。ゲーム内の既存名・本文・抽選・報酬は維持した。
+- 全幅4:3、画像→本文→選択肢／購入→結果／進行。既存宝箱・骸の山と同じ方向。画像4枚は `dev/assets/event_*.webp`、描画共用関数は `showIllustratedEvent`。
+- 検証：既存 smoke.py と dev/tools/dev/boot.py 成功。390×844で spring/camp/altar/wounded/bones の画像、横はみ出し、選択・購入・出発を確認。
+- ソースは `dev/naraku_src.html`。変更後 `python3 dev/tools/embed.py dev/naraku_src.html index.html dev/assets` を実行し、ソース・素材・ルート index.html を一緒に反映する。
+- 未完了の追加作業はない。次の依頼を受けて続ける。
+- 実行時にツールが user-aborted を返すことがあったが、ユーザーは停止操作をしていないと明言。原因をユーザー操作と決めつけない。短い処理と進捗連絡で対応し、この環境では require_escalated に切り替えた後、ブラウザ検証と push が完了した。
+
 > **作業ファイルの置き場所（2026-10-11 ユーザー決定：B案）**：引き継ぎパック（zip）はやめ、公開リポジトリ `yyvape-dev/Naraku` の **`dev/` フォルダ**に一式（naraku_src.html・assets・cardart・tools・tests・HANDOFF.md）を置く。新しいチャットでは add_repo（owner yyvape-dev / repo Naraku / push）→ clone → `dev/` で作業し、組み立てた full.html をルートの `index.html` に置いて、`dev/` の変更と一緒に push する。zip の30MB上限は気にしなくてよい（元絵もすべて `dev/cardart` に残す）。`dev/` は公開される（ユーザー了承済み）。
 
 > **このテスト版での反映先（2026-10-12 ユーザー指示）**：このチャットの変更は `yyvape-dev/Naraku-test` のみに適用する。本番 `yyvape-dev/Naraku` には反映しない。以下の本番向けの反映先記述より、この指示を優先する。
