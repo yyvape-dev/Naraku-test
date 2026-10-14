@@ -54,5 +54,57 @@
       941
     ],
     "purpose": "six-keyframe animation direction; not a runtime sprite sheet"
+  },
+  "fissure": {
+    "file": "fissure.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 1261239,
+    "origin": "GPT Image"
+  },
+  "ridge": {
+    "file": "ridge.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 1483046,
+    "origin": "GPT Image"
+  },
+  "support_smoke": {
+    "file": "support_smoke.png",
+    "size": [
+      512,
+      512
+    ],
+    "alphaRange": [
+      0,
+      190
+    ],
+    "bytes": 62156,
+    "origin": "Kenney CC0"
+  },
+  "dust_mask": {
+    "file": "dust_mask.png",
+    "size": [
+      4096,
+      4096
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 507915,
+    "origin": "Jettelly CC0 user-supplied"
   }
 }

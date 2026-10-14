@@ -28,7 +28,7 @@ with sync_playwright() as p:
   pg=b.new_page(viewport={'width':w,'height':h});pg.on('pageerror',lambda e:errors.append(str(e)))
   pg.goto(html.as_uri()+"?quakefx=godot");pg.wait_for_function('window.NARAKU_READY');pg.wait_for_timeout(200)
   pg.evaluate("NARAKU.start(['sword','fox','mage'],4242);document.querySelector('#btnPause').click();NARAKU.QUAKE_VFX.preview=true;NARAKU.sim(12);NARAKU.FX.sh.length=0;NARAKU.FX.parts.length=0;NARAKU.FX.dust.length=0;NARAKU.FX.floats.length=0;NARAKU.B.slots[0].card=NARAKU.CARDS.find(c=>c.id==='sw_quake');NARAKU.useCard(0,180,235);NARAKU.FX.cut=null;NARAKU.sim(.2)")
-  for t in [0,.05,.15,.3,.55,.875]:
+  for t in [0,.075,.25,.4,.8,1.27,1.8,2.25]:
    pg.evaluate("t=>NARAKU.FX.sh.forEach(s=>{if(s.k==='quake')s.t=t;else s.t=s.life*.98})",t)
    pg.wait_for_timeout(50);pg.screenshot(path=str(out/f'quake-{w}x{h}-{t}.png'))
   # A real-time warm browser frame sample under repeated VFX, not a physical-phone benchmark.

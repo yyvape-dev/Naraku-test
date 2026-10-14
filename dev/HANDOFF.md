@@ -676,3 +676,6 @@ python3 tools/dev/boot.py wrapped.html boot.png                          # 公�
 - 事実：smoke.py RESULT OK（勝率 10/12・11/12 で不変）、boot.py エラーなし、390×844 と 375×667 で撮影。ユズナミキの絵は味方の足元まで届く。ラナとアベニウスは素材の下端が黒いので、絵そのものは足元までほぼ来ない（光だけ届く）。
 - 仮説（スマホで見てほしい点）：光の強さ（アベニウスは控えめ。強めるなら `litAlly` の倍率か `v.all` の係数）。
 
+
+## 2026-10-14 赤黒い地割れ候補
+Godot quakeを赤黒い剣戟→亀裂→隆起岩→粉塵・脈動→崩壊に更新。58コマ2.4秒、床／空中2層。通常版は従来演出、?quakefx=godotで候補。dev/mock/quake_demo.htmlに時間指定・表示切替。戦闘状態は3シードで一致、残留岩に追加ダメージなし。素材出典・再生成方法はdev/godot/quake/README.md、確認結果はdev/reports/godot-quake/REPORT.md。

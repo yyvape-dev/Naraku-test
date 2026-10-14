@@ -1,17 +1,19 @@
-# GPT Image原画＋Godot：大地割りの演出試作
+# 赤黒い剣戟と地割れの候補演出
 
-`art/`の主斬撃・命中・石片・砂煙はGPT Image生成原画（1254×1254透過PNG）。`art/motion_board.png`も同じ4枚を参照して画像生成した6段階の演出案。プロンプトは`prompts/`。Godotではこの案を参考に、方向ワイプ、ノイズで崩れる消え方、石片の移動と回転、低い砂煙の拡散を実装した。画像生成が動画を出力したわけではない。
+GPT Image原画をGodot 4.6.3で動かし、HTML Canvas用の床／空中アトラスへ書き出す。斬撃から広範囲へ亀裂が伸び、岩が隆起、粉塵が舞い、割れ目が減衰しながら脈打つ。岩は約1.8秒まで残り、2.4秒で消える。
 
 ```sh
 godot --path dev/godot/quake
-# 描画可能なディスプレイで透過連番を書き出す：
+# 描画可能なディスプレイで実行（今回はXorg dummy＋Mesa llvmpipe）：
 godot --path dev/godot/quake --rendering-method gl_compatibility --audio-driver Dummy -- --bake
 python3 dev/godot/quake/pack.py
 python3 dev/tools/embed.py dev/naraku_src.html index.html dev/assets
 ```
 
-床／空中各36コマ、40fps、0.9秒。floor192px・air256pxの6×6アトラス。Godot透明Viewportのpremultiplied RGBをpack.pyでstraight alphaに補正。PNG連番と`.godot/`は再生成するためGit対象外。今回の生成はXorg dummy画面＋Mesa llvmpipeの実描画。
+58コマ／2.4秒。初動40fps、拡散25fps、残留15fps、崩壊25fps。timeline.jsonに各時刻を記録。床256px・空中224pxの8×8アトラス。pack.pyでpremultiplied RGBをstraight alphaへ補正。配布842,530bytes、復号29,622,272bytes。PNG連番と.godotはGit対象外。
 
-配布アトラス計約381KiB、復号後約14MiB。HTMLは2枚を共有して切り出し描画。床は敵の下、石片・斬撃・破裂は味方の上。描画アンカー(0.5,0.5625)。ダメージ130・命中0.16秒・範囲88・押し戻し44・装填9秒は維持。
+床は敵の下、空中は味方の上。アンカー(0.5,0.5625)。ダメージ130・命中0.16秒・範囲88・押し戻し44・装填9秒を維持。残留岩は視覚演出で追加ダメージなし。
 
-通常ゲームは従来演出へ戻している。試作は`?quakefx=godot`で有効。比較ページ`dev/mock/quake_demo.html`の右側で原画版を再生できる。素材未読込時は従来演出へフォールバック。見た目の最終採用と実機Safariの負荷は未確認。
+通常ゲームは従来演出。試作は?quakefx=godot。比較ページdev/mock/quake_demo.htmlで再生、停止、スロー、時間指定、床／空中の表示切替が可能。quake.gdのflagsでblade/cracks/ridge/dust/pulse/debrisを構成する。素材未読込時は従来演出へフォールバック。
+
+原画の出典はart/README.md。実機Safariの負荷と最終採用は未確認。

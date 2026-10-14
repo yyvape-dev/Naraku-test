@@ -1478,7 +1478,7 @@ function vtex(n,col){ // col を渡すと、白い光をその色に染めた写
   x.globalCompositeOperation='lighter';x.globalAlpha=0.3;x.drawImage(im,0,0);VC[key]=c;return c;
 }
 // Godot-baked 大地割り: one shared atlas per layer; no per-frame Image objects.
-const QUAKE_VFX={enabled:new URLSearchParams(location.search).get('quakefx')==='godot',fps:40,frames:36,cols:6,life:.9};
+const QUAKE_VFX={enabled:new URLSearchParams(location.search).get('quakefx')==='godot',frames:58,cols:8,life:2.4,layerFlags:{floor:true,air:true},times:[0.0,0.025,0.05,0.075,0.1,0.125,0.15,0.175,0.2,0.225,0.25,0.275,0.3,0.325,0.35,0.375,0.4,0.44,0.48,0.52,0.56,0.6,0.64,0.68,0.72,0.76,0.8,0.84,0.88,0.92,0.96,1.0,1.06666666666667,1.13333333333333,1.2,1.26666666666667,1.33333333333333,1.4,1.46666666666667,1.53333333333333,1.6,1.66666666666667,1.73333333333333,1.8,1.84,1.88,1.92,1.96,2.0,2.04,2.08,2.12,2.16,2.2,2.24,2.28,2.32,2.36]};
 function fxQuake(x,y,r){
   if(!QUAKE_VFX.enabled||!vtex('quake_floor')||!vtex('quake_air'))return false;
   const w=r*3;
@@ -1487,10 +1487,11 @@ function fxQuake(x,y,r){
   return true;
 }
 function drawQuake(g,s){
-  const im=vtex('quake_'+s.layer);if(!im||s.t<0)return;
-  const frame=Math.min(QUAKE_VFX.frames-1,Math.floor(s.t*QUAKE_VFX.fps)),tile=im.width/QUAKE_VFX.cols;
+  const im=vtex('quake_'+s.layer);if(!im||s.t<0||!QUAKE_VFX.layerFlags[s.layer])return;
+  let frame=0;while(frame+1<QUAKE_VFX.frames&&QUAKE_VFX.times[frame+1]<=s.t)frame++;
+  const tile=im.width/QUAKE_VFX.cols;
   g.save();g.globalAlpha=1;g.globalCompositeOperation='source-over';
-  g.drawImage(im,(frame%6)*tile,Math.floor(frame/6)*tile,tile,tile,s.x-s.w*.5,s.y-s.w*.5625,s.w,s.w);
+  g.drawImage(im,(frame%QUAKE_VFX.cols)*tile,Math.floor(frame/QUAKE_VFX.cols)*tile,tile,tile,s.x-s.w*.5,s.y-s.w*.5625,s.w,s.w);
   g.restore();
 }
 const dv=(v,d)=>v==null?d:v;
@@ -5296,7 +5297,7 @@ window.NARAKU={
   go(id){if(!stepTo(id))return false;arrive();return mode},
   info:id=>nodeInfo(id),light:()=>lightState(),nodeXY:id=>{R.camY=null;const q=mapXY(R.map.nodes[id]);return{x:q.x/W,y:q.y/H}},choose:chooseNode,buy:buyItem,leave:leaveNode,next:afterVictory,giveUp,
   retreat(){if(mode!=='map'||R.walk)return false;endRun('return');return true},
-  vfx:{tick:updFX},QUAKE_VFX,useCard,startRewind,updRewind,dropSig,dropFor,get ULT(){return ULT},ULT_DEF,startUlt,SEQ,ULT_SEQ,
+  vfx:{tick:updFX,ready:()=>!!(vtex('quake_floor')&&vtex('quake_air'))},QUAKE_VFX,useCard,startRewind,updRewind,dropSig,dropFor,get ULT(){return ULT},ULT_DEF,startUlt,SEQ,ULT_SEQ,
   pick:chooseUp,
   grant(id){const u=UPS.find(x=>x.id===id);if(!u||!B)return false;applyUp(u);return true},
   // bot=スキルを撃つ自動操縦 / pick=強化を選ぶ関数（提示3枚と B を受け取り番号を返す。省略すると何も取らない）

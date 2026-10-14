@@ -1,162 +1,183 @@
 extends Node2D
-## GPT Image materials + image-designed keyframes, animated by Godot.
-const FRAME_COUNT = 36
-const FPS = 40.0
-const CENTER = Vector2(200,225)
-var clock := 0.0
-var layer := "all"
-var baking := false
-var art := {}
-var shards: Array = []
-var rays: Array = []
-var cracks: Array = []
-var textures := {}
-var slash: Sprite2D
-var impact: Sprite2D
-var smoke: Sprite2D
-var trail: Sprite2D
-var shader = load("res://reveal.gdshader")
+## Red-black blade -> spreading cracks -> rock upheaval -> pulsing scar -> dust collapse.
+const CENTER=Vector2(200,225)
+const LIFE=2.4
+var clock:=0.0
+var layer:="all"
+var art:={}
+var rocks:Array=[]
+var embers:Array=[]
+var powder:Array=[]
+var cracks:Sprite2D
+var ridge:Sprite2D
+var slash:Sprite2D
+var impact:Sprite2D
+var trail:Sprite2D
+var smoke:Sprite2D
+var dust:Sprite2D
+var shader=load("res://reveal.gdshader")
+var floor_group:Node2D
+var air_group:Node2D
+var flags={"blade":true,"cracks":true,"ridge":true,"dust":true,"pulse":true,"debris":true}
 
-func material(seed_value:float) -> ShaderMaterial:
- var m=ShaderMaterial.new()
- m.shader=shader
- m.set_shader_parameter("seed",seed_value)
- return m
+func bake_times() -> Array:
+ var times:Array=[]
+ for i in range(16):times.append(i/40.0)
+ for i in range(15):times.append(.4+i/25.0)
+ for i in range(12):times.append(1.0+i/15.0)
+ for i in range(15):times.append(1.8+i/25.0)
+ return times
 
-func sprite(texture_name:String,seed_value:float) -> Sprite2D:
- var s=Sprite2D.new()
- s.texture=art[texture_name]
- s.position=CENTER
- s.material=material(seed_value)
- add_child(s)
- return s
+func make_sprite(name:String,parent:Node2D,mode:int,seed_value:float) -> Sprite2D:
+ var sprite=Sprite2D.new()
+ sprite.texture=art[name]
+ sprite.position=CENTER
+ var mat=ShaderMaterial.new()
+ mat.shader=shader
+ mat.set_shader_parameter("mode",mode)
+ mat.set_shader_parameter("seed",seed_value)
+ if mode==3:mat.set_shader_parameter("dust_mask",art.dust_mask)
+ sprite.material=mat
+ parent.add_child(sprite)
+ return sprite
 
 func _ready():
  get_viewport().transparent_bg=true
- for name in ["slash","impact","rock","dust"]:
+ for name in ["slash","impact","rock","dust","fissure","ridge","support_smoke","dust_mask"]:
   var img=Image.load_from_file("res://art/"+name+".png")
   if img.is_empty():
-   push_error("Missing GPT Image material: "+name)
+   push_error("Missing material: "+name)
    get_tree().quit(1)
    return
+  if name=="dust_mask":img.resize(1024,1024,Image.INTERPOLATE_LANCZOS)
   art[name]=ImageTexture.create_from_image(img)
  var rng=RandomNumberGenerator.new()
  rng.seed=621409
- for i in range(12):
-  var angle=TAU*i/12.0+rng.randf_range(-.2,.2)
-  shards.append({"v":Vector2(cos(angle)*rng.randf_range(80,170),rng.randf_range(-280,-100)),"size":rng.randf_range(9,21),"rot":rng.randf_range(-PI,PI),"spin":rng.randf_range(-6,6),"delay":rng.randf_range(.07,.105)})
- for i in range(27):
-  rays.append({"a":rng.randf_range(-PI,PI),"speed":rng.randf_range(120,310),"delay":rng.randf_range(.055,.10),"life":rng.randf_range(.16,.32)})
- for i in range(8):
-  var points=PackedVector2Array([Vector2.ZERO])
-  var angle=TAU*i/8.0+rng.randf_range(-.18,.18)
-  for j in range(1,8):
-   points.append(Vector2(cos(angle)*j*17+rng.randf_range(-6,6),sin(angle)*j*9+rng.randf_range(-4,4)))
-  cracks.append(points)
- # Smoke belongs under enemies. Slash/impact are above them in the web bake.
- smoke=sprite("dust",7)
- trail=sprite("slash",11)
- slash=sprite("slash",3)
- impact=sprite("impact",5)
- baking="--bake" in OS.get_cmdline_user_args()
- if baking:
+ for i in range(9):
+  var angle=TAU*i/9.0+rng.randf_range(-.18,.18)
+  rocks.append({"v":Vector2(cos(angle)*rng.randf_range(90,160),rng.randf_range(-220,-105)),"size":rng.randf_range(12,27),"rot":rng.randf_range(-PI,PI),"spin":rng.randf_range(-5,5),"delay":rng.randf_range(.06,.13)})
+ for i in range(18):
+  embers.append({"a":rng.randf_range(-PI,PI),"speed":rng.randf_range(90,240),"delay":rng.randf_range(.045,.12),"life":rng.randf_range(.18,.42)})
+ for i in range(24):
+  powder.append({"x":rng.randf_range(-96,96),"y":rng.randf_range(-12,15),"vx":rng.randf_range(-18,18),"vy":rng.randf_range(-30,-12),"delay":rng.randf_range(.10,.35),"life":rng.randf_range(.5,.95),"r":rng.randf_range(.35,.8)})
+ floor_group=Node2D.new()
+ air_group=Node2D.new()
+ add_child(floor_group)
+ add_child(air_group)
+ cracks=make_sprite("fissure",floor_group,1,3)
+ smoke=make_sprite("support_smoke",floor_group,0,19)
+ ridge=make_sprite("ridge",floor_group,2,7)
+ dust=make_sprite("dust",floor_group,3,13)
+ trail=make_sprite("slash",air_group,0,11)
+ slash=make_sprite("slash",air_group,0,1)
+ impact=make_sprite("impact",air_group,0,5)
+ if "--bake" in OS.get_cmdline_user_args():
   set_process(false)
   call_deferred("bake")
- else:
-  animate(0)
+ else:animate(0)
 
-func _process(dt):
- clock=fmod(clock+dt,1.7)
- animate(clock)
-
-func configure(s:Sprite2D,width:float,alpha:float,reveal:float=1.1,dissolve:float=-.2):
- s.scale=Vector2.ONE*width/1254.0
+func configure(s:Sprite2D,width:float,alpha:float,reveal:float=1.1,dissolve:float=-.2,pulse_value:float=0.0):
+ s.scale=Vector2.ONE*width/s.texture.get_width()
  s.material.set_shader_parameter("opacity",alpha)
  s.material.set_shader_parameter("reveal",reveal)
  s.material.set_shader_parameter("dissolve",dissolve)
+ s.material.set_shader_parameter("pulse",pulse_value)
+
+func _process(dt):
+ clock=fmod(clock+dt,3.4)
+ animate(clock)
 
 func animate(t:float):
- var airborne=layer!="floor"
- smoke.visible=layer!="air" and t>.095 and t<.78
- slash.visible=airborne and t<.18
- impact.visible=airborne and t>.035 and t<.22
- trail.visible=airborne and t>.06 and t<.36
- # Fast direction reveal, minimal scaling: a strike, rather than a popping sticker.
- var slash_alpha=pow(clampf(1-(t-.045)/.135,0,1),1.2)
- configure(slash,280,slash_alpha,lerpf(.23,1.1,clampf(t/.048,0,1)),lerpf(-.2,.98,clampf((t-.075)/.105,0,1)))
- slash.position=CENTER+Vector2(0,-11)
- var age=maxf(0,t-.035)
- var grow=1-pow(1-clampf(age/.05,0,1),3)
- configure(impact,lerpf(60,210,grow),clampf(age/.015,0,1)*pow(clampf(1-(t-.08)/.14,0,1),1.6),1.1,lerpf(-.2,1.0,clampf((t-.11)/.11,0,1)))
- impact.position=CENTER
- configure(trail,285,pow(clampf(1-(t-.06)/.3,0,1),1.8)*.25,1.1,clampf((t-.09)/.26,0,1))
- trail.position=CENTER+Vector2(-5,-10-t*15)
- trail.self_modulate=Color(.55,.12,.05,1)
+ floor_group.visible=layer!="air" and t<LIFE
+ air_group.visible=layer!="floor" and t<LIFE
+ # Cracks grow from the hit outward; most of the footprint is reached by .28s.
+ var propagation=clampf((t-.005)/.26,0,1)
+ var disappear=clampf((t-1.8)/.6,0,1)
+ var pulse_value=0.0
+ if flags.pulse:
+  pulse_value=exp(-pow((t-.10)/.055,2))+exp(-pow((t-.40)/.09,2))*.9+exp(-pow((t-.82)/.13,2))*.6+exp(-pow((t-1.27)/.16,2))*.35
+ cracks.visible=flags.cracks
+ configure(cracks,352,1-disappear*.78,propagation*.94,lerpf(-.2,1.15,disappear),pulse_value)
+ cracks.scale.y*=.62
+ cracks.position=CENTER+Vector2(0,5)
+ # Raised slabs remain readable through the hold, then sink and crumble.
+ var rise=1-pow(1-clampf((t-.045)/.18,0,1),3)
+ ridge.visible=flags.ridge and t>.045
+ configure(ridge,205,(1-disappear)*clampf((t-.045)/.035,0,1),lerpf(.18,1.1,rise),lerpf(-.2,1.12,disappear),pulse_value)
+ ridge.scale.y*=lerpf(.36,.76,rise)*(1-disappear*.22)
+ ridge.position=CENTER+Vector2(0,15-22*rise+19*disappear)
+ # Red-black sword strike is decisive and travels across the footprint.
+ slash.visible=flags.blade and t<.20
+ var fade=pow(clampf(1-(t-.055)/.145,0,1),1.15)
+ configure(slash,290,fade,lerpf(.2,1.1,clampf(t/.065,0,1)),lerpf(-.2,1.05,clampf((t-.10)/.10,0,1)))
+ slash.scale.y*=.60
+ slash.position=CENTER+Vector2(0,-4)
+ slash.material.set_shader_parameter("red_tone",.84)
+ impact.visible=t>.025 and t<.24
+ var age=maxf(0,t-.025)
+ configure(impact,lerpf(65,175,1-pow(1-clampf(age/.055,0,1),3)),clampf(age/.015,0,1)*pow(clampf(1-(t-.10)/.14,0,1),1.6),1.1,lerpf(-.2,1,clampf((t-.135)/.105,0,1)))
+ impact.scale.y*=.75
+ impact.material.set_shader_parameter("red_tone",.80)
+ trail.visible=flags.blade and t>.06 and t<.5
+ configure(trail,293,pow(clampf(1-(t-.06)/.44,0,1),1.5)*.25,1.1,clampf((t-.15)/.35,0,1))
+ trail.scale.y*=.61
+ trail.position=CENTER+Vector2(-3,-5-t*9)
+ trail.material.set_shader_parameter("red_tone",1.0)
+ # CC0 smoke adds small-scale natural density; Jettelly provides the changing silhouette.
  var dust_age=maxf(0,t-.095)
- configure(smoke,lerpf(150,310,1-exp(-dust_age*5)),clampf(dust_age/.06,0,1)*pow(maxf(0,1-dust_age/.685),1.5)*.32,1.1,lerpf(-.15,.97,clampf((dust_age-.15)/.54,0,1)))
- smoke.position=CENTER+Vector2(0,-18-dust_age*20)
- smoke.scale.y*=.60
+ var burst=clampf(dust_age/.07,0,1)*pow(maxf(0,1-dust_age/1.3),1.3)
+ var collapse=clampf((t-1.8)/.06,0,1)*pow(maxf(0,1-(t-1.8)/.55),1.6)
+ dust.visible=flags.dust and t>.095
+ configure(dust,lerpf(155,325,1-exp(-dust_age*4)),burst*.26+collapse*.14,1.1,lerpf(-.2,.8,clampf((dust_age-.6)/1.7,0,1)))
+ dust.scale.y*=.42
+ dust.position=CENTER+Vector2(0,9-dust_age*8)
+ dust.material.set_shader_parameter("mask_frame",clampi(8+int(dust_age/1.5*48),8,60))
+ smoke.visible=flags.dust and t>.075 and t<1.15
+ configure(smoke,lerpf(140,270,1-exp(-dust_age*3)),burst*.15,1.1,clampf((dust_age-.45)/.65,0,1))
+ smoke.scale.y*=.32
+ smoke.position=CENTER+Vector2(0,6-dust_age*9)
+ smoke.material.set_shader_parameter("tint",Color(.48,.32,.22,1))
  queue_redraw()
 
-func radial(color:Color) -> Texture2D:
- var key=color.to_html()
- if textures.has(key):return textures[key]
- var g=Gradient.new()
- g.offsets=PackedFloat32Array([0,.15,.42,.7,1])
- g.colors=PackedColorArray([color,Color(color,color.a*.8),Color(color,color.a*.35),Color(color,color.a*.07),Color(color,0)])
- var tex=GradientTexture2D.new()
- tex.gradient=g
- tex.width=128
- tex.height=128
- tex.fill=GradientTexture2D.FILL_RADIAL
- tex.fill_from=Vector2(.5,.5)
- tex.fill_to=Vector2(1,.5)
- textures[key]=tex
- return tex
-
-func glow(p:Vector2,size:Vector2,color:Color):
- draw_texture_rect(radial(color),Rect2(p-size*.5,size),false)
-
 func _draw():
+ if layer=="floor" or clock>=LIFE:return
  var t=clock
- if t>=.9:return
- if layer!="air":
-  var reveal=clampf(t/.11,0,1)
-  var fade=pow(maxf(0,1-t/.9),1.7)
-  for path in cracks:
-   var pts=PackedVector2Array()
-   for i in range(clampi(int(reveal*path.size()),2,path.size())):pts.append(CENTER+path[i])
-   draw_polyline(pts,Color(.035,.018,.012,.75*fade),3,true)
-   draw_polyline(pts,Color(.86,.17,.035,.55*fade),1.1,true)
-   draw_polyline(pts,Color(1,.63,.23,.7*pow(maxf(0,1-t/.3),2)),.55,true)
- if layer!="floor":
-  # Tiny center flash, never an opaque white disk.
-  var peak=clampf(1-abs(t-.075)/.055,0,1)
-  glow(CENTER,Vector2(68,48),Color(1,.80,.48,.48*peak))
-  for ray in rays:
-   var age=t-ray.delay
-   if age<0 or age>ray.life:continue
-   var fade=pow(1-age/ray.life,1.7)
-   var dir=Vector2(cos(ray.a),sin(ray.a)*.55)
-   var p=CENTER+dir*(12+ray.speed*age)
-   draw_line(p-dir*(3+7*fade),p,Color(1,.68,.24,.8*fade),.9,true)
-  for rock in shards:
+ if flags.debris:
+  for rock in rocks:
    var age=t-rock.delay
    if age<0:continue
-   var alpha=clampf((.57-age)/.18,0,1)*clampf(age/.025,0,1)
+   var flight=clampf((.57-age)/.17,0,1)*clampf(age/.022,0,1)
+   var settled=clampf((age-.5)/.12,0,1)*(1-clampf((t-1.55)/.45,0,1))*.68
+   var alpha=maxf(flight,settled)
    if alpha<=0:continue
-   var pos=CENTER+rock.v*age+Vector2(0,280*age*age)
-   var size=rock.size*(1-age*.2)
-   draw_set_transform(pos,rock.rot+rock.spin*age,Vector2.ONE)
-   draw_texture_rect(art.rock,Rect2(-size*.5,-size*.5,size,size),false,Color(1,1,1,alpha))
+   var u=minf(age,.56)
+   var p=CENTER+rock.v*u+Vector2(0,260*u*u)
+   var size=rock.size*(1-u*.28)
+   var turn=rock.rot+rock.spin*u
+   draw_set_transform(p,turn,Vector2.ONE)
+   draw_texture_rect(art.rock,Rect2(-size*.5,-size*.5,size,size),false,Color(.8,.38,.32,alpha))
    draw_set_transform(Vector2.ZERO)
+ for grain in powder:
+  var age=t-grain.delay
+  if age<0 or age>grain.life:continue
+  var alpha=sin(PI*age/grain.life)*.48
+  var pos=CENTER+Vector2(grain.x+grain.vx*age,grain.y+grain.vy*age)
+  draw_circle(pos,grain.r,Color(.73,.56,.45,alpha),true,-1,true)
+ for ember in embers:
+  var age=t-ember.delay
+  if age<0 or age>ember.life:continue
+  var alpha=pow(1-age/ember.life,1.5)
+  var dir=Vector2(cos(ember.a),sin(ember.a)*.6)
+  var pos=CENTER+dir*(9+ember.speed*age)
+  draw_line(pos-dir*(4+6*alpha),pos,Color(1,.18,.07,.85*alpha),.9,true)
 
 func bake():
  DirAccess.make_dir_recursive_absolute("res://frames")
+ var times=bake_times()
  for pass_name in ["floor","air"]:
   layer=pass_name
-  for frame in range(FRAME_COUNT):
-   clock=frame/FPS
+  for frame in range(times.size()):
+   clock=times[frame]
    animate(clock)
    await get_tree().process_frame
    await RenderingServer.frame_post_draw
@@ -166,5 +187,8 @@ func bake():
     push_error("PNG export failed: %s" % err)
     get_tree().quit(1)
     return
- print("BAKE OK: GPT Image materials + motion board, 36 frames x 2 transparent layers")
+ var meta={"times":times,"frames":times.size(),"cols":8,"life":LIFE,"flags":flags,"anchor":[.5,.5625]}
+ var f=FileAccess.open("res://timeline.json",FileAccess.WRITE)
+ f.store_string(JSON.stringify(meta,"  "))
+ print("BAKE OK: red-black strike, spreading fissures, raised rocks, pulse and dust; %d keyframes x 2 layers" % times.size())
  get_tree().quit()

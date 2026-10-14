@@ -5,10 +5,12 @@ import json
 import numpy as np
 root=Path(__file__).resolve().parent
 assets=root.parents[1]/'assets'
-report={}
-for layer,tile in [('floor',192),('air',256)]:
- atlas=Image.new('RGBA',(tile*6,tile*6))
- for i in range(36):
+timeline=json.loads((root/'timeline.json').read_text())
+count=timeline['frames'];cols=timeline['cols'];rows=(count+cols-1)//cols
+report={'timeline':timeline}
+for layer,tile in [('floor',256),('air',224)]:
+ atlas=Image.new('RGBA',(tile*cols,tile*rows))
+ for i in range(count):
   im=Image.open(root/'frames'/f'{layer}_{i:02}.png').convert('RGBA')
   assert im.size==(400,400) and im.getpixel((0,0))[3]==0
   # Godot's transparent viewport readback stores premultiplied RGB.
@@ -17,9 +19,9 @@ for layer,tile in [('floor',192),('air',256)]:
   alpha=rgba[:,:,3:4]
   rgba[:,:,:3]=np.minimum(255,rgba[:,:,:3]*255/np.maximum(alpha,1))
   im=Image.fromarray(np.rint(rgba).astype(np.uint8),'RGBA')
-  atlas.paste(im.resize((tile,tile),Image.Resampling.LANCZOS),(i%6*tile,i//6*tile))
+  atlas.paste(im.resize((tile,tile),Image.Resampling.LANCZOS),(i%cols*tile,i//cols*tile))
  path=assets/f'vfx_quake_{layer}.webp'
  atlas.save(path,quality=94,method=6)
- report[layer]={'tile':tile,'frames':36,'fps':40,'bytes':path.stat().st_size,'decodedBytes':atlas.width*atlas.height*4}
+ report[layer]={'tile':tile,'frames':count,'timing':'variable-rate','bytes':path.stat().st_size,'decodedBytes':atlas.width*atlas.height*4}
 (root/'atlas.json').write_text(json.dumps(report,indent=2))
 print(json.dumps(report))
