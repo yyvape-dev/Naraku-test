@@ -154,6 +154,8 @@ img.frm{display:block;width:100%;height:100%}
 #hand.sk .card.back .ar{background:repeating-linear-gradient(45deg,#1d140b 0 6px,#150e08 6px 12px)}
 #hand.sk .card.back .ar::after{background:none;left:50%;top:40%;right:auto;bottom:auto;width:44%;aspect-ratio:1;transform:translate(-50%,-50%) rotate(45deg);border:1.5px solid #c9a85a;box-shadow:inset 0 0 0 4px #150e08,inset 0 0 0 5px #8a6a2e}
 #hand.sk .card.back .fill{z-index:0;background:linear-gradient(rgba(241,216,146,.06),rgba(241,216,146,.34));border-top:1px solid #f1d892}
+#hand.sk .card.back.back-art .ar::after{display:none}
+#hand.sk .card.back.back-art .fill{z-index:1;pointer-events:none}
 #hand.sk .card.back .ki{letter-spacing:.15em;text-indent:.15em}
 #ops{display:flex;gap:6px;margin-top:8px}
 #ops button{background:#17120e;border:1px solid var(--gold-dim);border-radius:2px;height:42px;padding:0 9px;font-size:12px;white-space:nowrap}
@@ -4083,7 +4085,10 @@ function syncDOM(){
     elHand.innerHTML=B.slots.map((s,i)=>{
       const kd=c=>c.kind!=='target'?'即時':c.shape==='row'?'横一列':c.shape==='col'?'縦一列':'範囲';
       if(SKF){ // 羊皮紙の札
-        if(!s.card)return'<div class="card back" data-i="'+i+'"><span class="ar"><span class="fill"></span></span><img class="fr" alt="" draggable="false" src="'+BATTLE_CARD_FRAME+'"><span class="ki">'+(i===STRATEGY_SLOT?'戦略 装填中':B.queue.length||s.refill>0?'装填中':'札なし')+'</span></div>';
+        if(!s.card){
+          const back=UI[i===STRATEGY_SLOT?'battle_back_strategy':'battle_back_skill'];
+          return'<div class="card back'+(back?' back-art':'')+'" data-i="'+i+'"><span class="ar">'+(back?'<img alt="" draggable="false" src="'+back+'">':'')+'<span class="fill"></span></span><img class="fr" alt="" draggable="false" src="'+BATTLE_CARD_FRAME+'"><span class="ki">'+(i===STRATEGY_SLOT?'戦略 装填中':B.queue.length||s.refill>0?'装填中':'札なし')+'</span></div>';
+        }
         const c=s.card,art=c.category==='strategy'?UI['battle_strategy_'+c.effect]:UI['card_'+c.owner];
         return'<button class="card'+(c.category==='strategy'?' strategy '+c.effect+(c.rare?' rare':''):'')+(B.sel===i?' sel':'')+(cb===c.owner?' combo':'')+'" data-i="'+i+'" aria-label="'+c.name+'：'+c.desc+'">'+comboBar(c)+'<span class="ar">'+(art?'<img alt="" draggable="false" src="'+art+'">':c.category==='strategy'?strategyMotif(c.effect):'')+'</span><span class="sn'+(c.name.length>4?' lg':'')+'">'+c.name+'</span><img class="fr" alt="" draggable="false" src="'+BATTLE_CARD_FRAME+'"><span class="ki">'+(c.category==='strategy'?(c.rare?'希少戦略':'戦略'):'スキル')+'</span></button>';
       }

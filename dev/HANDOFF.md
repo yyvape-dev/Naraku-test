@@ -1,3 +1,7 @@
+## 追加：補充中カードの裏面（2026-10-14）
+
+添付左＝スキル裏面、右＝戦略裏面。`ui_battle_back_skill.webp` と `ui_battle_back_strategy.webp` をスロット位置に応じて装填中に表示。既存可動枠と装填進捗の上昇表示を維持、仮の菱形紋は画像ありの場合に隠す。原本は `dev/cardart/src_card_back_<kind>.jpg`。補充完了時は通常カード絵に戻る。
+
 ## 追加：決戦準備のカード絵（2026-10-14）
 
 ユーザー添付の女騎士と赤い旗の画像を `ui_battle_strategy_reset.webp` に登録。原本は `dev/cardart/src_strategy_reset.jpg`。これで戦略6種のカード絵すべて配置済み。既存枠・効果・抽選率は維持。
