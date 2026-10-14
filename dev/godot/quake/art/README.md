@@ -5,3 +5,5 @@ GPT Image生成原画：slash/impact/rock/dust/fissure/ridge（各1254×1254透�
 - dust_mask.png：ユーザー提供Jettelly Smoke Pack 01、jettelly_smoke_8x8_04.png（4096×4096、8×8）。https://jettelly.com 。JETTELLY_LICENSE.txtを同梱。Godotでは1024pxへ縮小して粉塵の形のマスクに利用。
 
 生成原本と補助素材をGodotで動かし、色・透過・発光の変化を焼いて配布する。
+
+rift_spikes.png：乾坤一擲用にGPT Imageで追加生成した尖った玄武岩の塊。生成指示はprompts/08_rift_spikes.txt、実寸・透過範囲はmanifest.json。

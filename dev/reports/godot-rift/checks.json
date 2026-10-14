@@ -1,0 +1,17 @@
+{
+  "sameCombatState": true,
+  "seeds": 3,
+  "impactDelayPreserved": true,
+  "riftLayersPerHit": 2,
+  "screens": {
+    "375x667": {
+      "medianMs": 16.699999999254942,
+      "p95Ms": 19.599999997764826
+    },
+    "393x852": {
+      "medianMs": 16.600000001490116,
+      "p95Ms": 20.5
+    }
+  },
+  "errors": []
+}

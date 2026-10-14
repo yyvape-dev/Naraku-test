@@ -1494,6 +1494,18 @@ function drawQuake(g,s){
   g.drawImage(im,(frame%QUAKE_VFX.cols)*tile,Math.floor(frame/QUAKE_VFX.cols)*tile,tile,tile,s.x-s.w*.5,s.y-s.w*.5625,s.w,s.w);
   g.restore();
 }
+const RIFT_VFX={enabled:new URLSearchParams(location.search).get('riftfx')==='godot',frames:75,cols:8,life:3,layerFlags:{floor:true,air:true}};
+function fxRift(x,hw){
+  if(!RIFT_VFX.enabled||!vtex('rift_floor')||!vtex('rift_air'))return false;
+  for(const layer of ['floor','air'])FX.sh.push({k:'rift',layer,x,y:0,w:Math.max(180,hw*8),h:B.lineY+28,t:0,life:3});
+  FX.shake=Math.min(16,FX.shake+9);return true;
+}
+function drawRift(g,s){
+  const im=vtex('rift_'+s.layer);if(!im||s.t<0||!RIFT_VFX.layerFlags[s.layer])return;
+  const frame=Math.min(74,Math.floor(s.t*25)),tile=im.width/8;
+  g.save();g.globalAlpha=1;g.globalCompositeOperation='source-over';
+  g.drawImage(im,(frame%8)*tile,Math.floor(frame/8)*tile,tile,tile,s.x-s.w*.5,-12,s.w,s.h);g.restore();
+}
 const dv=(v,d)=>v==null?d:v;
 // 弾のように数が多く小さい絵は、表示の大きさ（3倍の解像度）に縮めた写しを使う（スマホの負荷を下げる）
 function vsmall(n,col,w,h){const key='s'+n+(col||'')+w+'x'+h;let c=VC[key];if(c)return c;const t=vtex(n,col);if(!t)return null;
@@ -2863,6 +2875,7 @@ function impact(c,x,y,k){
   if(c.ult==='blue'&&ultSeqOn('blue')){FX.shake=Math.min(16,FX.shake+7);return}
   if(c.ult==='fox'&&ultSeqOn('fox')){FX.shake=Math.min(16,FX.shake+3);return} // 百鬼狐火の連番：絵は連番に任せ、着弾の爆発は描かない（揺れだけ） // 斬月三日月の連番：絵は連番に任せ、横一列の光の帯は描かない（揺れだけ）
   if(c.id==='sw_quake'&&!c.ult&&fxQuake(x,y,r))return;
+  if(c.id==='sw_rift'&&!c.ult&&fxRift(x,hw))return;
   if(c.fx==='full')fxFull(c.pal);else if(c.shape==='row')fxRow(y,hh,c.pal);else if(c.shape==='col')(c.ult==='sword'?ultLanaCol:fxCol)(x,hw,c.pal);else fxExplosion(x,y,r,c.pal);
   if(c.fx==='full')return;
   if(c.freeze){const hits=[];for(const e of B.enemies)if(!e.dead&&e.frzT>0&&Math.hypot(e.x-x,e.y-16-y)<=r+e.d.r*e.sc)hits.push(e);fxSkillTex(c,x,y,r,hh,hits)}
@@ -3287,11 +3300,12 @@ function updZones(dt){
     if(z.tick<=0){z.tick+=0.5;
       for(const e of B.enemies){if(e.dead||e.y>B.lineY+8||Math.abs(e.x-z.x)>z.hw+e.d.r*e.sc)continue;
         e.slowT=Math.max(e.slowT,0.6);hurt(e,z.dps*0.5,z.c.pal[1],false,true,z.c.owner,'skill')}
-      if(!(z.c.ult==='sword'&&ultSeqOn('sword')))for(let k=0;k<6;k++)addPart({x:z.x+(Math.random()-0.5)*z.hw*1.4,y:Math.random()*B.lineY,vx:0,vy:-40-Math.random()*60,t:0,life:0.5+Math.random()*0.4,size:2+Math.random()*2,col:z.c.pal[1],drag:0.5,grav:0})}
+      if(!(z.c.ult==='sword'&&ultSeqOn('sword'))&&!(z.c.id==='sw_rift'&&!z.c.ult&&RIFT_VFX.enabled&&vtex('rift_floor')&&vtex('rift_air')))for(let k=0;k<6;k++)addPart({x:z.x+(Math.random()-0.5)*z.hw*1.4,y:Math.random()*B.lineY,vx:0,vy:-40-Math.random()*60,t:0,life:0.5+Math.random()*0.4,size:2+Math.random()*2,col:z.c.pal[1],drag:0.5,grav:0})}
     if(z.t<=0)B.zones.splice(i,1);
   }
 }
 function drawZone(g,z,T){
+  if(z.c.id==='sw_rift'&&!z.c.ult&&RIFT_VFX.enabled&&vtex('rift_floor')&&vtex('rift_air'))return;
   if(z.c.ult==='sword'&&ultSeqOn('sword'))return; // 天地開闢の連番のときは、地割れの帯（ダメージの場所）をコードでは描かない
   const a=Math.min(1,z.t/0.4,(z.life-z.t)/0.12+0.3),y1=B.lineY;
   g.save();g.globalAlpha=a*0.32;
@@ -3397,7 +3411,7 @@ function updFX(dt){
   if(dt<=0)return;
   FX.shake*=Math.pow(0.0006,dt);if(FX.breach>0)FX.breach-=dt*1.6;
   for(let i=FX.parts.length-1;i>=0;i--){const p=FX.parts[i];p.t+=dt;if(p.t>=p.life){FX.parts[i]=FX.parts[FX.parts.length-1];FX.parts.pop();continue}const k=Math.exp(-p.drag*dt);p.vx*=k;p.vy*=k;p.vy+=p.grav*dt;p.x+=p.vx*dt;p.y+=p.vy*dt}
-  for(let i=FX.sh.length-1;i>=0;i--){const s=FX.sh[i];s.t+=dt;if(s.t>=s.life)FX.sh.splice(i,1)}
+  for(let i=FX.sh.length-1;i>=0;i--){const s=FX.sh[i];s.t+=dt;if(s.k==='rift'&&s.layer==='floor'){const hit=s.t<.6?6*(1-s.t/.6):2.5*Math.exp(-Math.pow(((s.t-.5)% .5)/.065,2))*(1-s.t/3);FX.shake=Math.max(FX.shake,hit)}if(s.t>=s.life)FX.sh.splice(i,1)}
   for(const id in ULT_SEQ){const L=ULT_SEQ[id],U=FX[L.fx];if(U){U.t+=dt;if(U.t>L.end){FX[L.fx]=null;seqFree(L.n)}}}
   for(let i=FX.dust.length-1;i>=0;i--){const d=FX.dust[i];d.t+=dt;if(d.t>=d.life){FX.dust[i]=FX.dust[FX.dust.length-1];FX.dust.pop();continue}
     const k=Math.exp(-d.drag*dt);d.vx*=k;d.vy*=k;d.vy+=d.grav*dt;d.x+=d.vx*dt;d.y+=d.vy*dt;d.rot+=d.vr*dt;if(d.wob)d.x+=Math.sin(d.t*d.wob+d.ph)*12*dt}
@@ -3552,7 +3566,7 @@ function render(T){
   drawBarrier(g,T);
   g.save();
   if(FX.shake>0.3)g.translate((Math.random()-0.5)*FX.shake,(Math.random()-0.5)*FX.shake);
-  for(const s of FX.sh)if(s.k==='quake'&&s.layer==='floor')drawQuake(g,s);else if(s.k==='decal'){g.globalAlpha=(1-s.t/s.life)*0.5;g.fillStyle=s.col;g.beginPath();g.ellipse(s.x,s.y,s.r*0.9,s.r*(s.flat||0.6),0,0,TAU);g.fill()}else if(s.k==='tex'&&s.ly==='floor')drawTex(g,s);
+  for(const s of FX.sh)if(s.k==='rift'&&s.layer==='floor')drawRift(g,s);else if(s.k==='quake'&&s.layer==='floor')drawQuake(g,s);else if(s.k==='decal'){g.globalAlpha=(1-s.t/s.life)*0.5;g.fillStyle=s.col;g.beginPath();g.ellipse(s.x,s.y,s.r*0.9,s.r*(s.flat||0.6),0,0,TAU);g.fill()}else if(s.k==='tex'&&s.ly==='floor')drawTex(g,s);
   for(const z of B.zones)drawZone(g,z,T);
   g.globalAlpha=1;
   const list=B.enemies.slice().sort((a,b)=>a.y-b.y);
@@ -3564,7 +3578,7 @@ function render(T){
   for(const s of FX.sh)if(s.k==='tex'&&s.ly==='top')drawTex(g,s);
   ULTLIT=null;for(const id in ULT_SEQ)if(FX[ULT_SEQ[id].fx])drawUltSeq(g,id); // 超必殺の連番（味方の後ろに1枚。味方は光の色を受ける）
   for(const a of B.allies)drawAlly(g,a,T);
-  for(const s of FX.sh)if(s.k==='quake'&&s.layer==='air')drawQuake(g,s);else if(s.k==='lv')drawLV(g,s);else if(s.k==='sisw')drawSisWind(g,s);else if(s.k==='magc')drawMagCircle(g,s);else if(s.k==='magb')drawMagBeam(g,s);
+  for(const s of FX.sh)if(s.k==='rift'&&s.layer==='air')drawRift(g,s);else if(s.k==='quake'&&s.layer==='air')drawQuake(g,s);else if(s.k==='lv')drawLV(g,s);else if(s.k==='sisw')drawSisWind(g,s);else if(s.k==='magc')drawMagCircle(g,s);else if(s.k==='magb')drawMagBeam(g,s);
   drawDust(g,'normal');
   if(tuning)drawTunePreview(g,T);
   // 加算合成の光もの
@@ -5297,7 +5311,7 @@ window.NARAKU={
   go(id){if(!stepTo(id))return false;arrive();return mode},
   info:id=>nodeInfo(id),light:()=>lightState(),nodeXY:id=>{R.camY=null;const q=mapXY(R.map.nodes[id]);return{x:q.x/W,y:q.y/H}},choose:chooseNode,buy:buyItem,leave:leaveNode,next:afterVictory,giveUp,
   retreat(){if(mode!=='map'||R.walk)return false;endRun('return');return true},
-  vfx:{tick:updFX,ready:()=>!!(vtex('quake_floor')&&vtex('quake_air'))},QUAKE_VFX,useCard,startRewind,updRewind,dropSig,dropFor,get ULT(){return ULT},ULT_DEF,startUlt,SEQ,ULT_SEQ,
+  vfx:{tick:updFX,ready:()=>!!(vtex('quake_floor')&&vtex('quake_air')),riftReady:()=>!!(vtex('rift_floor')&&vtex('rift_air'))},QUAKE_VFX,RIFT_VFX,useCard,startRewind,updRewind,dropSig,dropFor,get ULT(){return ULT},ULT_DEF,startUlt,SEQ,ULT_SEQ,
   pick:chooseUp,
   grant(id){const u=UPS.find(x=>x.id===id);if(!u||!B)return false;applyUp(u);return true},
   // bot=スキルを撃つ自動操縦 / pick=強化を選ぶ関数（提示3枚と B を受け取り番号を返す。省略すると何も取らない）

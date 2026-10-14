@@ -2,6 +2,7 @@ extends Node2D
 ## Red-black blade -> spreading cracks -> rock upheaval -> pulsing scar -> dust collapse.
 const CENTER=Vector2(200,225)
 const LIFE=2.4
+var export_enabled:=true
 var clock:=0.0
 var layer:="all"
 var art:={}
@@ -71,7 +72,7 @@ func _ready():
  trail=make_sprite("slash",air_group,0,11)
  slash=make_sprite("slash",air_group,0,1)
  impact=make_sprite("impact",air_group,0,5)
- if "--bake" in OS.get_cmdline_user_args():
+ if export_enabled and "--bake" in OS.get_cmdline_user_args():
   set_process(false)
   call_deferred("bake")
  else:animate(0)

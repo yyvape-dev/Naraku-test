@@ -19,3 +19,15 @@ python3 dev/tools/embed.py dev/naraku_src.html index.html dev/assets
 原画の出典はart/README.md。実機Safariの負荷と最終採用は未確認。
 
 2026-10-14 光量調整：斬撃の芯を明るくし、亀裂の光の常時成分・脈動を増幅。近傍の発光部分だけを抽出して淡い赤色のにじみを追加し、岩全体は明るくしない。演出時間と戦闘処理は維持。
+
+## 乾坤一擲の候補
+
+```sh
+godot --path dev/godot/quake --rendering-method gl_compatibility --audio-driver Dummy rift.tscn -- --bake
+python3 dev/godot/quake/pack.py --rift
+python3 dev/tools/embed.py dev/naraku_src.html index.html dev/assets
+```
+
+rift.gdは大地割の原画・shader・粉塵を共有し、5段階を0.105秒ずつずらして手前→奥へ進める。尖った岩は専用GPT Image原画art/rift_spikes.png。75コマ25fps、3秒、床／空中各1アトラス。脈動は0.5秒周期、2.55秒から一斉に沈んで崩壊。HTML側も初動と0.5秒周期で画面を振動させる。
+
+候補の切替は?riftfx=godot。比較はdev/mock/rift_demo.html。初撃90、地割れ3秒・40dps・0.5秒刻み、列半幅30と鈍足は従来どおり。隆起は視覚的に進行し、初撃の判定を遅らせない。通常ゲームは従来演出。超必殺の天地開闢には適用しない。

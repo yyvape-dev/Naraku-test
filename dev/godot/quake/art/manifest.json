@@ -106,5 +106,18 @@
     ],
     "bytes": 507915,
     "origin": "Jettelly CC0 user-supplied"
+  },
+  "rift_spikes": {
+    "file": "rift_spikes.png",
+    "size": [
+      1484,
+      1060
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 1758802,
+    "origin": "GPT Image"
   }
 }
