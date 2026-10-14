@@ -975,6 +975,10 @@ img.frm{display:block;width:100%;height:100%}
 #app.battle-ui.battle-materials .orb-gauges circle{stroke-width:3}
 #app.battle-ui.battle-materials .unit .fate{inset:21.5%;z-index:5}
 
+/* Supplied medal portraits: clip the square backing inside the circular window. */
+#app.battle-ui.battle-materials .unit.medal .orb-face{inset:17%;}
+#app.battle-ui.battle-materials .unit.medal .orb-frame{display:none}
+#app.battle-ui.battle-materials .unit.medal .orb-gauges{z-index:4}
 /* Extracted mock layers: fixed lower ornament and independent movable card borders. */
 #app.battle-ui.battle-extracted #cmd:not(.tuning){border-top-color:transparent;background:var(--battle-floor,#0c0a09) center top/100% 100% no-repeat;background-origin:border-box}
 #app.battle-ui.battle-extracted #handRow{right:0}
@@ -3945,7 +3949,7 @@ function buildRail(){
   elRail.innerHTML='';railEls=[];
   if(!P)return;
   P.members.forEach(m=>{
-    const d=CHARS[m.id],u=document.createElement('div');u.className='unit';
+    const d=CHARS[m.id],u=document.createElement('div');u.className='unit'+(UI['battle_face_'+m.id]?' medal':'');
     u.style.setProperty('--member',railEls.length);
     u.innerHTML='<div class="orb-face">'+(UI['battle_face_'+m.id]?'<img alt="" src="'+UI['battle_face_'+m.id]+'">':'<canvas width="128" height="128"></canvas>')+'</div><img class="orb-frame" alt="" src="'+BATTLE_ART.frame+'"><svg class="orb-gauges" viewBox="0 0 100 100" aria-hidden="true"><circle class="track" cx="50" cy="50" r="'+(UI.battle_status_frame?38:44)+'"/><circle class="hp-ring" cx="50" cy="50" r="'+(UI.battle_status_frame?38:44)+'" pathLength="100" transform="rotate(-90 50 50)"/><circle class="track" style="stroke:#48265b" cx="50" cy="50" r="'+(UI.battle_status_frame?34.5:40.5)+'"/><circle class="mad-ring" cx="50" cy="50" r="'+(UI.battle_status_frame?34.5:40.5)+'" pathLength="100" transform="rotate(90 50 50)"/></svg><div class="fate"></div>';
     if(u.querySelector('canvas'))paintHead(u.querySelector('canvas'),d.id);
