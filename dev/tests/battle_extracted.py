@@ -40,6 +40,9 @@ with sync_playwright() as p:
   pg.evaluate("NARAKU.start(['sword','fox','mage'],4242);document.querySelector('#btnPause').click();NARAKU.sim(12)")
   pg.wait_for_timeout(250)
   pg.wait_for_function("()=>[...document.querySelectorAll('#hand img,.orb-frame,#battleTrayArt')].every(e=>e.complete&&e.naturalWidth>0)")
+  centers=pg.locator('#hand .card').evaluate_all('es=>es.map(e=>{const r=e.getBoundingClientRect();return r.x+r.width/2})')
+  assert len(centers)==5 and all(centers[i+1]-centers[i]>40 for i in range(4)),centers
+  assert all(20<x<w-20 for x in centers),centers
   pg.screenshot(path=str(out/f'normal-{w}x{h}.png'))
   pg.evaluate('NARAKU.B.sel=2');pg.wait_for_timeout(250)
   assert pg.locator('#hand .card.sel').count()==1

@@ -69,3 +69,7 @@
 再ビルド：`python3 dev/tools/dev/battle_materials.py` → `python3 dev/tools/embed.py dev/naraku_src.html index.html dev/assets`。
 
 本番Naraku・公開URLは未更新。ローカル作業ブランチのみ。
+
+## 再開始の配置修正
+
+初回納品のnormal画像は同じ手札で再開始した際の配置キャッシュ不具合で左端に重なっていました。DOM再生成時にキャッシュを無効化して修正し、4サイズで5枚の中心間隔と画面内位置を確認。normal/selected/reload画像を再撮影しました。

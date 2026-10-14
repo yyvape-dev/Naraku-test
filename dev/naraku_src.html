@@ -4045,6 +4045,7 @@ function syncDOM(){
   setTxt($('#hGold'),B.gold);setTxt($('#hGear'),B.loot.length);
   const cb=comboArmed(),sig=B.slots.map(s=>s.card?s.card.id:'-').join(',')+'|'+B.sel+'|'+cb;
   if(sig!==handSig){
+    battleFitKey=''; // Recreated card nodes need layout even when the hand matches the previous battle.
     handSig=sig;elHand.classList.toggle('sk',SKF);elHand.classList.remove('dest');
     elHand.innerHTML=B.slots.map((s,i)=>{
       const kd=c=>c.kind!=='target'?'即時':c.shape==='row'?'横一列':c.shape==='col'?'縦一列':'範囲';
