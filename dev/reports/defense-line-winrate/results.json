@@ -1,0 +1,506 @@
+{
+  "before": [
+    {
+      "seed": 1,
+      "mode": "victory",
+      "time": 180.00000000003539,
+      "level": 16,
+      "life": 10,
+      "kills": 794,
+      "allies": [
+        {
+          "id": "fox",
+          "hp": 72.90162962962862,
+          "alive": true
+        },
+        {
+          "id": "sword",
+          "hp": 174.60133333333317,
+          "alive": true
+        },
+        {
+          "id": "mage",
+          "hp": 47.7601481481463,
+          "alive": true
+        }
+      ]
+    },
+    {
+      "seed": 2,
+      "mode": "victory",
+      "time": 180.00000000003539,
+      "level": 14,
+      "life": 12,
+      "kills": 759,
+      "allies": [
+        {
+          "id": "fox",
+          "hp": 45.034814814812336,
+          "alive": true
+        },
+        {
+          "id": "sword",
+          "hp": 146.698666666665,
+          "alive": true
+        },
+        {
+          "id": "mage",
+          "hp": 47.165111111107734,
+          "alive": true
+        }
+      ]
+    },
+    {
+      "seed": 3,
+      "mode": "victory",
+      "time": 180.00000000003539,
+      "level": 15,
+      "life": 5,
+      "kills": 770,
+      "allies": [
+        {
+          "id": "fox",
+          "hp": 0,
+          "alive": false
+        },
+        {
+          "id": "sword",
+          "hp": 199.63944444442834,
+          "alive": true
+        },
+        {
+          "id": "mage",
+          "hp": 0,
+          "alive": false
+        }
+      ]
+    },
+    {
+      "seed": 4,
+      "mode": "defeat",
+      "time": 171.9333333333623,
+      "level": 15,
+      "life": 5,
+      "kills": 699,
+      "allies": [
+        {
+          "id": "fox",
+          "hp": 0,
+          "alive": false
+        },
+        {
+          "id": "sword",
+          "hp": 0,
+          "alive": false
+        },
+        {
+          "id": "mage",
+          "hp": 0,
+          "alive": false
+        }
+      ]
+    },
+    {
+      "seed": 5,
+      "mode": "victory",
+      "time": 180.00000000003539,
+      "level": 15,
+      "life": 10,
+      "kills": 732,
+      "allies": [
+        {
+          "id": "fox",
+          "hp": 114,
+          "alive": true
+        },
+        {
+          "id": "sword",
+          "hp": 216,
+          "alive": true
+        },
+        {
+          "id": "mage",
+          "hp": 79.56314814814164,
+          "alive": true
+        }
+      ]
+    },
+    {
+      "seed": 6,
+      "mode": "defeat",
+      "time": 170.28333333336099,
+      "level": 13,
+      "life": 0,
+      "kills": 643,
+      "allies": [
+        {
+          "id": "fox",
+          "hp": 31.35274074073518,
+          "alive": true
+        },
+        {
+          "id": "sword",
+          "hp": 54.931851851845025,
+          "alive": true
+        },
+        {
+          "id": "mage",
+          "hp": 0,
+          "alive": false
+        }
+      ]
+    },
+    {
+      "seed": 7,
+      "mode": "victory",
+      "time": 180.00000000003539,
+      "level": 15,
+      "life": 14,
+      "kills": 784,
+      "allies": [
+        {
+          "id": "fox",
+          "hp": 89.41303703703673,
+          "alive": true
+        },
+        {
+          "id": "sword",
+          "hp": 180,
+          "alive": true
+        },
+        {
+          "id": "mage",
+          "hp": 62.92185185184958,
+          "alive": true
+        }
+      ]
+    },
+    {
+      "seed": 8,
+      "mode": "victory",
+      "time": 180.00000000003539,
+      "level": 14,
+      "life": 12,
+      "kills": 755,
+      "allies": [
+        {
+          "id": "fox",
+          "hp": 17.995814814810444,
+          "alive": true
+        },
+        {
+          "id": "sword",
+          "hp": 87.90962962962423,
+          "alive": true
+        },
+        {
+          "id": "mage",
+          "hp": 4.5228148148100935,
+          "alive": true
+        }
+      ]
+    },
+    {
+      "seed": 9,
+      "mode": "victory",
+      "time": 180.00000000003539,
+      "level": 15,
+      "life": 16,
+      "kills": 747,
+      "allies": [
+        {
+          "id": "fox",
+          "hp": 67.16577777777634,
+          "alive": true
+        },
+        {
+          "id": "sword",
+          "hp": 111.39170370369834,
+          "alive": true
+        },
+        {
+          "id": "mage",
+          "hp": 41.09399999999803,
+          "alive": true
+        }
+      ]
+    },
+    {
+      "seed": 10,
+      "mode": "victory",
+      "time": 180.00000000003539,
+      "level": 15,
+      "life": 10,
+      "kills": 781,
+      "allies": [
+        {
+          "id": "fox",
+          "hp": 36.52837037036554,
+          "alive": true
+        },
+        {
+          "id": "sword",
+          "hp": 118.28840740739993,
+          "alive": true
+        },
+        {
+          "id": "mage",
+          "hp": 68.85199999999942,
+          "alive": true
+        }
+      ]
+    }
+  ],
+  "after": [
+    {
+      "seed": 1,
+      "mode": "victory",
+      "time": 180.00000000003539,
+      "level": 16,
+      "life": 10,
+      "kills": 784,
+      "allies": [
+        {
+          "id": "fox",
+          "hp": 95,
+          "alive": true
+        },
+        {
+          "id": "sword",
+          "hp": 169.03451851851807,
+          "alive": true
+        },
+        {
+          "id": "mage",
+          "hp": 46.438148148146325,
+          "alive": true
+        }
+      ]
+    },
+    {
+      "seed": 2,
+      "mode": "victory",
+      "time": 180.00000000003539,
+      "level": 14,
+      "life": 12,
+      "kills": 757,
+      "allies": [
+        {
+          "id": "fox",
+          "hp": 29.04459259258981,
+          "alive": true
+        },
+        {
+          "id": "sword",
+          "hp": 135.93348148147953,
+          "alive": true
+        },
+        {
+          "id": "mage",
+          "hp": 45.77551851851611,
+          "alive": true
+        }
+      ]
+    },
+    {
+      "seed": 3,
+      "mode": "victory",
+      "time": 180.00000000003539,
+      "level": 15,
+      "life": 10,
+      "kills": 761,
+      "allies": [
+        {
+          "id": "fox",
+          "hp": 0,
+          "alive": false
+        },
+        {
+          "id": "sword",
+          "hp": 15.86374074072734,
+          "alive": true
+        },
+        {
+          "id": "mage",
+          "hp": 45.48274074073799,
+          "alive": true
+        }
+      ]
+    },
+    {
+      "seed": 4,
+      "mode": "victory",
+      "time": 180.00000000003539,
+      "level": 15,
+      "life": 11,
+      "kills": 773,
+      "allies": [
+        {
+          "id": "fox",
+          "hp": 0,
+          "alive": false
+        },
+        {
+          "id": "sword",
+          "hp": 119.3499259259192,
+          "alive": true
+        },
+        {
+          "id": "mage",
+          "hp": 0,
+          "alive": false
+        }
+      ]
+    },
+    {
+      "seed": 5,
+      "mode": "victory",
+      "time": 180.00000000003539,
+      "level": 16,
+      "life": 10,
+      "kills": 809,
+      "allies": [
+        {
+          "id": "fox",
+          "hp": 114,
+          "alive": true
+        },
+        {
+          "id": "sword",
+          "hp": 216,
+          "alive": true
+        },
+        {
+          "id": "mage",
+          "hp": 34.47299999999532,
+          "alive": true
+        }
+      ]
+    },
+    {
+      "seed": 6,
+      "mode": "victory",
+      "time": 180.00000000003539,
+      "level": 14,
+      "life": 8,
+      "kills": 746,
+      "allies": [
+        {
+          "id": "fox",
+          "hp": 36.2841111111043,
+          "alive": true
+        },
+        {
+          "id": "sword",
+          "hp": 63.257555555543604,
+          "alive": true
+        },
+        {
+          "id": "mage",
+          "hp": 0,
+          "alive": false
+        }
+      ]
+    },
+    {
+      "seed": 7,
+      "mode": "victory",
+      "time": 180.00000000003539,
+      "level": 14,
+      "life": 12,
+      "kills": 766,
+      "allies": [
+        {
+          "id": "fox",
+          "hp": 89.41851851851823,
+          "alive": true
+        },
+        {
+          "id": "sword",
+          "hp": 157.7158518518507,
+          "alive": true
+        },
+        {
+          "id": "mage",
+          "hp": 65.98774074074029,
+          "alive": true
+        }
+      ]
+    },
+    {
+      "seed": 8,
+      "mode": "victory",
+      "time": 180.00000000003539,
+      "level": 14,
+      "life": 12,
+      "kills": 771,
+      "allies": [
+        {
+          "id": "fox",
+          "hp": 60.89896296296023,
+          "alive": true
+        },
+        {
+          "id": "sword",
+          "hp": 141.18296296296106,
+          "alive": true
+        },
+        {
+          "id": "mage",
+          "hp": 35.61999999999781,
+          "alive": true
+        }
+      ]
+    },
+    {
+      "seed": 9,
+      "mode": "victory",
+      "time": 180.00000000003539,
+      "level": 15,
+      "life": 11,
+      "kills": 771,
+      "allies": [
+        {
+          "id": "fox",
+          "hp": 0,
+          "alive": false
+        },
+        {
+          "id": "sword",
+          "hp": 117.26066666665086,
+          "alive": true
+        },
+        {
+          "id": "mage",
+          "hp": 0,
+          "alive": false
+        }
+      ]
+    },
+    {
+      "seed": 10,
+      "mode": "defeat",
+      "time": 171.70000000002878,
+      "level": 13,
+      "life": 0,
+      "kills": 677,
+      "allies": [
+        {
+          "id": "fox",
+          "hp": 27.010962962960647,
+          "alive": true
+        },
+        {
+          "id": "sword",
+          "hp": 0,
+          "alive": false
+        },
+        {
+          "id": "mage",
+          "hp": 13.460629629627528,
+          "alive": true
+        }
+      ]
+    }
+  ]
+}
