@@ -1,3 +1,7 @@
+## 追加：戦略カード絵5枚（2026-10-14）
+
+ユーザー添付をマディオス・隊列変更・起（握った手）・結（開いた手）・追撃の順で登録。起と結の対応および決戦準備が未添付であることはユーザー確認済み。原本853×1280 JPEGを `dev/cardart/src_strategy_<effect>.jpg` に保管、quality94 WebPを `dev/assets/ui_battle_strategy_<effect>.webp` に登録。既存カード枠・名札を重ね、ゲーム効果や抽選率は変更なし。決戦準備は仮SVGを維持。
+
 ## 追加：崩れた通路のイベントスチル（2026-10-14）
 
 ユーザー添付の1280×960 JPEGを原本 `dev/cardart/src_event_collapse.jpg` に保管し、quality94 WebP `dev/assets/event_collapse.webp` として埋め込み。collapseイベントの選択前・結果画面に既存のスチルレイアウトを適用。押し通る（全員HP−15%）／迂回（灯り−10%）の効果は維持。
