@@ -1,3 +1,7 @@
+## 追加：決戦準備のカード絵（2026-10-14）
+
+ユーザー添付の女騎士と赤い旗の画像を `ui_battle_strategy_reset.webp` に登録。原本は `dev/cardart/src_strategy_reset.jpg`。これで戦略6種のカード絵すべて配置済み。既存枠・効果・抽選率は維持。
+
 ## 追加：戦略カード絵5枚（2026-10-14）
 
 ユーザー添付をマディオス・隊列変更・起（握った手）・結（開いた手）・追撃の順で登録。起と結の対応および決戦準備が未添付であることはユーザー確認済み。原本853×1280 JPEGを `dev/cardart/src_strategy_<effect>.jpg` に保管、quality94 WebPを `dev/assets/ui_battle_strategy_<effect>.webp` に登録。既存カード枠・名札を重ね、ゲーム効果や抽選率は変更なし。決戦準備は仮SVGを維持。
