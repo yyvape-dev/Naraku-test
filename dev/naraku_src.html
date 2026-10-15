@@ -1471,7 +1471,7 @@ function drawBarrier(g,T){
 const VT={},VC={};
 // 桜の狐火を標準にする。legacyと過去の候補は比較用の明示指定。
 const FOX_FIRE_MODE=new URLSearchParams(location.search).get('foxfirefx')||'gust';
-for(const k in VFX){if(k.startsWith('foxskill_')&&FOX_FIRE_MODE!=='godot')continue;if(k.startsWith('foxgust1_')&&FOX_FIRE_MODE!=='gust-v1')continue;if(k.startsWith('foxsakura_')&&FOX_FIRE_MODE!=='gust')continue;if(k.startsWith('foxgust_')&&FOX_FIRE_MODE!=='gust')continue;if(k.startsWith('foxbloom_')&&FOX_FIRE_MODE!=='bloom')continue;const im=new Image();im.src=VFX[k];VT[k]=im}
+for(const k in VFX){if(k.startsWith('foxskill_')&&FOX_FIRE_MODE!=='godot')continue;if(k.startsWith('foxgust1_')&&FOX_FIRE_MODE!=='gust-v1')continue;if(k.startsWith('foxsakura_')&&FOX_FIRE_MODE!=='gust')continue;if(k.startsWith('foxgust_')&&FOX_FIRE_MODE!=='gust')continue;if(k.startsWith('foxbloom_')&&FOX_FIRE_MODE!=='bloom')continue;const im=new Image();if(k.startsWith('foxsakura_'))im.onload=()=>foxEmberFrames(im);im.src=VFX[k];VT[k]=im}
 function vtex(n,col){ // col を渡すと、白い光をその色に染めた写しを作って使い回す（芯は白を少し残す）
   const im=VT[n];if(!im||!im.complete||!im.naturalWidth)return null;if(!col)return im;
   const key=n+col;let c=VC[key];if(c)return c;
@@ -1553,9 +1553,66 @@ function drawFoxSkill(g,s){
 const VFX_META=/*__VFXMETA_START__*/{}/*__VFXMETA_END__*/;
 const FOX_GUST_PACKED=VFX_META.foxgust;
 let FOX_GUST_TRACKS=null,FOX_GUST_GLOW=null;
+const FOX_GUST_EMBERS=new Map(),FOX_GUST_WARM=new WeakMap();
+// Cached straight-alpha cooling/erosion. No per-particle pixel readback in render.
+function foxEmberFrames(im){
+  if(FOX_GUST_EMBERS.has(im))return FOX_GUST_EMBERS.get(im);
+  const w=Math.min(256,im.width),h=Math.round(w*im.height/im.width),c=document.createElement('canvas');c.width=w;c.height=h;
+  const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(im,0,0,w,h);
+  const src=g.getImageData(0,0,w,h),frames=[],fuel=new Float32Array(w*h);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    const i=(y*w+x)*4,l=(src.data[i]+src.data[i+1]+src.data[i+2])/765;
+    const grain=.5+.24*Math.sin(x*.079+Math.sin(y*.061)*2.1)+.16*Math.sin(y*.13-x*.047);
+    fuel[y*w+x]=.24+.43*l+.30*grain+.13*(1-y/h);
+  }
+  for(let f=0;f<16;f++){
+    const t=f/15,out=g.createImageData(w,h);
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+      const i=(y*w+x)*4;
+      // Coherent lobes eat through cooler edges first; hot cores survive longer.
+      const keep=f===15?0:clamp((fuel[y*w+x]-t*.99)/.12,0,1),cool=clamp((t-.12)/.88,0,1);
+      out.data[i]=src.data[i]*(1-.32*cool);
+      out.data[i+1]=src.data[i+1]*(1-.91*cool);
+      out.data[i+2]=src.data[i+2]*(1-.98*cool);
+      out.data[i+3]=src.data[i+3]*keep;
+    }
+    const frame=document.createElement('canvas');frame.width=w;frame.height=h;frame.getContext('2d').putImageData(out,0,0);frames.push(frame);
+  }
+  FOX_GUST_EMBERS.set(im,frames);return frames;
+}
+// Tint is masked to the enemy sprite; energy follows nearby flames, not hurt flash.
+function foxWarmSprite(g,set,f,h,e){
+  let energy=0;
+  for(const s of FX.sh)if(s.k==='foxskill'&&s.layer==='floor'&&FOX_SKILL.version==='gust'){
+    const age=s.t,r=s.w/3.2,d=Math.hypot(e.x-s.x,(e.y-s.y)*.85);
+    energy+=clamp(age/.045,0,1)*Math.pow(clamp(1-age/.58,0,1),1.5)*clamp(1-d/(r+24),0,1)*.22;
+  }
+  if(energy<.002)return;
+  const fr=set.frames[f%set.frames.length];let im=FOX_GUST_WARM.get(fr);
+  if(!im){im=document.createElement('canvas');im.width=fr.c.width;im.height=fr.c.height;const m=im.getContext('2d');m.drawImage(fr.c,0,0);m.globalCompositeOperation='source-in';const grad=m.createLinearGradient(0,0,0,im.height);grad.addColorStop(0,'rgba(255,132,48,.2)');grad.addColorStop(.65,'rgba(255,111,28,.8)');grad.addColorStop(1,'rgba(255,164,66,1)');m.fillStyle=grad;m.fillRect(0,0,im.width,im.height);FOX_GUST_WARM.set(fr,im)}
+  const scale=h/set.refH,ax=CFG.fix?fr.ax:fr.rax,ay=CFG.fix?fr.ay:fr.ray;
+  g.save();g.globalAlpha=Math.min(.24,energy);g.drawImage(im,-ax*scale,-ay*scale,im.width*scale,im.height*scale);g.restore();
+}
+function drawFoxKindle(g,s){
+  const u=clamp(s.t/s.life,0,1),head=1-Math.pow(1-u,2),tail=Math.max(0,head-.24),fade=Math.sin(Math.PI*u);
+  const point=t=>({x:lerp(s.x,s.tx,t),y:lerp(s.y,s.ty,t)-Math.sin(Math.PI*t)*22});
+  const p=point(head),b=point(tail);g.save();g.lineCap='round';
+  const glow=g.createLinearGradient(b.x,b.y,p.x,p.y);glow.addColorStop(0,'rgba(255,65,12,0)');glow.addColorStop(1,'rgba(255,151,43,.8)');
+  g.globalAlpha=fade;g.strokeStyle=glow;g.lineWidth=5*(1-u)+1;g.beginPath();g.moveTo(b.x,b.y);g.quadraticCurveTo((b.x+p.x)/2,(b.y+p.y)/2-4,p.x,p.y);g.stroke();
+  g.translate(p.x,p.y);g.rotate(Math.atan2(p.y-b.y,p.x-b.x));
+  g.fillStyle='#ff6b20';g.globalAlpha=fade*.85;g.beginPath();g.moveTo(4,0);g.bezierCurveTo(-1,-4,-8,-3,-12,-1);g.quadraticCurveTo(-6,-1,-5,1);g.quadraticCurveTo(-9,3,-12,4);g.quadraticCurveTo(-2,5,4,0);g.fill();
+  g.fillStyle='#ffe6a2';g.globalAlpha=fade*.8;g.beginPath();g.ellipse(0,0,2.6*(1-u)+.6,1.4,0,0,TAU);g.fill();g.restore();
+}
 function foxGustTracks(){
   if(FOX_GUST_TRACKS)return FOX_GUST_TRACKS;
-  FOX_GUST_TRACKS=(FOX_GUST_PACKED?.particles||[]).map(p=>{
+  FOX_GUST_TRACKS=(FOX_GUST_PACKED?.particles||[]).map(source=>{
+    let p=source;
+    if(p.petal>=0){
+      const born=.15+p.born*.65,age=born-.15,front=p.front;
+      // Meet the two baked detached tongues (dance.gd fragment_a / fragment_b).
+      const root=front?[263+age*80,214-age*45]:[227+age*105,172-age*85];
+      p={...p,born,p:[root[0]+Math.sin(p.seed*3)*9,root[1]+Math.cos(p.seed*2)*7],v:[(front?80:105)+p.v[0]*.35,(front?-45:-85)+p.v[1]*.35]};
+    }
     const dt=1/180,n=Math.ceil(p.life/dt)+1,a=new Float32Array(n*4);
     let x=p.p[0],y=p.p[1],vx=p.v[0],vy=p.v[1];
     for(let j=0;j<n;j++){
@@ -1587,7 +1644,13 @@ function drawFoxGustParticles(g,s){
     g.globalAlpha=alpha;
     if(p.petal>=0){
       const im=vtex('foxsakura_'+(p.petal?'b':'a'));
-      if(im){const w=p.width*(.60+.60*heat)*1.35*scale;g.save();g.translate(x,y);g.rotate(Math.atan2(vy,vx)+Math.PI/2+Math.sin(age*8+p.seed)*.25);g.drawImage(im,-w/2,-w*.6,w,w*im.height/im.width);g.restore()}
+      if(im){
+        const frames=foxEmberFrames(im),f=clamp(age/p.life,0,1)*15,i=Math.min(14,Math.floor(f)),mix=f-i;
+        const w=p.width*(.90+.30*heat)*1.35*scale,h=w*im.height/im.width;
+        g.save();g.translate(x,y);g.rotate(Math.atan2(vy,vx)+Math.PI/2+Math.sin(age*8+p.seed)*.25);
+        g.globalAlpha=alpha*(1-mix);g.drawImage(frames[i],-w/2,-w*.6,w,h);
+        g.globalCompositeOperation='lighter';g.globalAlpha=alpha*mix;g.drawImage(frames[i+1],-w/2,-w*.6,w,h);g.restore();
+      }
     }else{
       const len=Math.hypot(vx,vy)||1,trail=clamp(len*.022,1,4)*scale;
       g.drawImage(FOX_GUST_GLOW,x-7*scale,y-7*scale,14*scale,14*scale);
@@ -2883,11 +2946,12 @@ function useCard(si,x,y){
   const a=B.allies.find(o=>o.d.id===c.owner);
   if(!a||!a.alive)return false;
   a.animT=0;a.animDur=0.5;a.animHit=c.kind==='target'?0.16/0.5:null;a.lunge=1;a.cdT=Math.max(a.cdT,0.5);a.pend=null; // 範囲スキルは0.16秒後に着弾する。即時スキルは素の配分で再生
-  FX.cut={id:a.d.id,name:c.name,col:a.d.color,t:0,dir:a.slot===2?-1:1};
+  FX.cut={id:a.d.id,name:c.name,col:a.d.color,t:0,dir:a.slot===2?-1:1,foxFire:c.id==='fox_fire'&&FOX_SKILL.version==='gust'&&foxSkillReady()};
   if(c.kind==='target'){
     x=clamp(x,0,W);y=clamp(y,0,H);
     const ox=a.x,oy=B.lineY-40,L=Math.hypot(x-ox,y-oy)||1;
-    if(!(c.id==='fox_fire'&&foxSkillReady()))FX.sh.push({k:'beam',x:ox,y:oy,dx:(x-ox)/L,dy:(y-oy)/L,len:L,t:0,life:0.2,col:c.pal[1],w:5});
+    if(c.id==='fox_fire'&&FOX_SKILL.version==='gust'&&foxSkillReady())FX.sh.push({k:'foxkindle',x:ox,y:oy,tx:x,ty:y,t:0,life:.16});
+    else if(!(c.id==='fox_fire'&&foxSkillReady()))FX.sh.push({k:'beam',x:ox,y:oy,dx:(x-ox)/L,dy:(y-oy)/L,len:L,t:0,life:0.2,col:c.pal[1],w:5});
     B.impacts.push({t:0.16,c,x,y,k:1});
     for(let j=1;j<=B.M.echo;j++)B.impacts.push({t:0.16+0.38*j,c,x,y,k:0.6}); // 二重詠唱
   }else castInstant(c,a);
@@ -3561,7 +3625,7 @@ function updFX(dt){
   for(let i=FX.ghosts.length-1;i>=0;i--){const o=FX.ghosts[i];o.t+=dt;if(o.t>=o.life)FX.ghosts.splice(i,1)}
   for(let i=FX.floats.length-1;i>=0;i--){const f=FX.floats[i];f.t+=dt;f.y-=28*dt;if(f.t>=0.7)FX.floats.splice(i,1)}
   if(FX.banner){FX.banner.t+=dt;if(FX.banner.t>1.9)FX.banner=null}
-  if(FX.cut){FX.cut.t+=dt;if(FX.cut.t>0.72)FX.cut=null}
+  if(FX.cut){FX.cut.t+=dt;if(FX.cut.t>(FX.cut.foxFire?.32:.72))FX.cut=null}
 }
 
 /* =========================================================
@@ -3628,7 +3692,7 @@ function drawEnemy(g,e,T){
   const recoil=HIT_VFX.enabled&&HIT_VFX.recoil&&hit&&u<1?Math.sin(Math.PI*Math.min(1,u/.25))*Math.max(0,1-u):0;
   const settle=HIT_VFX.enabled&&HIT_VFX.recoil&&hit&&u>=.25&&u<1?Math.sin(Math.PI*(u-.25)/.75)*.28:0;
   const kick=(recoil-settle)*(hit?hit.force:0);
-  g.save();g.translate(e.x+tn.x*e.sc+(hit?hit.dx*kick:0),e.y+bob+tn.y*e.sc+(hit?hit.dy*kick:0));g.rotate(rot+(hit?hit.dx*kick*.012:0));blit(g,set,f,h);
+  g.save();g.translate(e.x+tn.x*e.sc+(hit?hit.dx*kick:0),e.y+bob+tn.y*e.sc+(hit?hit.dy*kick:0));g.rotate(rot+(hit?hit.dx*kick*.012:0));blit(g,set,f,h);foxWarmSprite(g,set,f,h,e);
   if(e.flash>0){g.globalCompositeOperation='lighter';g.globalAlpha=HIT_VFX.enabled?.42*Math.pow(e.flash/.12,2):.75;blit(g,set,f,h)}
   g.restore();
   if(e.burnT>0){g.fillStyle='rgba(255,138,58,'+(0.2+Math.sin(T*22+e.ph)*0.08)+')';g.beginPath();g.ellipse(e.x,e.y-h*0.42,h*0.2,h*0.42,0,0,TAU);g.fill()}
@@ -3682,8 +3746,8 @@ function drawTunePreview(g,T){ // 敵を調整するときは、戦場の中央�
 }
 // スキル発動の瞬間だけ、使い手の正面絵が斜めの帯で横切る（ゲームは止めない）
 function drawCutin(g){
-  const c=FX.cut,t=c.t,inn=Math.min(1,t/0.12),ease=1-Math.pow(1-inn,3),out=t>0.5?Math.max(0,1-(t-0.5)/0.22):1;
-  const bh=128,y0=68,sl=30,img=SPR.cut[c.id];
+  const c=FX.cut,t=c.t,compact=c.foxFire,inn=Math.min(1,t/(compact?.065:.12)),ease=1-Math.pow(1-inn,3),out=compact?clamp(1-(t-.16)/.16,0,1):(t>.5?Math.max(0,1-(t-.5)/.22):1);
+  const bh=compact?48:128,y0=compact?48:68,sl=30,img=SPR.cut[c.id];
   g.save();g.globalAlpha=out;g.translate(-(1-ease)*W*c.dir,0);
   g.beginPath();g.moveTo(-40+sl,y0);g.lineTo(W+40,y0);g.lineTo(W+40-sl,y0+bh);g.lineTo(-40,y0+bh);g.closePath();
   g.save();g.clip();
@@ -3694,7 +3758,7 @@ function drawCutin(g){
   g.restore();
   g.strokeStyle=CSSGOLD;g.lineWidth=1.5;g.beginPath();g.moveTo(-40+sl,y0);g.lineTo(W+40,y0);g.moveTo(W+40-sl,y0+bh);g.lineTo(-40,y0+bh);g.stroke();
   g.strokeStyle=c.col;g.lineWidth=3;g.beginPath();g.moveTo(-40,y0+bh+4);g.lineTo(W+40-sl,y0+bh+4);g.stroke();
-  g.textAlign=c.dir>0?'left':'right';g.font='700 24px '+FONT;const tx=c.dir>0?14:W-14,ty=y0+bh-12;
+  g.textAlign=c.dir>0?'left':'right';g.font='700 '+(compact?18:24)+'px '+FONT;const tx=c.dir>0?14:W-14,ty=y0+bh-12;
   g.fillStyle='#000';g.fillText(c.name,tx+1.5,ty+1.5);g.fillStyle='#fff3d6';g.fillText(c.name,tx,ty);
   g.restore();
 }
@@ -3772,6 +3836,7 @@ function render(T){
     if(s.k==='flash'){const gr=g.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r*(0.5+u*0.5));gr.addColorStop(0,s.col);gr.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=a;g.fillStyle=gr;g.beginPath();g.arc(s.x,s.y,s.r,0,TAU);g.fill()}
     else if(s.k==='ring'){g.globalAlpha=a;g.strokeStyle=s.col;g.lineWidth=s.w*a+0.5;g.beginPath();g.arc(s.x,s.y,lerp(s.r0,s.r1,1-a*a),0,TAU);g.stroke()}
     else if(s.k==='ray'){g.globalAlpha=a;g.strokeStyle=s.col;g.lineWidth=2;const c=Math.cos(s.ang),n=Math.sin(s.ang),r0=s.len*u*0.6;g.beginPath();g.moveTo(s.x+c*r0,s.y+n*r0);g.lineTo(s.x+c*s.len,s.y+n*s.len);g.stroke()}
+    else if(s.k==='foxkindle'){drawFoxKindle(g,s)}
     else if(s.k==='beam'){const ex=s.x+s.dx*s.len,ey=s.y+s.dy*s.len;g.lineCap='round';g.globalAlpha=a*0.55;g.strokeStyle=s.col;g.lineWidth=s.w*(0.6+a*0.6);g.beginPath();g.moveTo(s.x,s.y);g.lineTo(ex,ey);g.stroke();g.globalAlpha=a;g.strokeStyle='#ffffff';g.lineWidth=Math.max(1,s.w*0.22);g.beginPath();g.moveTo(s.x,s.y);g.lineTo(ex,ey);g.stroke()}
     else if(s.k==='fan'){g.lineCap='round';g.globalAlpha=a*0.5;g.strokeStyle=s.col;g.lineWidth=16*a+2;g.beginPath();g.arc(s.x,s.y,s.r*(0.45+u*0.55),s.ang-s.half,s.ang+s.half);g.stroke();g.globalAlpha=a;g.strokeStyle='#ffffff';g.lineWidth=3*a+0.5;g.beginPath();g.arc(s.x,s.y,s.r*(0.5+u*0.5),s.ang-s.half,s.ang+s.half);g.stroke()}
     else if(s.k==='tex'){if(!s.ly)drawTex(g,s)}
