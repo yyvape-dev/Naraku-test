@@ -42,4 +42,4 @@
 - `checks.json`：通常と最大拡大の戦闘状態比較、半径の境界、時刻、二重詠唱、寿命、フォールバック、小画面、JSエラー。
 - `continuity.json`：コマ間の変化、一定RGBAでの補間の暗落ち、燃焼片の残留描画、終端透明。
 
-[制作・再現手順](../../godot/fox_gust/README.md)。通常ゲームへの採用・Pages公開・実機Safari性能確認は未実施。
+[制作・再現手順](../../godot/fox_gust/README.md)。後続のユーザー指示で作業ブランチの通常プレイに採用。フラグなしの検証は `dev/reports/fox-default/`。mainへのマージ・Pages公開・実機Safari性能確認は未実施。

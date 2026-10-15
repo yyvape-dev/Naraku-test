@@ -28,3 +28,5 @@ Godotで出現順・方向・重さ・飛散・光・消え際を構成する。
 乾坤一擲の過去の個別仕様はダメージ3秒、見た目4.2秒、2.8秒から1.4秒のフェード。他の技の既定値にはしない。裂け目と尖った隆起を主役にし、平たい岩盤の枠で面積を埋めないという評価も、この技の文脈で参照する。
 
 桜を強めた狐火の最新候補：`dev/godot/fox_gust/`、比較 `dev/mock/fox_sakura_demo.html`、`?foxfirefx=gust`。旧224px候補は `?foxfirefx=gust-v1`。最新候補は固定格子ではなく1280pxの可変区画を `dev/assets/vfx_meta.json` の配置に従って復元する。`dev/reports/fox-sakura/` に最大拡大・DPR・復号メモリの測定を残す。
+
+2026-10-15の後続ユーザー指示で、作業ブランチの狐火乱舞はフラグなしでも桜の狐火を使う。`?foxfirefx=legacy` で従来へ戻す。標準プレイの検証は `dev/reports/fox-default/`。作業ブランチへの採用をmainマージ・Pages公開と同一視しない。

@@ -27,8 +27,8 @@ Godotは論理400の構成を1280pxで直接レンダリングする。57コマ�
 
 ## 比較と状態
 
-`?foxfirefx=gust` が最新、[fox_sakura_demo.html](../../mock/fox_sakura_demo.html)で爆心拡大0〜4段を比較。`?foxfirefx=gust-v1` は前の224px候補。前の記録・動画は `dev/reports/fox-gust/` に保持する。`fox_gust_demo.html` は以前の開花と224px候補の比較を再現する。
+フラグなしが最新の標準（`?foxfirefx=gust` も同じ）、[fox_sakura_demo.html](../../mock/fox_sakura_demo.html)で爆心拡大0〜4段を比較。`?foxfirefx=gust-v1` は前の224px候補。前の記録・動画は `dev/reports/fox-gust/` に保持する。`fox_gust_demo.html` は以前の開花と224px候補の比較を再現する。
 
-55ダメージ／命中.16秒／基礎半径72／装填5秒／二重詠唱は維持。爆心拡大は実ゲームの `1.25^段数` を使用。残留に追加ダメージなし、百鬼狐火には適用しない。未読込時は従来へ戻る。標準は従来演出。
+55ダメージ／命中.16秒／基礎半径72／装填5秒／二重詠唱は維持。爆心拡大は実ゲームの `1.25^段数` を使用。残留に追加ダメージなし、百鬼狐火には適用しない。未読込時は従来へ戻る。`?foxfirefx=legacy` で従来演出を明示指定できる。
 
-画素数・復号メモリ・実機性能を区別する。[制作レビューと測定](../../reports/fox-sakura/REPORT.md)を参照。通常採用・Pages公開・実機Safari性能確認は未実施。
+画素数・復号メモリ・実機性能を区別する。[制作レビューと測定](../../reports/fox-sakura/REPORT.md)を参照。作業ブランチでは通常の狐火乱舞へ組み込み済み。mainへのマージ・Pages公開・実機Safari性能確認は未実施。
