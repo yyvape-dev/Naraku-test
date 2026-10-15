@@ -1,24 +1,27 @@
 extends Node2D
-## 狐火乱舞 (Yuzunamiki) — user's 5 keyframes (dev/cardart/foxfire_src) brought to life in Godot.
-## Motif (user, 2026-10-15): 紫・薄いピンク・火・墨絵のような黒.
-## 36 frames at 30 fps = 1.2 s (reload is 5 s, so it is gone well before the next cast). t=0 is the damage moment.
-##   0.00-0.07  the pillar of light falls (keyframe 1 wiped top-down), pink spark burst, ink splash
-##   0.05-0.52  the lotus blooms: each keyframe burns in from the heart outward while the previous one burns away
-##   0.04-0.30  sumi ink bleeds across the ground under the flower
-##   0.05-0.80  fox-fire wisps rise; pale pink petals scatter
-##   0.62-1.18  fall-off: last keyframe drifts apart, a second petal gust, ink fades
-## Same two-pass bake as quake_bloom: light (black, additive, 2D HDR glow) / matte (transparent, normal blend).
+## 狐火乱舞 v2 (Yuzunamiki) — user's keyframes (dev/cardart/foxfire_src), motif 紫・薄いピンク・火・墨絵の黒.
+## v1 swapped 5 still images and read as "pasted pictures" (user: quality dropped). v2 follows the references
+## (lunch-inc / zenn kurie): flow = charge -> release -> impact -> fade, ONE hero image that moves (UV flow
+## warp), ground contact reaction, glow only from hot cores.
+## 36 frames at 30 fps = 1.2 s, starting T0 = -0.16 s: target skills hit 0.16 s after the card is used, so the
+## charge plays in that gap and the damage moment is frame 5 (t = 0). The game must start it at card use.
+##  -0.16..0.00 charge : pink fox-fire motes spiral into the point, a glow gathers; the pillar starts falling at -0.07
+##   0.00       impact : pillar lands, pink-white flash, sparks, sumi ink ring + bleed, ink splash
+##   0.00..0.62 bloom  : hero lotus (keyframe 4) burns open from the heart, grows, its flames flow upward
+##   0.58..1.04 scatter: keyframe 5 takes over, second petal gust, everything erodes; fox-fire wisps throughout
 
 const FRAME_COUNT := 36
 const FPS := 30.0
+const T0 := -0.16
 const C := Vector2(200, 262)        # flower heart; game anchor (0.5, 0.655)
 const SQ := 0.5
-const ART_SCALE := 0.5               # art resized to 800px -> 400px canvas (1536 px original)
-const PIVOT_Y := 0.736               # flower heart / pillar base in the art (measured)
-const LIGHT_GAIN := 1.06             # pushes the hottest pixels over the bloom threshold
-const ART_LIGHT := 0.26               # additive copy of the art that feeds the bloom
-# keyframe schedule: [in_start, in_end, out_start, out_end] (keyframe 1 comes in by a top-down wipe)
-const KEYS := [[0.0, 0.07, 0.13, 0.30], [0.05, 0.20, 0.25, 0.42], [0.20, 0.34, 0.45, 0.60], [0.38, 0.52, 0.68, 0.85], [0.62, 0.78, 0.86, 1.18]]
+const ART_SCALE := 0.5
+const PIVOT_Y := 0.736
+const LIGHT_GAIN := 1.08
+const ART_LIGHT := 0.9               # bloom feed from the hot cores only (shader masks it)
+const FLOW := 0.024                  # flame warp strength
+# [image, in_start, in_end, out_start, out_end]; image 0 = pillar (top-down wipe), 3 = hero, 4 = scatter
+const KEYS := [[0, -0.07, 0.0, 0.08, 0.30], [3, 0.0, 0.24, 0.58, 0.80], [4, 0.56, 0.74, 0.82, 1.04]]
 
 var clock := 0.0
 var layer := "all"
@@ -33,56 +36,68 @@ var keys_m: Array = []
 var keys_l: Array = []
 var stain: ColorRect
 var glow_tex: Texture2D
+var flow_tex: NoiseTexture2D
 var parts: Array = []
+var ring_noise: Array = []
 
 static func clamp01(v: float) -> float: return clampf(v, 0.0, 1.0)
 static func win(t: float, a: float, b: float) -> float: return clamp01((t - a) / (b - a))
 static func out_cubic(v: float) -> float: v = clamp01(v); return 1.0 - pow(1.0 - v, 3.0)
+static func in_quad(v: float) -> float: v = clamp01(v); return v * v
 
 func _ready():
 	get_viewport().transparent_bg = true
 	glow_tex = soft_tex(128, 128)
+	flow_tex = NoiseTexture2D.new(); flow_tex.width = 256; flow_tex.height = 256; flow_tex.seamless = true
+	var fn := FastNoiseLite.new(); fn.seed = 7; fn.frequency = 0.012; fn.fractal_octaves = 3
+	flow_tex.noise = fn; flow_tex.as_normal_map = false
+	await flow_tex.changed
 	black = ColorRect.new(); black.color = Color.BLACK; black.size = Vector2(400, 400); add_child(black)
 	matte = Node2D.new(); add_child(matte)
 	light = Node2D.new(); add_child(light)
 	var lm := CanvasItemMaterial.new(); lm.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD; light.material = lm
 	light.modulate = Color(LIGHT_GAIN, LIGHT_GAIN, LIGHT_GAIN)
-	light.draw.connect(_draw_light)
+	light.draw.connect(_draw_light); matte.draw.connect(_draw_matte)
 
-	# floor: sumi ink blot (matte)
 	stain = ColorRect.new(); stain.size = Vector2(300, 300); stain.position = C - Vector2(150, 150)
 	stain.pivot_offset = Vector2(150, 150); stain.scale = Vector2(1, SQ)
 	var sm := ShaderMaterial.new(); sm.shader = load("res://ink_stain.gdshader"); sm.set_shader_parameter("seed", 3.0)
 	stain.material = sm; matte.add_child(stain)
 
-	# the user's keyframes, twice: true colours (matte) and an additive copy (light)
-	var art_m = load("res://fox_art.gdshader"); var art_a = load("res://fox_art_add.gdshader")
+	var sh_m = load("res://fox_flow.gdshader"); var sh_a = load("res://fox_flow_add.gdshader")
 	root_m = Node2D.new(); root_m.position = C; matte.add_child(root_m)
 	root_l = Node2D.new(); root_l.position = C; light.add_child(root_l)
-	for i in 5:
-		var img := Image.load_from_file("res://art/vfx_frame_%02d.png" % (i + 1))
-		if img.is_empty(): push_error("missing art %d" % (i + 1)); get_tree().quit(1); return
-		img.resize(800, 800, Image.INTERPOLATE_LANCZOS)
-		var tex := ImageTexture.create_from_image(img)
-		for pair in [[root_m, art_m, keys_m, 1.0], [root_l, art_a, keys_l, ART_LIGHT]]:
-			var s := Sprite2D.new(); s.texture = tex; s.scale = Vector2.ONE * ART_SCALE
+	var texs := {}
+	for k in KEYS:
+		var i: int = k[0]
+		if not texs.has(i):
+			var img := Image.load_from_file("res://art/vfx_frame_%02d.png" % (i + 1))
+			if img.is_empty(): push_error("missing art"); get_tree().quit(1); return
+			img.resize(800, 800, Image.INTERPOLATE_LANCZOS)
+			texs[i] = ImageTexture.create_from_image(img)
+		for pair in [[root_m, sh_m, keys_m, 1.0], [root_l, sh_a, keys_l, ART_LIGHT]]:
+			var s := Sprite2D.new(); s.texture = texs[i]; s.scale = Vector2.ONE * ART_SCALE
 			s.offset = Vector2(0, 400.0 - PIVOT_Y * 800.0)
-			s.self_modulate = Color(pair[3], pair[3], pair[3])
-			var m := ShaderMaterial.new(); m.shader = pair[1]; m.set_shader_parameter("seed", float(i) * 2.7)
+			var m := ShaderMaterial.new(); m.shader = pair[1]
+			m.set_shader_parameter("flow_tex", flow_tex); m.set_shader_parameter("gain", pair[3])
+			m.set_shader_parameter("flow_amt", FLOW * (0.5 if i == 0 else 1.0))
 			m.set_shader_parameter("pivot", Vector2(0.5, PIVOT_Y)); s.material = m
 			pair[0].add_child(s); pair[2].append(s)
 
+	var rng := RandomNumberGenerator.new(); rng.seed = 4
+	for i in 61: ring_noise.append(rng.randf_range(-1, 1))
+
 	env = Environment.new()
 	env.background_mode = Environment.BG_CANVAS
-	env.glow_enabled = true; env.glow_intensity = 0.45; env.glow_strength = 0.9; env.glow_bloom = 0.0
-	env.glow_hdr_threshold = 1.0; env.glow_blend_mode = Environment.GLOW_BLEND_MODE_ADDITIVE
+	env.glow_enabled = true; env.glow_intensity = 0.55; env.glow_strength = 0.9; env.glow_bloom = 0.0
+	env.glow_hdr_threshold = 0.95; env.glow_blend_mode = Environment.GLOW_BLEND_MODE_ADDITIVE
 	for i in 7: env.set_glow_level(i, [0.0, 0.5, 0.9, 0.7, 0.35, 0.0, 0.0][i])
 	var we := WorldEnvironment.new(); we.environment = env; add_child(we)
 	build_particles()
 	if "--bake" in OS.get_cmdline_user_args():
 		set_process(false); call_deferred("bake")
 	else:
-		animate(0.0)
+		animate(T0)
 
 func soft_tex(w: int, h: int) -> Texture2D:
 	var g := Gradient.new(); g.offsets = PackedFloat32Array([0.0, 0.25, 0.6, 1.0])
@@ -112,18 +127,28 @@ func gp(parent: Node2D, tex: Texture2D, amount: int, life: float, start: float, 
 	return [n, m]
 
 func build_particles():
-	var petal := soft_tex(24, 60)     # long soft petal
-	var flame := soft_tex(22, 72)     # tongue of fox fire
-	# 1) pink sparks when the pillar lands
-	var a := gp(light, soft_tex(14, 70), 46, 0.32, 0.03, "air", "light", 5, C)
+	var petal := soft_tex(24, 60)
+	var flame := soft_tex(22, 72)
+	# 0) charge: pink fox-fire motes spiral into the point (溜め)
+	var a := gp(light, soft_tex(16, 64), 64, 0.16, T0, "air", "light", 3, C + Vector2(0, -8))
 	var n: GPUParticles2D = a[0]; var m: ParticleProcessMaterial = a[1]
+	n.explosiveness = 0.8
+	m.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_RING; m.emission_ring_axis = Vector3(0, 0, 1)
+	m.emission_ring_radius = 125.0; m.emission_ring_inner_radius = 85.0; m.emission_ring_height = 0.0
+	m.gravity = Vector3.ZERO; m.radial_accel_min = -2600.0; m.radial_accel_max = -2200.0
+	m.tangential_accel_min = 900.0; m.tangential_accel_max = 1300.0; m.particle_flag_align_y = true
+	m.scale_min = 0.26; m.scale_max = 0.46; m.scale_curve = curve([[0.0, 0.5], [0.7, 1.0], [1.0, 0.15]])
+	m.color_ramp = ramp([Color(0.8, 0.5, 1.0, 0.3), Color(1, 0.72, 0.94, 1), Color(1, 0.95, 1, 1)], [0.0, 0.3, 1.0])
+	# 1) pink sparks at impact
+	a = gp(light, soft_tex(14, 70), 46, 0.32, 0.0, "air", "light", 5, C)
+	n = a[0]; m = a[1]
 	n.explosiveness = 1.0
 	m.direction = Vector3(0, -1, 0); m.spread = 180.0; m.initial_velocity_min = 180.0; m.initial_velocity_max = 430.0
 	m.damping_min = 280.0; m.damping_max = 420.0; m.particle_flag_align_y = true
 	m.scale_min = 0.12; m.scale_max = 0.26; m.scale_curve = curve([[0.0, 1.0], [1.0, 0.2]])
 	m.color_ramp = ramp([Color(1, 0.93, 0.98, 1), Color(1, 0.6, 0.88, 1), Color(0.6, 0.3, 1.0, 0)], [0.0, 0.35, 1.0])
-	# 2) fox-fire wisps rising around the flower (火)
-	a = gp(light, flame, 34, 0.62, 0.05, "air", "light", 9, C + Vector2(0, -4))
+	# 2) fox-fire wisps rising (火)
+	a = gp(light, flame, 34, 0.62, 0.03, "air", "light", 9, C + Vector2(0, -4))
 	n = a[0]; m = a[1]
 	n.explosiveness = 0.3
 	m.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX; m.emission_box_extents = Vector3(80, 16, 0)
@@ -133,8 +158,8 @@ func build_particles():
 	m.turbulence_influence_min = 0.06; m.turbulence_influence_max = 0.14
 	m.scale_min = 0.22; m.scale_max = 0.42; m.scale_curve = curve([[0.0, 0.3], [0.25, 1.0], [1.0, 0.0]])
 	m.color_ramp = ramp([Color(1, 0.95, 1, 0), Color(1, 0.72, 0.92, 0.95), Color(0.75, 0.35, 1.0, 0.7), Color(0.35, 0.1, 0.6, 0)], [0.0, 0.15, 0.55, 1.0])
-	# 3) pale pink petals scattering (薄いピンク)
-	a = gp(light, petal, 44, 0.85, 0.1, "air", "light", 13, C + Vector2(0, -20))
+	# 3) pale pink petals
+	a = gp(light, petal, 44, 0.85, 0.06, "air", "light", 13, C + Vector2(0, -20))
 	n = a[0]; m = a[1]
 	n.explosiveness = 0.6
 	m.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE; m.emission_sphere_radius = 30.0
@@ -143,8 +168,8 @@ func build_particles():
 	m.angle_min = -180.0; m.angle_max = 180.0; m.angular_velocity_min = -220.0; m.angular_velocity_max = 220.0
 	m.scale_min = 0.09; m.scale_max = 0.17
 	m.color_ramp = ramp([Color(1, 0.88, 0.95, 0.95), Color(1, 0.72, 0.9, 0.85), Color(0.7, 0.5, 1.0, 0)], [0.0, 0.5, 1.0])
-	# 4) second gust of petals as the flower comes apart
-	a = gp(light, petal, 30, 0.55, 0.66, "air", "light", 17, C + Vector2(0, -24))
+	# 4) second petal gust as it comes apart
+	a = gp(light, petal, 30, 0.5, 0.6, "air", "light", 17, C + Vector2(0, -24))
 	n = a[0]; m = a[1]
 	n.explosiveness = 0.85
 	m.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE; m.emission_sphere_radius = 55.0
@@ -153,8 +178,8 @@ func build_particles():
 	m.angle_min = -180.0; m.angle_max = 180.0; m.angular_velocity_min = -260.0; m.angular_velocity_max = 260.0
 	m.scale_min = 0.08; m.scale_max = 0.15
 	m.color_ramp = ramp([Color(1, 0.85, 0.95, 0.9), Color(0.85, 0.6, 1.0, 0.6), Color(0.5, 0.3, 0.9, 0)], [0.0, 0.45, 1.0])
-	# 5) sumi ink droplets flung out by the impact (墨しぶき, matte so they stay black)
-	a = gp(matte, glow_tex, 30, 0.5, 0.05, "air", "matte", 21, C)
+	# 5) sumi ink splash (matte, stays black)
+	a = gp(matte, glow_tex, 30, 0.5, 0.0, "air", "matte", 21, C)
 	n = a[0]; m = a[1]
 	n.explosiveness = 1.0
 	m.direction = Vector3(0, -1, 0); m.spread = 75.0; m.initial_velocity_min = 140.0; m.initial_velocity_max = 330.0
@@ -177,50 +202,72 @@ func animate(t: float):
 	for q in parts:
 		var n: GPUParticles2D = q.node
 		n.visible = shows(q.layer, q.pass)
-		if not q.on and t >= q.start:
+		if not q.on and t >= q.start - 0.001:
 			q.on = true; n.emitting = true
-	# whole flower: settles in scale and turns slowly with the ink spiral
-	var sc := 0.9 + 0.1 * out_cubic(t / 0.45) + 0.05 * win(t, 0.6, 1.2)
-	var rot := 0.18 * out_cubic(t / 1.2)
+	# the lotus grows continuously (no image swap for growth) and turns with the ink spiral
+	var sc := 0.62 + 0.38 * out_cubic(win(t, 0.0, 0.32)) + 0.06 * win(t, 0.5, 1.04)
+	var rot := 0.2 * out_cubic(win(t, 0.0, 1.04))
 	for r in [root_m, root_l]:
 		r.scale = Vector2.ONE * sc; r.rotation = rot
 	root_m.visible = shows("air", "matte"); root_l.visible = shows("air", "light")
-	for i in 5:
+	for i in KEYS.size():
 		var k: Array = KEYS[i]
-		var vis: bool = t >= k[0] and t <= k[3]
+		var vis: bool = t >= k[1] and t <= k[4]
 		for s in [keys_m[i], keys_l[i]]:
 			s.visible = vis
 			var m: ShaderMaterial = s.material
-			if i == 0:
-				m.set_shader_parameter("ywipe", lerpf(-0.05, 1.05, out_cubic(win(t, k[0], k[1]))))
-				m.set_shader_parameter("burn", 2.0)
+			m.set_shader_parameter("flow_t", t - T0)
+			if k[0] == 0:
+				# the pillar keeps its full height while the flower scales up from the ground
+				s.scale = Vector2.ONE * ART_SCALE / sc
+				m.set_shader_parameter("ywipe", lerpf(-0.05, 1.05, in_quad(win(t, k[1], k[2]))))
 			else:
-				m.set_shader_parameter("burn", lerpf(-0.1, 1.25, out_cubic(win(t, k[0], k[1]))))
-			m.set_shader_parameter("dissolve", lerpf(-0.45, 1.05, win(t, k[2], k[3])))
-	# ink blot on the ground
-	stain.visible = shows("floor", "matte") and t > 0.03
+				m.set_shader_parameter("burn", lerpf(-0.1, 1.25, out_cubic(win(t, k[1], k[2]))))
+			m.set_shader_parameter("dissolve", lerpf(-0.45, 1.05, win(t, k[3], k[4])))
+	stain.visible = shows("floor", "matte") and t > 0.0
 	var sm: ShaderMaterial = stain.material
-	sm.set_shader_parameter("spread", 0.85 * out_cubic(win(t, 0.03, 0.32)))
-	sm.set_shader_parameter("opacity", 0.75 * (1.0 - win(t, 0.75, 1.15)))
-	light.queue_redraw()
+	sm.set_shader_parameter("spread", 0.85 * out_cubic(win(t, 0.0, 0.28)))
+	sm.set_shader_parameter("opacity", 0.75 * (1.0 - win(t, 0.7, 1.04)))
+	light.queue_redraw(); matte.queue_redraw()
 
 func _process(dt):
-	animate(fmod(clock + dt * 0.5, 1.4))
+	var t: float = clock + dt * 0.5
+	if t > 1.3: t = T0
+	animate(t)
 
-func glow_at(p: Vector2, size: Vector2, col: Color):
-	light.draw_texture_rect(glow_tex, Rect2(p - size * 0.5, size), false, col)
+func glow_at(n: CanvasItem, p: Vector2, size: Vector2, col: Color):
+	n.draw_texture_rect(glow_tex, Rect2(p - size * 0.5, size), false, col)
+
+func ink_ring(n: CanvasItem, rad: float, width: float, col: Color):
+	# a brushed sumi ring on the ground: wobbly radius, varying thickness
+	for i in 60:
+		var a0 := TAU * i / 60.0; var a1 := TAU * (i + 1) / 60.0
+		var r0: float = rad * (1.0 + 0.07 * ring_noise[i]); var r1: float = rad * (1.0 + 0.07 * ring_noise[i + 1])
+		var w := width * (0.55 + 0.45 * absf(sin(a0 * 3.0 + 0.7)))
+		n.draw_line(C + Vector2(cos(a0) * r0, sin(a0) * r0 * SQ), C + Vector2(cos(a1) * r1, sin(a1) * r1 * SQ), col, w, true)
+
+func _draw_matte():
+	var t := clock
+	if shows("floor", "matte") and t >= 0.0:
+		# ground contact: the pillar's landing pushes a sumi ring outward
+		var k := win(t, 0.0, 0.3)
+		if k < 1.0: ink_ring(matte, lerpf(20, 150, out_cubic(k)), lerpf(9, 1.5, k), Color(0.04, 0.01, 0.05, 0.7 * (1.0 - k)))
 
 func _draw_light():
 	var t := clock
-	if shows("floor", "light"):
-		# violet light pooling on the ground, a pink flash where the pillar lands
-		var pool := clamp01(t / 0.06) * (1.0 - win(t, 0.5, 1.15))
-		glow_at(C, Vector2(250, 120), Color(0.55, 0.22, 0.95, 0.45 * pool))
-		var fl := clamp01(1.0 - absf(t - 0.05) / 0.06)
-		glow_at(C, Vector2(170, 70), Color(1.0, 0.6, 0.9, 0.7 * fl))
 	if shows("air", "light"):
-		var fl := clamp01(1.0 - absf(t - 0.045) / 0.05)
-		glow_at(C + Vector2(0, -6), Vector2(90, 60), Color(1.0, 0.75, 0.95, 0.55 * fl))
+		# charge: a glow gathers at the point, tightening until the hit
+		if t < 0.02:
+			var c := win(t, T0, 0.0)
+			glow_at(light, C + Vector2(0, -6), Vector2.ONE * lerpf(200, 40, c), Color(0.85, 0.5, 1.0, 0.35 + 0.55 * c))
+			glow_at(light, C + Vector2(0, -6), Vector2.ONE * lerpf(70, 22, c), Color(1.0, 0.85, 1.0, 0.3 + 0.7 * c * c))
+		var fl := clamp01(1.0 - absf(t - 0.0) / 0.05)
+		glow_at(light, C + Vector2(0, -6), Vector2(110, 70), Color(1.0, 0.78, 0.96, 0.6 * fl))
+	if shows("floor", "light") and t >= 0.0:
+		var pool := clamp01(t / 0.05) * (1.0 - win(t, 0.45, 1.04))
+		glow_at(light, C, Vector2(250, 120), Color(0.55, 0.22, 0.95, 0.42 * pool))
+		var k := win(t, 0.0, 0.18)
+		if k < 1.0: glow_at(light, C, Vector2(330, 160) * out_cubic(k), Color(1.0, 0.6, 0.9, 0.35 * (1.0 - k)))
 
 func bake():
 	DirAccess.make_dir_recursive_absolute("res://frames")
@@ -230,7 +277,7 @@ func bake():
 			reset_particles()
 			await get_tree().process_frame
 			for f in FRAME_COUNT:
-				animate(f / FPS)
+				animate(T0 + f / FPS)
 				await get_tree().process_frame
 				await RenderingServer.frame_post_draw
 				var img := get_viewport().get_texture().get_image()

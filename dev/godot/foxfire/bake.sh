@@ -13,5 +13,5 @@ mkdir -p art && cp ../../cardart/foxfire_src/vfx_frame_0*.png art/
 xvfb-run -a -s "-screen 0 1024x768x24" "$G" --path . --import >/dev/null 2>&1 || true
 rm -rf frames
 # --fixed-fps 30 で1フレーム＝1/30秒に固定（GPU粒子を毎回同じ形に焼くため）
-timeout 900 xvfb-run -a -s "-screen 0 1024x768x24" "$G" --path . --rendering-method gl_compatibility --audio-driver Dummy --fixed-fps 30 -- --bake
+timeout 300 xvfb-run -a -s "-screen 0 1024x768x24" "$G" --path . --rendering-method gl_compatibility --audio-driver Dummy --fixed-fps 30 -- --bake
 python3 pack.py out

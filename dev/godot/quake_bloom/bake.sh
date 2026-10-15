@@ -13,5 +13,5 @@ mkdir -p art && cp ../quake/art/slash.png ../quake/art/impact.png ../quake/art/r
 xvfb-run -a -s "-screen 0 1024x768x24" "$G" --path . --import >/dev/null 2>&1 || true
 rm -rf frames
 # --fixed-fps 40 で1フレーム＝1/40秒に固定（GPU粒子を毎回同じ形に焼くため）
-timeout 900 xvfb-run -a -s "-screen 0 1024x768x24" "$G" --path . --rendering-method gl_compatibility --audio-driver Dummy --fixed-fps 40 -- --bake
+timeout 300 xvfb-run -a -s "-screen 0 1024x768x24" "$G" --path . --rendering-method gl_compatibility --audio-driver Dummy --fixed-fps 40 -- --bake
 python3 pack.py out
