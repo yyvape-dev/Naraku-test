@@ -1,0 +1,135 @@
+{
+  "defaultWithoutFlags": true,
+  "combatEqual": true,
+  "maxRangeCombatEqual": true,
+  "maxRangeIsolatedCases": [
+    {
+      "echo": 0,
+      "before": [
+        1000,
+        1000,
+        1000
+      ],
+      "pending": 1,
+      "hit": [
+        945,
+        945,
+        1000
+      ],
+      "afterEcho": [
+        945,
+        945,
+        1000
+      ],
+      "layers": 2,
+      "reload": 5,
+      "remaining": 0
+    },
+    {
+      "echo": 1,
+      "before": [
+        1000,
+        1000,
+        1000
+      ],
+      "pending": 2,
+      "hit": [
+        945,
+        945,
+        1000
+      ],
+      "afterEcho": [
+        912,
+        912,
+        1000
+      ],
+      "layers": 2,
+      "reload": 5,
+      "remaining": 0
+    }
+  ],
+  "seeds": [
+    1,
+    77,
+    4242
+  ],
+  "durationSeconds": 30,
+  "isolatedCases": [
+    {
+      "echo": 0,
+      "before": [
+        1000,
+        1000,
+        1000
+      ],
+      "pending": 1,
+      "hit": [
+        945,
+        945,
+        1000
+      ],
+      "afterEcho": [
+        945,
+        945,
+        1000
+      ],
+      "layers": 2,
+      "reload": 5,
+      "remaining": 0
+    },
+    {
+      "echo": 1,
+      "before": [
+        1000,
+        1000,
+        1000
+      ],
+      "pending": 2,
+      "hit": [
+        945,
+        945,
+        1000
+      ],
+      "afterEcho": [
+        912,
+        912,
+        1000
+      ],
+      "layers": 2,
+      "reload": 5,
+      "remaining": 0
+    }
+  ],
+  "previewHP": [
+    [
+      945,
+      945,
+      945
+    ],
+    [
+      945,
+      945,
+      945
+    ]
+  ],
+  "ultimateExcluded": true,
+  "missingAtlasFallback": true,
+  "metadataMatches": true,
+  "explicitLegacyDoesNotDecodeSkillAtlases": true,
+  "errors": [],
+  "DPR": 2,
+  "phoneRanks": [
+    0,
+    4
+  ],
+  "phoneViewports": [
+    [
+      375,
+      667
+    ],
+    [
+      393,
+      852
+    ]
+  ]
+}
