@@ -1469,7 +1469,7 @@ function drawBarrier(g,T){
   g.restore();g.globalAlpha=1;
 }
 const VT={},VC={};
-for(const k in VFX){if(k.startsWith('foxskill_')&&new URLSearchParams(location.search).get('foxfirefx')!=='godot')continue;if(k.startsWith('foxbloom_')&&new URLSearchParams(location.search).get('foxfirefx')!=='bloom')continue;const im=new Image();im.src=VFX[k];VT[k]=im}
+for(const k in VFX){if(k.startsWith('foxskill_')&&new URLSearchParams(location.search).get('foxfirefx')!=='godot')continue;if(k.startsWith('foxgust_')&&new URLSearchParams(location.search).get('foxfirefx')!=='gust')continue;if(k.startsWith('foxbloom_')&&new URLSearchParams(location.search).get('foxfirefx')!=='bloom')continue;const im=new Image();im.src=VFX[k];VT[k]=im}
 function vtex(n,col){ // col を渡すと、白い光をその色に染めた写しを作って使い回す（芯は白を少し残す）
   const im=VT[n];if(!im||!im.complete||!im.naturalWidth)return null;if(!col)return im;
   const key=n+col;let c=VC[key];if(c)return c;
@@ -1520,10 +1520,11 @@ function fxHitReaction(e,who,kind,crit){
 }
 
 // 狐火乱舞: a dedicated connected fire swathe, independent of normal hits and ultimates.
-const FOX_SKILL={enabled:['godot','bloom'].includes(new URLSearchParams(location.search).get('foxfirefx')),version:new URLSearchParams(location.search).get('foxfirefx')==='bloom'?'bloom':'flame',frames:51,cols:8,life:1.35,layerFlags:{floor:true,air:true},times:Array.from({length:51},(_,i)=>i<24?i/60:i<45?.4+(i-24)/30:1.1+(i-45)/24)};
+const FOX_SKILL={enabled:['godot','bloom','gust'].includes(new URLSearchParams(location.search).get('foxfirefx')),version:({bloom:'bloom',gust:'gust'})[new URLSearchParams(location.search).get('foxfirefx')]||'flame',frames:51,cols:8,life:1.35,layerFlags:{floor:true,air:true},times:Array.from({length:51},(_,i)=>i<24?i/60:i<45?.4+(i-24)/30:1.1+(i-45)/24)};
 if(FOX_SKILL.version==='bloom')Object.assign(FOX_SKILL,{frames:69,life:1.8,times:Array.from({length:69},(_,i)=>i<30?i/60:.5+(i-30)/30)});
+if(FOX_SKILL.version==='gust')Object.assign(FOX_SKILL,{frames:57,life:1.4,times:Array.from({length:57},(_,i)=>i<30?i/60:.5+(i-30)/30)});
 let FOX_SKILL_MIX=null,FOX_SKILL_CTX=null;
-function foxSkillAtlas(layer){return vtex((FOX_SKILL.version==='bloom'?'foxbloom_':'foxskill_')+layer)}
+function foxSkillAtlas(layer){return vtex(({bloom:'foxbloom_',gust:'foxgust_',flame:'foxskill_'})[FOX_SKILL.version]+layer)}
 function foxSkillReady(){return FOX_SKILL.enabled&&!!(foxSkillAtlas('floor')&&foxSkillAtlas('air'))}
 function fxFoxSkill(x,y,r){
   if(!foxSkillReady())return false;
