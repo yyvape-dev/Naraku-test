@@ -7,6 +7,7 @@
     "cols": 8,
     "frames": 57,
     "life": 1.4,
+    "native": 1280,
     "times": [
       0.0,
       0.0166666666666667,
@@ -67,18 +68,26 @@
       1.36666666666667
     ]
   },
-  "floor": {
-    "tile": 224,
-    "frames": 57,
-    "timing": "variable-rate",
-    "bytes": 406980,
-    "decodedBytes": 12845056
-  },
-  "air": {
-    "tile": 224,
-    "frames": 57,
-    "timing": "variable-rate",
-    "bytes": 192344,
-    "decodedBytes": 12845056
+  "alphaTrimThreshold": 1,
+  "tilePartition": 192,
+  "layers": {
+    "floor": {
+      "size": [
+        4096,
+        3744
+      ],
+      "bytes": 8360238,
+      "decodedBytes": 61341696,
+      "occupiedPixels": 13832394
+    },
+    "air": {
+      "size": [
+        1792,
+        2796
+      ],
+      "bytes": 2694574,
+      "decodedBytes": 20041728,
+      "occupiedPixels": 4375322
+    }
   }
 }

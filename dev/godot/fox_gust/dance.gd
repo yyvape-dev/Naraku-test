@@ -3,6 +3,8 @@ const C=Vector2(200,240)
 const LIFE=1.4
 var clock:=0.0
 var layer:="all"
+var baking:=false
+const MASTER=1280
 var times:Array=[]
 var parts:Array=[]
 var motes:Array=[]
@@ -47,6 +49,8 @@ func mesh_flame(key:String,origin:Vector2,source:String=""):
 
 func _ready():
  get_viewport().transparent_bg=true
+ scale=Vector2.ONE*(MASTER/400.0)
+ baking="--bake" in OS.get_cmdline_user_args()
  water=Sprite2D.new()
  water.texture=ImageTexture.create_from_image(Image.load_from_file(ProjectSettings.globalize_path("res://../fox_bloom/art/water_source.png")))
  var wm=ShaderMaterial.new()
@@ -64,6 +68,7 @@ func _ready():
  sm.set_shader_parameter("spread",1.2)
  smoke.material=sm
  add_child(smoke)
+ mesh_flame("sakura_burst",Vector2(.5,.53))
  mesh_flame("rear",Vector2(.12,.94))
  mesh_flame("front",Vector2(.50,.83))
  mesh_flame("root",Vector2(.5,.8))
@@ -83,15 +88,16 @@ func _ready():
  var rng=RandomNumberGenerator.new()
  rng.seed=14927
  # Bursts are attached to two sources, never placed on an evenly divided circle.
- for i in range(43):
+ for i in range(57):
   var burst=i%3
   var born=[.045,.115,.225][burst]+rng.randf_range(-.018,.027)
-  var heavy=i%5==0
+  var petal=i>=43
+  var heavy=i%5==0 or petal
   var source=Vector2(-22,-5) if burst!=1 else Vector2(24,-10)
-  parts.append({"born":born,"life":rng.randf_range(.48,1.02) if not heavy else rng.randf_range(.70,1.08),"p":C+source+Vector2(rng.randf_range(-13,13),rng.randf_range(-8,4)),"v":Vector2(rng.randf_range(-65,115),rng.randf_range(-180,-55)),"drag":rng.randf_range(5,12) if not heavy else rng.randf_range(2,4),"heavy":heavy,"size":rng.randf_range(.8,1.7) if not heavy else rng.randf_range(2.0,3.5),"seed":rng.randf_range(0,6),"front":i%3==1})
+  parts.append({"born":born,"life":rng.randf_range(.48,1.02) if not heavy else rng.randf_range(.70,1.08),"p":C+source+Vector2(rng.randf_range(-13,13),rng.randf_range(-8,4)),"v":Vector2(rng.randf_range(-65,115),rng.randf_range(-180,-55)),"drag":rng.randf_range(5,12) if not heavy else rng.randf_range(2,4),"heavy":heavy,"size":rng.randf_range(.8,1.7) if not heavy else rng.randf_range(2.0,3.5),"seed":rng.randf_range(0,6),"front":i%3==1,"petal":(i%2) if petal else -1,"width":rng.randf_range(19.,36.) if petal else 0.})
  for i in range(30):times.append(i/60.0)
  for i in range(27):times.append(.5+i/30.0)
- if "--bake" in OS.get_cmdline_user_args():
+ if baking:
   set_process(false)
   call_deferred("bake")
 
@@ -124,11 +130,16 @@ func animate(t:float):
  smoke.material.set_shader_parameter("age",t)
  smoke.material.set_shader_parameter("opacity",clampf(haze/.13,0,1)*pow(clampf(1.-haze/.76,0,1),1.7)*.11)
  smoke.material.set_shader_parameter("erosion",haze*.7)
+ # A short five-cleft ignition silhouette, then wind consumes the lobes.
+ var bloom=clampf((t-.025)/.05,0,1)*(1.-smoothstep(.23,.43,t))
+ var bloom_size=1.-exp(-maxf(t-.025,0)*22.)
+ put("sakura_burst",C+Vector2(-3,-12),lerpf(180,338,bloom_size),lerpf(70,190,bloom_size),bloom*.94 if rear else 0.,t,lerpf(-.20,1.25,smoothstep(.12,.41,t)),1.25)
+ flames.sakura_burst.rotation=-.08
  var rise=1.-exp(-t*30.)
  var strength=clampf(t/.025,0,1)*pow(clampf(1.-maxf(0,t-.13)/.50,0,1),.75)
  var consume=lerpf(-.22,1.18,smoothstep(.12,.64,t))
- put("rear",C+Vector2(-48,-7),lerpf(95,205,rise),lerpf(62,194,rise),strength if rear else 0.,t,consume)
- put("front",C+Vector2(6,5),lerpf(125,265,rise),lerpf(30,100,rise),strength*.94 if front else 0.,t+.04,consume+.06,.45)
+ put("rear",C+Vector2(-48,-7),lerpf(95,225,rise),lerpf(62,208,rise),strength if rear else 0.,t,consume)
+ put("front",C+Vector2(6,5),lerpf(125,292,rise),lerpf(30,118,rise),strength*.94 if front else 0.,t+.04,consume+.06,.45)
  put("mid",C+Vector2(-9,-8),lerpf(25,81,rise),lerpf(35,128,rise),strength*.85 if rear else 0.,t+.035,consume+.12,.8)
  flames.mid.rotation=-.18
  put("root",C+Vector2(-12,0),lerpf(18,50,rise),lerpf(13,40,rise),pow(clampf(1.-t/.13,0,1),1.3) if front else 0.,t,-.3,0.)
@@ -139,7 +150,7 @@ func animate(t:float):
  put("fragment_b",C+Vector2(63+a*80,-26-a*45),45-20*a,42-10*a,detached*.75 if front else 0.,t+.08,consume+.05,.7)
  flames.fragment_b.rotation=.3-a*.7
  motes.clear()
- for part in parts:
+ for part in ([] if baking else parts):
   var age=t-part.born
   if age<0 or age>part.life:continue
   var pos:Vector2=part.p
@@ -187,6 +198,14 @@ func bake():
     get_tree().quit(1)
     return
  var f=FileAccess.open("res://timeline.json",FileAccess.WRITE)
- f.store_string(JSON.stringify({"times":times,"frames":times.size(),"cols":8,"life":LIFE,"anchor":[.5,.6]},"  "))
+ f.store_string(JSON.stringify({"times":times,"frames":times.size(),"cols":8,"life":LIFE,"anchor":[.5,.6],"native":MASTER},"  "))
+ var recipe=[]
+ for part in parts:
+  var q=part.duplicate()
+  q.p=[part.p.x,part.p.y]
+  q.v=[part.v.x,part.v.y]
+  recipe.append(q)
+ var pf=FileAccess.open("res://particles.json",FileAccess.WRITE)
+ pf.store_string(JSON.stringify(recipe,"  "))
  print("FOX GUST BAKE OK: %d frames x 2 layers" % times.size())
  get_tree().quit()

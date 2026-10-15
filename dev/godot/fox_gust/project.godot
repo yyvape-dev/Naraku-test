@@ -3,8 +3,8 @@ config_version=5
 config/name="Naraku — 風にほどける狐火"
 run/main_scene="res://dance.tscn"
 [display]
-window/size/viewport_width=400
-window/size/viewport_height=400
+window/size/viewport_width=1280
+window/size/viewport_height=1280
 [rendering]
 renderer/rendering_method="gl_compatibility"
 environment/defaults/default_clear_color=Color(0,0,0,0)

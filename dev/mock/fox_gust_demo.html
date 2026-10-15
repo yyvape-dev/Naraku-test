@@ -4,7 +4,7 @@
 <p>同じ敵・同じ範囲への発動を比較します。左が前の開花候補、右が火を主役にした新候補です。根元からの立ち上がり、風による破断、火の粉の慣性差を確認します。</p>
 <div class="controls"><button id="replay">再発動</button><button id="pause">停止</button><label>速度 <select id="speed"><option value="1">等速</option><option value=".5">1/2</option><option value=".25">1/4</option></select></label><label>敵 <select id="enemy"><option value="knight">盾騎士3体</option><option value="skel">骸骨3体</option><option value="ogre">大鬼</option><option value="scorp">女王</option></select></label></div>
 <div class="controls"><label><input id="floor" type="checkbox" checked>奥の炎・接地反射</label><label><input id="air" type="checkbox" checked>手前の炎・火の粉</label><input type="range" id="scrub" min="0" max="1.4" step=".005" value="0"><output id="time">0.000秒</output><span id="status">読み込み中</span></div>
-<main><section class="panel"><h2>前候補：花・水面の開花</h2><div class="stage"><iframe title="従来の狐火乱舞" src="../../index.html?hitfx=godot&foxfirefx=bloom"></iframe></div></section><section class="panel"><h2>新候補：風に裂けて燃え尽きる狐火</h2><div class="stage"><iframe title="狐火乱舞の候補" src="../../index.html?hitfx=godot&foxfirefx=gust"></iframe></div></section></main>
+<main><section class="panel"><h2>前候補：花・水面の開花</h2><div class="stage"><iframe title="従来の狐火乱舞" src="../../index.html?hitfx=godot&foxfirefx=bloom"></iframe></div></section><section class="panel"><h2>新候補：風に裂けて燃え尽きる狐火</h2><div class="stage"><iframe title="狐火乱舞の候補" src="../../index.html?hitfx=godot&foxfirefx=gust-v1"></iframe></div></section></main>
 <p>55ダメージ・命中0.16秒・範囲72・装填5秒は共通です。時間表示は命中後から。炎が広がる途中にも、範囲全体のダメージは既に確定しています。残る反射や火の粉に追加ダメージはありません。通常ゲームへの採用前の比較候補です。</p>
 <script>
 const frames=[...document.querySelectorAll('iframe')],$=id=>document.getElementById(id);let engines=[],playing=true,elapsed=0,prev=0;

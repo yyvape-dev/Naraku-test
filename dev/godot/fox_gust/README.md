@@ -1,37 +1,34 @@
-# 狐火乱舞：風にほどける狐火
+# 狐火乱舞：桜の燃焼ピークと風にほどける狐火
 
-[設計](../../design/fox_fire_gust/DESIGN.md)の最初の実装候補。火を主役に、根元の着火→奥の立ち上がり／手前の低い炎→首の破断→風で流れる燃焼裂片と火の粉→短い反射と煙を制作した。
+[設計と最新の採否](../../design/fox_fire_gust/SAKURA_REVISION.md)。短い桜状の燃焼ピーク、奥と手前の主炎、首の破断、同じ風を受ける火の粉43個と大きな燃焼片14枚、接地反射と煙を制作する。
 
 ```sh
 python3 dev/godot/fox_gust/prepare.py
-# 描画可能なディスプレイで実行する。
+# 描画可能なディスプレイで実行。環境に応じDISPLAYと書込可能なXDG_*_HOMEを設定。
 godot --path dev/godot/fox_gust --rendering-method gl_compatibility --audio-driver Dummy -- --bake
 python3 dev/godot/fox_gust/pack.py
 python3 dev/tools/embed.py dev/naraku_src.html index.html dev/assets
-python3 -m http.server 8005 --bind 127.0.0.1
-python3 dev/tests/fox_gust.py
-python3 dev/tests/fox_gust_continuity.py
-python3 dev/tests/fox_gust_frames.py
-python3 dev/godot/fox_gust/capture.py
-ffmpeg -y -stream_loop -1 -i dev/reports/fox-gust/wind-fire.mp4 -t 30 -c:v libx264 -crf 18 -pix_fmt yuv420p -movflags +faststart dev/reports/fox-gust/wind-fire-30s.mp4
+python3 -m http.server 8006 --bind 127.0.0.1
+python3 dev/tests/fox_sakura_frames.py
+python3 dev/tests/fox_sakura.py
+python3 dev/tests/fox_sakura_continuity.py
+python3 dev/tests/fox_sakura_scale.py
+python3 dev/godot/fox_gust/capture_sakura.py
+ffmpeg -y -stream_loop -1 -i dev/reports/fox-sakura/sakura-fire.mp4 -t 30 -c:v libx264 -crf 18 -pix_fmt yuv420p -movflags +faststart dev/reports/fox-sakura/sakura-fire-30s.mp4
 ```
 
-実行環境に応じて `DISPLAY` と書き込み可能な `XDG_DATA_HOME`／`XDG_CACHE_HOME`／`XDG_CONFIG_HOME` を設定する。
+## 出力と組み込み
 
-## 動きと光
+Godotは論理400の構成を1280pxで直接レンダリングする。57コマ・命中後1.4秒（最初.5秒60fps、以後30fps）。`pack.py` は192pxの区画ごとにアルファを調べ、透明部分を除いて可変位置へ詰める。1/255以下の透明度のみ除去。区画ごと3pxの余白を付け、各アトラスは4096px以内に制限する。premultiplied RGBをCanvas用straight alphaへ補正する。
 
-生成素材を格子メッシュへ貼り、根元を固定したまま先端へ風の変形を増やす。大きな変形と細かなUV移流、首の局所浸食、上端からの燃料の消費を分けた。厚い花弁の開閉は使わない。前後レイヤは奥の主炎／中央の短い炎／反射と煙、手前の低い炎／接触芯／裂片を分ける。二層Canvas合成であり敵ごとの厳密な3D遮蔽ではない。
+配置・元位置・時刻・風の粒子レシピは `dev/assets/vfx_meta.json`、寸法と容量は `atlas.json`。embed.pyのVFXMETA経由でゲームへ渡す。Canvasは1280pxの共有合成面へ整数座標で復元し、premultiplied RGBAでコマ間を補間してから画面へ縮小する。区画を縮小して直接つなぎ、境界に隙間を作る方法は使わない。
 
-風は短い突風と位置による流速差を持つ共通の場。43個の火の粉は二つの発生点から三つの群で生まれ、軽い粒は抗力5–12/秒、重い燃えかすは2–4/秒で追従する。浮力／重力と局所の渦も加える。固定シード、1/180秒刻みで位置を再計算し、書き出しコマ間隔やシークに依存させない。主炎も同じ場の根元での突風を参照するが、流体シミュレーションではない。煙と水面の細かな移流は補助の独立した動き。
+火の粉と燃焼片は連番から外す。Godotの固定シードで作った `particles.json` の発生点・初速・抗力・寿命を共有し、Canvas側で1/180秒刻みの軌道を一度計算して描画する。共通の突風、位置による風速差、軽い粒の浮力、重い燃えかすの重力、局所の渦を使う。燃焼片は独立した高解像度素材2種。等角度の散会や同じ放物線ではない。流体シミュレーションではなく、主炎も共通の場の根元での突風を参照する演出。
 
-暖色中間調と暗部を残し、短い接触芯だけを明るくする。煙は命中後.24秒から薄く、反射は.035秒遅れて出て.675秒までに消える。閉じた池・円環や残留ダメージを作らない。
+## 比較と状態
 
-## ゲームとの接続
+`?foxfirefx=gust` が最新、[fox_sakura_demo.html](../../mock/fox_sakura_demo.html)で爆心拡大0〜4段を比較。`?foxfirefx=gust-v1` は前の224px候補。前の記録・動画は `dev/reports/fox-gust/` に保持する。`fox_gust_demo.html` は以前の開花と224px候補の比較を再現する。
 
-`?foxfirefx=gust`、比較は [fox_gust_demo.html](../../mock/fox_gust_demo.html)。左が前の開花、右が今回の狐火。停止・スロー・時間指定・前後レイヤ切替に対応。標準は従来演出、前候補のフラグも維持。
+55ダメージ／命中.16秒／基礎半径72／装填5秒／二重詠唱は維持。爆心拡大は実ゲームの `1.25^段数` を使用。残留に追加ダメージなし、百鬼狐火には適用しない。未読込時は従来へ戻る。標準は従来演出。
 
-命中後1.4秒・57コマ（最初.5秒60fps、以後30fps）。224px・8列×8行・2アトラス。必要な候補2枚だけ復号する。premultiplied RGBをstraight alphaへ変換し、Canvas上でpremultiplied RGBA補間。配布と復号サイズはatlas.jsonに記録。共有補間Canvasは200,704 bytes。
-
-55ダメージ／命中.16秒／半径72／装填5秒／二重詠唱は既存のまま。残留に追加ダメージなし。百鬼狐火は対象外。未読込時は従来へフォールバックする。
-
-自己レビューと制限は [制作レビュー](../../reports/fox-gust/REPORT.md)。通常採用・Pages公開・実機Safari性能確認は未実施。
+画素数・復号メモリ・実機性能を区別する。[制作レビューと測定](../../reports/fox-sakura/REPORT.md)を参照。通常採用・Pages公開・実機Safari性能確認は未実施。
