@@ -62,6 +62,8 @@ description: Narakuのスキル・攻撃・着弾演出を制作、改善、レ�
 - 再ビルド：python3 dev/tools/embed.py dev/naraku_src.html index.html dev/assets
 - Godot・書き出し：dev/godot/quake/README.md、pack.py
 - 比較：dev/mock/quake_demo.html、dev/mock/rift_demo.html
+- 狐火通常着弾：dev/godot/fox/、dev/mock/fox_hit_demo.html（?hitfx=godot）
+- 狐火乱舞：dev/godot/fox_skill/、dev/mock/fox_skill_demo.html（?foxfirefx=godot）。通常攻撃と百鬼狐火を区別し、超必殺へ誤適用しない。
 - 検証：dev/tests/godot_quake.py、dev/tests/godot_rift.py、dev/reports/
 - 引き継ぎ：dev/HANDOFF.md。履歴が追記式なので末尾の最新状態を優先する。
 

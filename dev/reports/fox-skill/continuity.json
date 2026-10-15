@@ -1,0 +1,18 @@
+{
+  "newInterpolatedFrameDelta": 48589,
+  "constantFlameStart": [
+    229,
+    100,
+    30,
+    128
+  ],
+  "constantFlameMidpoint": [
+    229,
+    100,
+    30,
+    128
+  ],
+  "frameCount": 51,
+  "maxInitialStep": 0.01666666666666669,
+  "endAlpha": 0
+}

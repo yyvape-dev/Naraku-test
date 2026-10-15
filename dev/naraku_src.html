@@ -1469,7 +1469,7 @@ function drawBarrier(g,T){
   g.restore();g.globalAlpha=1;
 }
 const VT={},VC={};
-for(const k in VFX){const im=new Image();im.src=VFX[k];VT[k]=im}
+for(const k in VFX){if(k.startsWith('foxskill_')&&new URLSearchParams(location.search).get('foxfirefx')!=='godot')continue;const im=new Image();im.src=VFX[k];VT[k]=im}
 function vtex(n,col){ // col を渡すと、白い光をその色に染めた写しを作って使い回す（芯は白を少し残す）
   const im=VT[n];if(!im||!im.complete||!im.naturalWidth)return null;if(!col)return im;
   const key=n+col;let c=VC[key];if(c)return c;
@@ -1517,6 +1517,30 @@ function fxHitReaction(e,who,kind,crit){
   const a=B.allies.find(a=>a.d.id===who),dx=e.x-(a?a.x:e.x),dy=e.y-30-(a?a.y:e.y+70),len=Math.hypot(dx,dy)||1;
   const q={k:'hitreaction',t:0,life:.22,dx:dx/len,dy:dy/len,force:(kind==='skill'?5.5:3.0)*(crit?1.3:1)*(e.d.boss?.15:e.elite?.38:1)};
   HIT_REACTIONS.set(e,q);FX.sh.push(q);
+}
+
+// 狐火乱舞: a dedicated connected fire swathe, independent of normal hits and ultimates.
+const FOX_SKILL={enabled:new URLSearchParams(location.search).get('foxfirefx')==='godot',frames:51,cols:8,life:1.35,layerFlags:{floor:true,air:true},times:Array.from({length:51},(_,i)=>i<24?i/60:i<45?.4+(i-24)/30:1.1+(i-45)/24)};
+let FOX_SKILL_MIX=null,FOX_SKILL_CTX=null;
+function foxSkillReady(){return FOX_SKILL.enabled&&!!(vtex('foxskill_floor')&&vtex('foxskill_air'))}
+function fxFoxSkill(x,y,r){
+  if(!foxSkillReady())return false;
+  for(const layer of ['floor','air'])FX.sh.push({k:'foxskill',layer,x,y:y+12,w:r*3.2,t:0,life:FOX_SKILL.life});
+  // One short contact impulse; no repeated global blinking or shaking.
+  FX.shake=Math.max(FX.shake,2.4);
+  return true;
+}
+function drawFoxSkill(g,s){
+  if(s.t<0||!FOX_SKILL.layerFlags[s.layer])return;
+  const im=vtex('foxskill_'+s.layer);if(!im)return;
+  if(!FOX_SKILL_MIX){FOX_SKILL_MIX=document.createElement('canvas');FOX_SKILL_MIX.width=FOX_SKILL_MIX.height=224;FOX_SKILL_CTX=FOX_SKILL_MIX.getContext('2d')}
+  const times=FOX_SKILL.times;let f=0;while(f+1<times.length&&times[f+1]<=s.t)f++;
+  const tile=im.width/FOX_SKILL.cols,next=f+1<times.length?times[f+1]:FOX_SKILL.life,mix=clamp((s.t-times[f])/(next-times[f]),0,1),m=FOX_SKILL_CTX;
+  m.clearRect(0,0,224,224);m.globalCompositeOperation='source-over';m.globalAlpha=1-mix;
+  m.drawImage(im,f%8*tile,Math.floor(f/8)*tile,tile,tile,0,0,224,224);
+  if(f+1<times.length){m.globalCompositeOperation='lighter';m.globalAlpha=mix;m.drawImage(im,(f+1)%8*tile,Math.floor((f+1)/8)*tile,tile,tile,0,0,224,224)}
+  m.globalAlpha=1;m.globalCompositeOperation='source-over';
+  g.save();g.globalAlpha=1;g.globalCompositeOperation='source-over';g.drawImage(FOX_SKILL_MIX,s.x-s.w*.5,s.y-s.w*.6,s.w,s.w);g.restore();
 }
 
 // Godot-baked 大地割り: one shared atlas per layer; no per-frame Image objects.
@@ -2789,7 +2813,7 @@ function useCard(si,x,y){
   if(c.kind==='target'){
     x=clamp(x,0,W);y=clamp(y,0,H);
     const ox=a.x,oy=B.lineY-40,L=Math.hypot(x-ox,y-oy)||1;
-    FX.sh.push({k:'beam',x:ox,y:oy,dx:(x-ox)/L,dy:(y-oy)/L,len:L,t:0,life:0.2,col:c.pal[1],w:5});
+    if(!(c.id==='fox_fire'&&foxSkillReady()))FX.sh.push({k:'beam',x:ox,y:oy,dx:(x-ox)/L,dy:(y-oy)/L,len:L,t:0,life:0.2,col:c.pal[1],w:5});
     B.impacts.push({t:0.16,c,x,y,k:1});
     for(let j=1;j<=B.M.echo;j++)B.impacts.push({t:0.16+0.38*j,c,x,y,k:0.6}); // 二重詠唱
   }else castInstant(c,a);
@@ -2918,6 +2942,7 @@ function impact(c,x,y,k){
   if(c.zone)B.zones.push({x,hw,t:c.zone,life:c.zone,tick:0.5,dps:c.zdps*B.M.skDmg*k*(ow?ow.sk:1),c});
   if(c.ult==='blue'&&ultSeqOn('blue')){FX.shake=Math.min(16,FX.shake+7);return}
   if(c.ult==='fox'&&ultSeqOn('fox')){FX.shake=Math.min(16,FX.shake+3);return} // 百鬼狐火の連番：絵は連番に任せ、着弾の爆発は描かない（揺れだけ） // 斬月三日月の連番：絵は連番に任せ、横一列の光の帯は描かない（揺れだけ）
+  if(c.id==='fox_fire'&&!c.ult&&fxFoxSkill(x,y,r))return;
   if(c.id==='sw_quake'&&!c.ult&&fxQuake(x,y,r))return;
   if(c.id==='sw_rift'&&!c.ult&&fxRift(x,hw))return;
   if(c.fx==='full')fxFull(c.pal);else if(c.shape==='row')fxRow(y,hh,c.pal);else if(c.shape==='col')(c.ult==='sword'?ultLanaCol:fxCol)(x,hw,c.pal);else fxExplosion(x,y,r,c.pal);
@@ -3614,7 +3639,7 @@ function render(T){
   drawBarrier(g,T);
   g.save();
   if(FX.shake>0.3)g.translate((Math.random()-0.5)*FX.shake,(Math.random()-0.5)*FX.shake);
-  for(const s of FX.sh)if(s.k==='foximpact'&&s.layer==='floor')drawFoxImpact(g,s);else if(s.k==='rift'&&s.layer==='floor')drawRift(g,s);else if(s.k==='quake'&&s.layer==='floor')drawQuake(g,s);else if(s.k==='decal'){g.globalAlpha=(1-s.t/s.life)*0.5;g.fillStyle=s.col;g.beginPath();g.ellipse(s.x,s.y,s.r*0.9,s.r*(s.flat||0.6),0,0,TAU);g.fill()}else if(s.k==='tex'&&s.ly==='floor')drawTex(g,s);
+  for(const s of FX.sh)if(s.k==='foxskill'&&s.layer==='floor')drawFoxSkill(g,s);else if(s.k==='foximpact'&&s.layer==='floor')drawFoxImpact(g,s);else if(s.k==='rift'&&s.layer==='floor')drawRift(g,s);else if(s.k==='quake'&&s.layer==='floor')drawQuake(g,s);else if(s.k==='decal'){g.globalAlpha=(1-s.t/s.life)*0.5;g.fillStyle=s.col;g.beginPath();g.ellipse(s.x,s.y,s.r*0.9,s.r*(s.flat||0.6),0,0,TAU);g.fill()}else if(s.k==='tex'&&s.ly==='floor')drawTex(g,s);
   for(const z of B.zones)drawZone(g,z,T);
   g.globalAlpha=1;
   const list=B.enemies.slice().sort((a,b)=>a.y-b.y);
@@ -3626,7 +3651,7 @@ function render(T){
   for(const s of FX.sh)if(s.k==='tex'&&s.ly==='top')drawTex(g,s);
   ULTLIT=null;for(const id in ULT_SEQ)if(FX[ULT_SEQ[id].fx])drawUltSeq(g,id); // 超必殺の連番（味方の後ろに1枚。味方は光の色を受ける）
   for(const a of B.allies)drawAlly(g,a,T);
-  for(const s of FX.sh)if(s.k==='foximpact'&&s.layer==='air')drawFoxImpact(g,s);else if(s.k==='rift'&&s.layer==='air')drawRift(g,s);else if(s.k==='quake'&&s.layer==='air')drawQuake(g,s);else if(s.k==='lv')drawLV(g,s);else if(s.k==='sisw')drawSisWind(g,s);else if(s.k==='magc')drawMagCircle(g,s);else if(s.k==='magb')drawMagBeam(g,s);
+  for(const s of FX.sh)if(s.k==='foxskill'&&s.layer==='air')drawFoxSkill(g,s);else if(s.k==='foximpact'&&s.layer==='air')drawFoxImpact(g,s);else if(s.k==='rift'&&s.layer==='air')drawRift(g,s);else if(s.k==='quake'&&s.layer==='air')drawQuake(g,s);else if(s.k==='lv')drawLV(g,s);else if(s.k==='sisw')drawSisWind(g,s);else if(s.k==='magc')drawMagCircle(g,s);else if(s.k==='magb')drawMagBeam(g,s);
   drawDust(g,'normal');
   if(tuning)drawTunePreview(g,T);
   // 加算合成の光もの
@@ -5359,7 +5384,7 @@ window.NARAKU={
   go(id){if(!stepTo(id))return false;arrive();return mode},
   info:id=>nodeInfo(id),light:()=>lightState(),nodeXY:id=>{R.camY=null;const q=mapXY(R.map.nodes[id]);return{x:q.x/W,y:q.y/H}},choose:chooseNode,buy:buyItem,leave:leaveNode,next:afterVictory,giveUp,
   retreat(){if(mode!=='map'||R.walk)return false;endRun('return');return true},
-  HIT_VFX,foxPreviewHit(e){const a=B.allies.find(a=>a.d.id==='fox');B.shots.push({from:1,a,tg:e,x:e.x,y:e.y-e.d.h*.35,tx:e.x,ty:e.y-e.d.h*.35,spd:640,k:1,chain:0,seen:[],col:a.d.color});updShots(0)},vfx:{foxReady:()=>!!(foxAtlas('floor')&&foxAtlas('air')),tick:updFX,ready:()=>!!(vtex('quake_floor')&&vtex('quake_air')),riftReady:()=>!!(vtex('rift_floor')&&vtex('rift_air'))},QUAKE_VFX,RIFT_VFX,useCard,startRewind,updRewind,dropSig,dropFor,get ULT(){return ULT},ULT_DEF,startUlt,SEQ,ULT_SEQ,
+  FOX_SKILL,foxSkillReady,HIT_VFX,foxPreviewHit(e){const a=B.allies.find(a=>a.d.id==='fox');B.shots.push({from:1,a,tg:e,x:e.x,y:e.y-e.d.h*.35,tx:e.x,ty:e.y-e.d.h*.35,spd:640,k:1,chain:0,seen:[],col:a.d.color});updShots(0)},vfx:{foxReady:()=>!!(foxAtlas('floor')&&foxAtlas('air')),tick:updFX,ready:()=>!!(vtex('quake_floor')&&vtex('quake_air')),riftReady:()=>!!(vtex('rift_floor')&&vtex('rift_air'))},QUAKE_VFX,RIFT_VFX,useCard,startRewind,updRewind,dropSig,dropFor,get ULT(){return ULT},ULT_DEF,startUlt,SEQ,ULT_SEQ,
   pick:chooseUp,
   grant(id){const u=UPS.find(x=>x.id===id);if(!u||!B)return false;applyUp(u);return true},
   // bot=スキルを撃つ自動操縦 / pick=強化を選ぶ関数（提示3枚と B を受け取り番号を返す。省略すると何も取らない）
