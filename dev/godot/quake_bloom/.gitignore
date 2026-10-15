@@ -1,0 +1,5 @@
+.godot/
+frames/
+art/
+*.import
+.godot-bin/
