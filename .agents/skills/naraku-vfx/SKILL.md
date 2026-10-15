@@ -54,7 +54,8 @@ description: Narakuのスキル・攻撃・着弾演出を制作、改善、レ�
 - ソース：dev/naraku_src.html、配布：index.html
 - 再ビルド：python3 dev/tools/embed.py dev/naraku_src.html index.html dev/assets
 - Godot・書き出し：dev/godot/quake/README.md、pack.py
-- 比較：dev/mock/quake_demo.html、dev/mock/rift_demo.html
+- Glow＋GPU粒子の実証済み手本：dev/godot/quake_bloom/（README・bake.sh・measure_white.py。下の「Glow・GPU粒子の実装手順」）
+- 比較：dev/mock/quake_demo.html、dev/mock/rift_demo.html、dev/mock/quake_compare.html（A/B/C比較）
 - 検証：dev/tests/godot_quake.py、dev/tests/godot_rift.py、dev/reports/
 - 引き継ぎ：dev/HANDOFF.md。履歴が追記式なので末尾の最新状態を優先する。
 
@@ -69,6 +70,19 @@ description: Narakuのスキル・攻撃・着弾演出を制作、改善、レ�
 - GPUParticles2Dで火花、飛散物、煙や黒いオーラを技に合わせて構成する。黒いオーラは加算合成では黒くならないため、通常のアルファ合成など適切な材質と前後関係を使う。粒子を大量に出すだけで完成としない。
 - 現行ゲームはHTML Canvas。GodotでのGlowと粒子は書き出した素材へ反映し、透過・黒いオーラ・発光が実際のゲーム合成で再現されるか確認する。必要に応じ通常合成層と加算発光層を分離する。Godot上の見栄えだけで合格にしない。
 - 通常攻撃は共通の火花・軌跡を使い、方向とテンポで差をつける方針。
+
+## Glow・GPU粒子の実装手順（2026-10-15 大地割りC案で実証。ユーザー評価「クオリティ段違い」）
+
+手本は dev/godot/quake_bloom/。Godot 4.4.1・gl_compatibility・Xvfb（llvmpipe）で確認した事実。
+
+- **層ごとに2回焼く**：光の回（不透明な黒地＋加算＋Glow）と抜きの回（透明地＋通常合成：岩・砂煙・黒いオーラ・煤）。pack.pyで光は「RGBの最大値＝不透明度、色は割り戻し」、抜きはpremultipliedを割り戻し、光を抜きの上に重ねてstraight alphaにする。黒地で焼くのでGlowの縁が欠けない。
+- **2D HDRは光の回だけオン**（`get_viewport().use_hdr_2d`）。プロジェクト設定でオンにすると透明背景が効かず、抜きの回が黒い板になる。HDRなしではGlowが一切出ない（閾値を超えないため）。
+- Glow：`Environment.background_mode=BG_CANVAS`、加算ブレンド、`glow_hdr_threshold=1.0`、光のノードの`modulate`を1.1前後にして芯だけ閾値を超えさせる。レベルは中間（2〜3）中心。抜きの回では`glow_enabled=false`。
+- **白飛び対策**：加算の重なり（斬撃＋炸裂＋閃光＋火花）で炸裂が白い塊になりやすい。炸裂・斬撃のスプライトだけ`self_modulate`で赤寄りに落とし、熱の値（CLIMAX_HEAT）で白熱→深紅を調整。赤黒さは「暗くする」だけでなく、抜きの層に炸裂と同じ形の黒赤の煤を敷いて対比を作る。
+- **数字で確かめる**：`measure_white.py`で炸裂コマの白・赤の画素数を数え、指示（例：白を半分に）を数値で合わせて報告する。実例：白13,093→6,437（49%）、赤1.9倍。
+- **GPU粒子の決定性**：`use_fixed_seed=true`＋`seed`、`fixed_fps=40`、`interpolate=false`、Godotを`--fixed-fps 40`で起動。各回の焼きの前に`restart()`し、開始時刻のコマで`emitting=true`（one_shot）。同じ設定で焼き直すと画素が完全一致することを確認済み。
+- 粒子は役割で分ける：一斉の火花（速度方向に伸ばした筋＋重力）／乱流で昇る残り火／割れ目から立つ黒い煤（抜きの回、通常合成）。数は100前後まで。表示幅264px程度では細かい粒はざらつきになる。
+- 焼きは`sh dev/godot/quake_bloom/bake.sh`（Godot未導入なら4.4.1を自動取得）。出力はゲームの既存アトラス形式のまま。
 
 ## 2026-10-15 継続指定：最大拡大と見切れ防止
 
