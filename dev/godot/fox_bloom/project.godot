@@ -1,0 +1,10 @@
+config_version=5
+[application]
+config/name="Naraku — 狐火乱舞 — 火の水面に咲く花"
+run/main_scene="res://bloom.tscn"
+[display]
+window/size/viewport_width=400
+window/size/viewport_height=400
+[rendering]
+renderer/rendering_method="gl_compatibility"
+environment/defaults/default_clear_color=Color(0,0,0,0)

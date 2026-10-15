@@ -35,6 +35,14 @@ description: Narakuのスキル・攻撃・着弾演出を制作、改善、レ�
 - 初動に十分な時間サンプルを置き、必要ならコマ間を補間する。単純な二重source-overフェードで中間だけ暗くしない。透明度を含む光のつながりを確認する。
 - 芯の白を長く・広くしすぎず、自然な暖色の中間調を残す。全体の細かな明滅で流動感を代用しない。
 
+## 狐火乱舞の作り直し（2026-10-15・ユーザーの追加評価）
+
+- 前の狐火乱舞の炎候補は「地味で平面的」という評価。技術的な実装成功や滑らかな再生を、迫力・立体感の改善成功として記録しない。通常着弾の方向性への肯定と混同しない。
+- ユズナミキのモチーフは百鬼狐火にある花・花弁・火の水面。実際の連番を見て、色だけでなく形と因果を引き継ぐ。
+- 狐火乱舞では一輪が開く瞬間へ絞る。奥の花弁が敵の背後へ、手前が足元の前へ倒れ、水面が光を映し、花弁が遅れて離れる前後・上下の動きを検討する。
+- コマの滑らかさと視認性を優先するあまり、根元の密度、開花ピークの面積、光量と勢いまで抑えすぎない。
+- 比較動画は再生操作の配置で短い映像が見えないとの指摘あり。30秒程度のリピート、または操作後にも見られる長さを既定にする。
+
 ## 実画面レビュー
 
 原画単体の良さで合格にしない。初動、進行、最大破壊、残留、消失を撮影し、以下を見る。
@@ -63,7 +71,7 @@ description: Narakuのスキル・攻撃・着弾演出を制作、改善、レ�
 - Godot・書き出し：dev/godot/quake/README.md、pack.py
 - 比較：dev/mock/quake_demo.html、dev/mock/rift_demo.html
 - 狐火通常着弾：dev/godot/fox/、dev/mock/fox_hit_demo.html（?hitfx=godot）
-- 狐火乱舞：dev/godot/fox_skill/、dev/mock/fox_skill_demo.html（?foxfirefx=godot）。通常攻撃と百鬼狐火を区別し、超必殺へ誤適用しない。
+- 狐火乱舞：前の炎候補dev/godot/fox_skill/（?foxfirefx=godot）、花・水面候補dev/godot/fox_bloom/とdev/mock/fox_bloom_demo.html（?foxfirefx=bloom）。通常攻撃と百鬼狐火を区別し、超必殺へ誤適用しない。
 - 検証：dev/tests/godot_quake.py、dev/tests/godot_rift.py、dev/reports/
 - 引き継ぎ：dev/HANDOFF.md。履歴が追記式なので末尾の最新状態を優先する。
 
