@@ -19,6 +19,8 @@ for tag in tags:
             k=os.path.basename(j)[:-5]
             if not os.path.exists(f'{d}/{k}.webp'): continue
             m=json.load(open(j)); m.update(extra.get(k,{})); m['src']=uri(f'{d}/{k}.webp'); obj[k]=m
+    elif tag=='VFXMETA':
+        obj=json.load(open(f'{d}/vfx_meta.json')) if os.path.exists(f'{d}/vfx_meta.json') else {}
     elif tag=='TUNE':
         obj=json.load(open(f'{d}/tune.json')) if os.path.exists(f'{d}/tune.json') else {}
     else:

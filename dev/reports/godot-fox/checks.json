@@ -1,0 +1,28 @@
+{
+  "combatEqual": true,
+  "seeds": [
+    1,
+    77,
+    4242
+  ],
+  "durationSeconds": 30,
+  "errors": [],
+  "expiredEffects": [
+    0,
+    0
+  ],
+  "rapidEffectCounts": [
+    4,
+    4
+  ],
+  "phoneViewports": [
+    [
+      375,
+      667
+    ],
+    [
+      393,
+      852
+    ]
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "floor": {
+    "borderAlphaMax": 0,
+    "finalAlphaSum": 0,
+    "peakFrame": 8,
+    "peakSeconds": 0.133333333333333,
+    "atlasSize": [
+      1792,
+      1792
+    ]
+  },
+  "air": {
+    "borderAlphaMax": 0,
+    "finalAlphaSum": 0,
+    "peakFrame": 11,
+    "peakSeconds": 0.183333333333333,
+    "atlasSize": [
+      1792,
+      1792
+    ]
+  }
+}
