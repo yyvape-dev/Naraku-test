@@ -1040,7 +1040,7 @@ img.frm{display:block;width:100%;height:100%}
     </div>
     <div id="mapOps"><button id="btnGo">進む</button><button id="btnBag">荷物</button><button id="btnBack">街へ帰還</button></div>
     <div id="tune">
-      <div class="trow"><select id="tuneSel" aria-label="調整する対象"></select><label class="ck"><input type="checkbox" id="tuneAnim" checked>攻撃を再生</label><label class="ck"><input type="checkbox" id="tuneMark">基準点</label></div>
+      <div class="trow"><select id="tuneSel" aria-label="調整する対象"></select><label class="ck"><input type="checkbox" id="tuneAnim" checked>攻撃を再生</label><label class="ck"><input type="checkbox" id="tuneMark">基準点</label><label class="ck"><input type="checkbox" id="tuneJuice">手応え</label></div>
       <div class="trow" id="tuneLook"></div>
       <div class="trow" data-k="s"><span class="tl">大きさ</span><button class="step" data-d="-1" aria-label="小さく">−</button><input type="range" min="50" max="200" step="1" aria-label="大きさ"><button class="step" data-d="1" aria-label="大きく">＋</button><span class="tv"></span></div>
       <div class="trow" data-k="x"><span class="tl">左右</span><button class="step" data-d="-1" aria-label="左へ">−</button><input type="range" min="-60" max="60" step="1" aria-label="左右"><button class="step" data-d="1" aria-label="右へ">＋</button><span class="tv"></span></div>
@@ -2243,11 +2243,96 @@ let W=CFG.W,H=600,VSx=1,VSy=1,bgC=null;
 const STEP=1/60;
 const aim={on:false,x:0,y:0};
 const FX={parts:[],dust:[],sh:[],floats:[],ghosts:[],shake:0,banner:null,breach:0,cut:null};
+/* ---- 手応え（ジュース）：ヒットストップ・のけぞり・撃破の白焼け・着弾の寄り・コンボとスタイルランク。
+   すべて見た目だけ。止めは描画ループで step を呼ばないだけなので、シミュレーションの結果（勝率・ドロップ）は変わらない。
+   調整パネルの「手応え」で入／切（localStorage に保存） */
+const JC_KEY='naraku_juice';
+const JC={on:true,stop:0,cool:0,zoom:0,zx:0,zy:0,combo:0,t:0,win:2.6,pop:0,rank:-1,rankPop:0,best:0,out:0,outN:0,outR:-1,pops:[]};
+try{if(localStorage.getItem(JC_KEY)==='0')JC.on=false}catch(e){}
+const JC_RANK=[ // [必要コンボ, 文字, 添え字, 色の芯, 色の縁]
+  [3,'D','DUSK','#c9d3e0','#4a5a70'],[8,'C','CRUEL','#9fe8e0','#1f6f78'],[15,'B','BLOODY','#ffe08a','#8a5a12'],
+  [25,'A','ABYSSAL','#ffb36a','#8a3a10'],[40,'S','SINFUL','#ff6a5a','#7a1010'],[60,'SS','SINNER','#ff4a7a','#600a2a'],[90,'SSS','SOVEREIGN','#fff2c0','#b0601a']];
+function jcReset(){JC.stop=0;JC.cool=0;JC.zoom=0;JC.combo=0;JC.t=0;JC.pop=0;JC.rank=-1;JC.rankPop=0;JC.out=0;JC.pops.length=0}
+function jcStop(s){if(!JC.on||JC.cool>0)return;JC.stop=Math.min(0.13,Math.max(JC.stop,s))}
+function jcRankOf(n){let r=-1;for(let i=0;i<JC_RANK.length;i++)if(n>=JC_RANK[i][0])r=i;return r}
+function jcKill(e){
+  if(!JC.on)return;
+  const tn=TUNE[e.type],h=e.d.h*e.sc*tn.s/100*.85;
+  if(JC.pops.length<40)JC.pops.push({type:e.type,x:e.x+tn.x*e.sc,y:e.y+tn.y*e.sc,h,t:0,life:e.elite?0.3:0.2});
+  JC.combo++;JC.t=JC.win;JC.pop=1;if(JC.combo>JC.best)JC.best=JC.combo;
+  const r=jcRankOf(JC.combo);if(r>JC.rank){JC.rank=r;JC.rankPop=1;FX.shake=Math.min(16,FX.shake+2+r)}
+  if(e.d.boss)jcStop(0.13);else if(e.elite)jcStop(0.07);
+}
+function jcBreak(){ // コンボが切れる：10以上なら最後の数字を流して見せる
+  if(JC.combo>=10){JC.out=0.9;JC.outN=JC.combo;JC.outR=JC.rank}
+  JC.combo=0;JC.t=0;JC.rank=-1;
+}
+function jcImpact(x,y,kills){ // スキルの着弾：倒した数だけ重く止めて、着弾点へ少し寄る
+  if(!JC.on)return;
+  JC.zoom=1;JC.zx=x;JC.zy=y;
+  jcStop(kills>0?Math.min(0.12,0.045+kills*0.012):0.03);
+  if(kills>=3)FX.shake=Math.min(16,FX.shake+Math.min(8,kills*0.8));
+}
+function jcTick(dt){
+  if(JC.zoom>0)JC.zoom=Math.max(0,JC.zoom-dt/0.38);
+  if(JC.pop>0)JC.pop=Math.max(0,JC.pop-dt/0.22);
+  if(JC.rankPop>0)JC.rankPop=Math.max(0,JC.rankPop-dt/0.35);
+  if(JC.out>0)JC.out-=dt;
+  for(let i=JC.pops.length-1;i>=0;i--){const p=JC.pops[i];p.t+=dt;if(p.t>=p.life)JC.pops.splice(i,1)}
+  if(JC.combo>0){JC.t-=dt*(1+Math.max(0,JC.rank)*0.12);if(JC.t<=0)jcBreak()} // ランクが上がるほど早く減る
+}
+function jcZoom(g){
+  if(!JC.on||JC.zoom<=0)return;
+  const u=JC.zoom,z=1+0.045*u*u;g.translate(JC.zx,JC.zy);g.scale(z,z);g.translate(-JC.zx,-JC.zy);
+}
+function jcDrawPops(g){ // 撃破の瞬間：敵の絵が白く焼けて、膨らみながら消える
+  if(!JC.on)return;
+  g.save();g.globalCompositeOperation='lighter';
+  for(const p of JC.pops){const u=p.t/p.life,s=1+u*0.4,set=SPR.enemy[p.type];
+    g.save();g.translate(p.x,p.y-p.h*0.04*u);g.scale(s,s*(1-u*0.15));g.globalAlpha=(1-u)*0.95;blit(g,set,0,p.h);g.globalAlpha=(1-u)*0.6;blit(g,set,0,p.h);g.restore()}
+  g.restore();
+}
+function jcText(g,txt,x,y,size,core,edge,a){
+  g.font='italic 900 '+size+'px Georgia,"Times New Roman",'+FONT;
+  g.lineJoin='round';g.globalAlpha=a;
+  g.lineWidth=Math.max(3,size*0.16);g.strokeStyle='rgba(0,0,0,.85)';g.strokeText(txt,x+2,y+2);
+  g.lineWidth=Math.max(2,size*0.1);g.strokeStyle=edge;g.strokeText(txt,x,y);
+  const gr=g.createLinearGradient(0,y-size*0.8,0,y);gr.addColorStop(0,'#ffffff');gr.addColorStop(0.55,core);gr.addColorStop(1,edge);
+  g.fillStyle=gr;g.fillText(txt,x,y);
+}
+function jcDrawCombo(g,T){
+  if(!JC.on)return;
+  const show=JC.combo>=2,out=JC.out>0&&!show;
+  if(!show&&!out)return;
+  const n=show?JC.combo:JC.outN,ri=show?JC.rank:JC.outR,R=ri>=0?JC_RANK[ri]:null;
+  const a=show?1:Math.max(0,JC.out/0.9),slide=show?0:(1-a)*40;
+  const x=W-14+slide,y0=B.hasBoss?104:84;
+  g.save();g.textAlign='right';g.textBaseline='alphabetic';
+  g.transform(1,0,-0.16,1,y0*0.16,0); // 全体を右に傾けてスタイリッシュに
+  let y=y0;
+  if(R){
+    const rp=JC.rankPop,sz=34*(1+rp*0.45),wob=rp>0?Math.sin(T*60)*rp*2:0;
+    if(rp>0){g.globalAlpha=rp*0.5;g.fillStyle=R[3];g.beginPath();g.ellipse(x-18,y-12,40*(1+rp),14*(1+rp),0,0,TAU);g.fill()}
+    jcText(g,R[1],x+wob,y,sz,R[3],R[4],a);
+    g.font='italic 700 9px Georgia,serif';g.globalAlpha=a*0.9;g.fillStyle=R[3];
+    g.fillText(R[2].split('').join(String.fromCharCode(8202)),x,y+11);
+    y+=34;
+  }
+  const pz=1+JC.pop*0.5;
+  jcText(g,String(n),x-64,y,24*pz,'#ffe6a8','#7a4a12',a);
+  g.font='italic 800 11px Georgia,serif';g.globalAlpha=a;g.fillStyle='#000';g.fillText('COMBO',x+1,y+1);g.fillStyle='#f3dfb0';g.fillText('COMBO',x,y);
+  if(show){ // 残り時間のゲージ
+    const w=80,f=clamp(JC.t/JC.win,0,1);
+    g.globalAlpha=0.55;g.fillStyle='#000';g.fillRect(x-w,y+5,w,3);
+    g.globalAlpha=0.95;g.fillStyle=R?R[3]:'#f3dfb0';g.fillRect(x-w*f,y+5,w*f,3);
+  }
+  g.restore();g.globalAlpha=1;
+}
 const cv=$('#cv'),ctx=cv.getContext('2d'),app=$('#app');
 
 function defenseLineY(){const r=$('#arena').getBoundingClientRect();return H-LINE_OFF+60*H/Math.max(1,r.height)}
 function layout(){B.lineY=defenseLineY();B.allies.forEach(a=>{a.x=W*[0.18,0.5,0.82][a.slot];a.y=H-FOOT_OFF})}
-function clearFX(){FX.parts.length=0;FX.dust.length=0;FX.ghosts.length=0;FX.sh.length=0;FX.floats.length=0;FX.shake=0;FX.banner=null;FX.breach=0;FX.cut=null;for(const id in ULT_SEQ){FX[ULT_SEQ[id].fx]=null;seqFree(ULT_SEQ[id].n)}if(typeof BAR!=='undefined')BAR.emb.length=0}
+function clearFX(){FX.parts.length=0;FX.dust.length=0;FX.ghosts.length=0;FX.sh.length=0;FX.floats.length=0;FX.shake=0;FX.banner=null;FX.breach=0;FX.cut=null;for(const id in ULT_SEQ){FX[ULT_SEQ[id].fx]=null;seqFree(ULT_SEQ[id].n)}if(typeof BAR!=='undefined')BAR.emb.length=0;jcReset()}
 
 function newBattle(seed){
   const rs=mulberry32(seed),rc=mulberry32(hash32(seed^0x5A5A5A5A)),K=BKINDS[BOPT.kind],dep=BOPT.depth||0,fl=(BOPT.floor||1)-1;
@@ -2603,6 +2688,7 @@ function hurt(e,dmg,col,crit,quiet,who,kind){
   if(e.dead)return;
   const real=Math.min(dmg,Math.max(0,e.hp));if(who&&B.stat[who])B.stat[who][kind]+=real;else B.statX+=real;
   e.hp-=dmg;e.flash=0.12;
+  if(JC.on&&!quiet){e.kbT=0.13;if(crit){e.flash=0.18;jcStop(0.035)}}
   if(!quiet)floatTxt(e.x,e.y-e.d.h*e.sc,Math.round(dmg)+(crit?'!':''),crit?'#ffffff':col,crit?15:11);
   if(e.hp<=0){
     e.dead=true;B.kills++;
@@ -2610,7 +2696,7 @@ function hurt(e,dmg,col,crit,quiet,who,kind){
     const dr=dropFor(B.seed,e.idx,e.elite,B.ilv,!!e.d.boss);
     if(dr.gold)B.gold+=Math.round(dr.gold*B.goldK);
     if(dr.gear){B.loot.push(dr.gear);floatTxt(e.x,e.y-30,itemName(dr.gear),RAR[dr.gear.r].col,13)}
-    fxDeath(e);
+    fxDeath(e);jcKill(e);
   }
 }
 const CSSGOLD='#ffe6a8';
@@ -2629,7 +2715,7 @@ function purgeCards(owner){
   B.queue=B.queue.filter(c=>c.owner!==owner);
 }
 function breach(e){
-  e.dead=true;B.life-=e.d.life||1;FX.breach=1;FX.shake=Math.min(16,FX.shake+6);
+  e.dead=true;B.life-=e.d.life||1;FX.breach=1;jcBreak();FX.shake=Math.min(16,FX.shake+6);
   if(B.life<=0){B.life=0;lose('防衛線を破られ、拠点が陥落した')}
 }
 // 突破の一撃：防衛線に赤い裂け目を走らせ、敵は残りの動きを見せながら闇に沈む（演出は Math.random のみ。拠点ライフの計算は breach のまま）
@@ -2643,7 +2729,7 @@ function raidHit(e){
 function updEnemies(dt){
   for(const e of B.enemies){
     if(e.dead)continue;
-    if(e.flash>0)e.flash-=dt;
+    if(e.flash>0)e.flash-=dt;if(e.kbT>0)e.kbT-=dt;
     if(e.animT>=0){e.animT+=dt;if(e.animT>=0.5)e.animT=-1}
     if(e.knT>0)e.knT-=dt;
     if(e.burnT>0){ // 延焼：0.5秒ごとにまとめて焼く
@@ -2858,7 +2944,7 @@ function fxFull(pal){
   FX.shake=Math.min(16,FX.shake+10);
 }
 function impact(c,x,y,k){
-  const ow=B.allies.find(o=>o.d.id===c.owner),r=(c.r||0)*B.M.skR,hh=(c.hh||0)*B.M.skR,hw=(c.hw||0)*B.M.skR,dmg=c.dmg*B.M.skDmg*k*(ow?ow.sk:1);
+  const ow=B.allies.find(o=>o.d.id===c.owner),r=(c.r||0)*B.M.skR,hh=(c.hh||0)*B.M.skR,hw=(c.hw||0)*B.M.skR,dmg=c.dmg*B.M.skDmg*k*(ow?ow.sk:1),k0=B.kills;
   for(const e of B.enemies){
     if(e.dead)continue;
     const dx=e.x-x,dy=e.y-16-y;
@@ -2870,6 +2956,7 @@ function impact(c,x,y,k){
     if(c.knock)e.y-=c.knock*k*(e.elite?0.3:1);
     hurt(e,dmg,c.pal[1],false,false,c.owner,'skill');
   }
+  if(c.shape!=='full'&&c.fx!=='full'&&(c.dmg||0)>0)jcImpact(x,y,B.kills-k0);
   if(c.healFlat)for(const a of B.allies)if(a.alive){a.hp=Math.min(a.max,a.hp+c.healFlat*k);fxSpark(a.x,a.y-64,'#bff0c0',6)}
   if(c.zone)B.zones.push({x,hw,t:c.zone,life:c.zone,tick:0.5,dps:c.zdps*B.M.skDmg*k*(ow?ow.sk:1),c});
   if(c.ult==='blue'&&ultSeqOn('blue')){FX.shake=Math.min(16,FX.shake+7);return}
@@ -3267,7 +3354,7 @@ function floatTxt(x,y,txt,col,size){if(FX.floats.length>70)FX.floats.shift();FX.
 function addPart(p){if(FX.parts.length<1400)FX.parts.push(p)}
 function fxSpark(x,y,col,n){for(let i=0;i<n;i++){const a=Math.random()*TAU,s=40+Math.random()*120;addPart({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,t:0,life:0.2+Math.random()*0.25,size:1.5+Math.random()*2,col,drag:4,grav:0})}}
 function fxDeath(e){
-  const col=e.d.col,n=e.d.boss?90:e.elite?46:9;
+  const col=e.d.col,n=e.d.boss?90:e.elite?46:(JC.on?18:9);
   for(let i=0;i<n;i++){const a=Math.random()*TAU,s=30+Math.random()*(e.elite?260:110);addPart({x:e.x,y:e.y-e.d.h*0.35,vx:Math.cos(a)*s,vy:Math.sin(a)*s-30,t:0,life:0.3+Math.random()*0.4,size:2+Math.random()*2.5,col:i%3?col:'#ffffff',drag:3,grav:0})}
   if(e.elite){FX.sh.push({k:'ring',x:e.x,y:e.y-e.d.h*0.35,r0:10,r1:e.d.boss?220:120,t:0,life:0.5,col,w:5});FX.shake=Math.min(16,FX.shake+10)}
 }
@@ -3481,7 +3568,9 @@ function drawEnemy(g,e,T){
   }
   g.fillStyle='rgba(0,0,0,.45)';g.beginPath();g.ellipse(e.x,e.y,h*0.26,h*0.09,0,0,TAU);g.fill();
   if(e.elite){g.strokeStyle=e.d.boss?'rgba(255,90,74,.75)':'rgba(255,179,106,.7)';g.lineWidth=2;g.beginPath();g.ellipse(e.x,e.y,h*0.34,h*0.12,0,0,TAU);g.stroke()}
-  g.save();g.translate(e.x+tn.x*e.sc,e.y+bob+tn.y*e.sc);g.rotate(rot);blit(g,set,f,h);
+  g.save();g.translate(e.x+tn.x*e.sc,e.y+bob+tn.y*e.sc);g.rotate(rot);
+  if(e.kbT>0){const u=e.kbT/0.13;g.translate(0,-6*u);g.scale(1+0.14*u,1-0.12*u)} // のけぞり：描くときだけ押し上げて潰す（位置の計算はそのまま）
+  blit(g,set,f,h);
   if(e.flash>0){g.globalCompositeOperation='lighter';g.globalAlpha=0.75;blit(g,set,f,h)}
   g.restore();
   if(e.burnT>0){g.fillStyle='rgba(255,138,58,'+(0.2+Math.sin(T*22+e.ph)*0.08)+')';g.beginPath();g.ellipse(e.x,e.y-h*0.42,h*0.2,h*0.42,0,0,TAU);g.fill()}
@@ -3566,6 +3655,7 @@ function render(T){
   drawBarrier(g,T);
   g.save();
   if(FX.shake>0.3)g.translate((Math.random()-0.5)*FX.shake,(Math.random()-0.5)*FX.shake);
+  jcZoom(g);
   for(const s of FX.sh)if(s.k==='rift'&&s.layer==='floor')drawRift(g,s);else if(s.k==='quake'&&s.layer==='floor')drawQuake(g,s);else if(s.k==='decal'){g.globalAlpha=(1-s.t/s.life)*0.5;g.fillStyle=s.col;g.beginPath();g.ellipse(s.x,s.y,s.r*0.9,s.r*(s.flat||0.6),0,0,TAU);g.fill()}else if(s.k==='tex'&&s.ly==='floor')drawTex(g,s);
   for(const z of B.zones)drawZone(g,z,T);
   g.globalAlpha=1;
@@ -3575,6 +3665,7 @@ function render(T){
     const u=o.t/o.life,f=frameAt(motionOf(o.type,6),6,Math.min(0.999,0.5+u*0.5),0.5),set=SPR.enemy[o.type];
     g.save();g.globalAlpha=1-u;g.translate(o.x,o.y+u*10);blit(g,set,f,o.h);g.globalCompositeOperation='lighter';g.globalAlpha=(1-u)*0.45;blit(g,set,f,o.h);g.restore();
   }
+  jcDrawPops(g);
   for(const s of FX.sh)if(s.k==='tex'&&s.ly==='top')drawTex(g,s);
   ULTLIT=null;for(const id in ULT_SEQ)if(FX[ULT_SEQ[id].fx])drawUltSeq(g,id); // 超必殺の連番（味方の後ろに1枚。味方は光の色を受ける）
   for(const a of B.allies)drawAlly(g,a,T);
@@ -3646,6 +3737,7 @@ function render(T){
     g.beginPath();g.moveTo(aim.x-9,aim.y);g.lineTo(aim.x+9,aim.y);g.moveTo(aim.x,aim.y-9);g.lineTo(aim.x,aim.y+9);g.stroke();g.globalAlpha=1;
   }
   g.restore();
+  jcDrawCombo(g,T);
   if(FX.breach>0){const gr=g.createLinearGradient(0,H-160,0,H);gr.addColorStop(0,'rgba(210,58,46,0)');gr.addColorStop(1,'rgba(210,58,46,'+0.6*FX.breach+')');g.fillStyle=gr;g.fillRect(0,H-160,W,160)}
   drawBossBar(g);
   if(FX.banner){const t=FX.banner.t,a=t<0.25?t/0.25:t>1.4?Math.max(0,1-(t-1.4)/0.5):1;g.globalAlpha=a;g.textAlign='center';g.font='700 30px '+FONT;g.fillStyle='rgba(0,0,0,.7)';g.fillRect(0,H*0.26-30,W,46);g.fillStyle='#f0b9ad';g.fillText(FX.banner.txt,W/2+(1-a)*20,H*0.26+3);g.globalAlpha=1}
@@ -5186,7 +5278,7 @@ function openTune(){
   const keys=B.allies.map(a=>a.d.id).concat(Object.keys(ENEMIES));
   if(keys.indexOf(tuneKey)<0)tuneKey=keys[0];
   $('#tuneSel').innerHTML=keys.map(k=>'<option value="'+k+'"'+(k===tuneKey?' selected':'')+'>'+tuneLabel(k)+'</option>').join('');
-  $('#tuneMark').checked=CFG.showAnchor;$('#tuneAnim').checked=tuneAnim;
+  $('#tuneMark').checked=CFG.showAnchor;$('#tuneJuice').checked=JC.on;$('#tuneAnim').checked=tuneAnim;
   pausedBefore=paused;paused=true;tuning=true;aim.on=false;B.sel=null;
   $('#cmd').classList.add('tuning');syncTune();
 }
@@ -5204,6 +5296,7 @@ $('#tune').addEventListener('click',ev=>{
 $('#tuneSel').addEventListener('change',ev=>{tuneKey=ev.target.value;syncTune()});
 $('#tuneAnim').addEventListener('change',ev=>{tuneAnim=ev.target.checked});
 $('#tuneMark').addEventListener('change',ev=>{CFG.showAnchor=ev.target.checked});
+$('#tuneJuice').addEventListener('change',ev=>{JC.on=ev.target.checked;if(!JC.on)jcReset();try{localStorage.setItem(JC_KEY,JC.on?'1':'0')}catch(e){}});
 $('#tuneClose').addEventListener('click',closeTune);
 $('#tuneReset').addEventListener('click',()=>{Object.assign(TUNE[tuneKey],TUNE_BASE[tuneKey]);saveTune();syncTune()});
 $('#tuneCopy').addEventListener('click',()=>{
@@ -5276,11 +5369,13 @@ function frame(ts){
   const dtR=Math.min(0.1,(ts-last)/1000||0);last=ts;
   if(ULT)ultSync();
   if(mode==='battle'&&!paused&&ULT)updUlt(dtR); // 超必殺のカットイン中は戦闘を止める
+  else if(mode==='battle'&&!paused&&JC.stop>0){JC.stop-=dtR;if(JC.stop<=0)JC.cool=0.07} // ヒットストップ：世界ごと止める（step を呼ばないだけ）
   else if(mode==='battle'&&!paused){
+    if(JC.cool>0)JC.cool-=dtR;
     accum+=dtR*speed;let n=0;
     while(accum>=STEP&&n<10){step(STEP);accum-=STEP;n++;if(mode!=='battle')break}
     if(n>=10)accum=0;
-    updFX(dtR*speed);
+    updFX(dtR*speed);jcTick(dtR*speed);
   }else if(mode==='rewinding'){updRewind(dtR);updFX(dtR)}
   else if(mode==='map'||mode==='node'){updMap(dtR);updFX(dtR)}
   else if(mode!=='battle'&&mode!=='levelup')updFX(dtR); // 強化の選択中は演出も含めて完全停止
