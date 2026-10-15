@@ -31,7 +31,7 @@ sh dev/godot/quake_bloom/bake.sh     # Godot 4.4.1が無ければ自動で取得
 |---|---|---|
 |`light.modulate`|1.12|光全体の明るさ。上げるほど発光する範囲が広がる|
 |`CLIMAX_HEAT`（定数）|0.36|炸裂の熱。1＝白熱、0＝深紅。2026-10-15「炸裂を赤黒く、白を半分に」で1→0.36（白い画素 13,093→6,437、49%）|
-|`s_slash` / `s_impact` の `self_modulate`|赤寄り（0.8,0.5,0.42）/（0.8,0.42,0.34）|炸裂の色味と明るさ|
+|`s_slash` / `s_impact` の `self_modulate`|赤寄り（0.8,0.5,0.42）/（0.8,0.42,0.34）|**現状は効いていない**（2026-10-16判明）：fx_add.gdshaderが`texture(TEXTURE,UV)`で色を上書きするため、Godot 4ではmodulateが捨てられる。承認済みの見た目は`CLIMAX_HEAT`による。効かせるなら`vec4 tex=COLOR;`に直す（見た目が変わるので焼き直して再確認）|
 |`env.glow_intensity`|0.55|にじみの強さ|
 |`env.glow_hdr_threshold`|1.0|これより明るい所だけ発光|
 |`set_glow_level` の表|0, .5, .8, .6, .3|にじみの広がり方（右ほど大きくぼける）|
