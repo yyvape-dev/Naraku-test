@@ -1,0 +1,27 @@
+{
+  "native": 1280,
+  "layers": {
+    "floor": {
+      "size": [
+        3584,
+        3168
+      ],
+      "maxAlphaReconstructionError": 0,
+      "borderAlphaMax": 0,
+      "maxTilesPerFrame": 19,
+      "decodedBytes": 45416448
+    },
+    "air": {
+      "size": [
+        1024,
+        4036
+      ],
+      "maxAlphaReconstructionError": 0,
+      "borderAlphaMax": 0,
+      "maxTilesPerFrame": 11,
+      "decodedBytes": 16531456
+    }
+  },
+  "atlasDecodedBytes": 61947904,
+  "scratchBytes": 6553600
+}

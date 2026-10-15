@@ -1,7 +1,8 @@
 """Validate native tile reconstruction, alpha continuity, and atlas pixel budget."""
 from pathlib import Path
 from PIL import Image
-import numpy as np,json
+import numpy as np,json,argparse
+parser=argparse.ArgumentParser();parser.add_argument('--out',default='dev/reports/fox-sakura/frame-checks.json');args=parser.parse_args()
 repo=Path(__file__).resolve().parents[2];root=repo/'dev/godot/fox_gust';assets=repo/'dev/assets'
 meta=json.loads((assets/'vfx_meta.json').read_text())['foxgust'];result={'native':meta['native'],'layers':{}};total=0
 for layer in ['floor','air']:
@@ -21,4 +22,4 @@ for layer in ['floor','air']:
  result['layers'][layer]={'size':list(atlas.size),'maxAlphaReconstructionError':worst,'borderAlphaMax':edge,'maxTilesPerFrame':max(counts),'decodedBytes':atlas.width*atlas.height*4}
 assert total<100*1024**2,('Revisit sprite decomposition before shipping',total)
 result['atlasDecodedBytes']=total;result['scratchBytes']=meta['native']**2*4
-out=repo/'dev/reports/fox-sakura/frame-checks.json';out.write_text(json.dumps(result,indent=2));print(json.dumps(result))
+out=Path(args.out);out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(result,indent=2));print(json.dumps(result))

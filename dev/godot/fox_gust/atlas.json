@@ -73,21 +73,21 @@
   "layers": {
     "floor": {
       "size": [
-        4096,
-        3744
+        3584,
+        3168
       ],
-      "bytes": 8360238,
-      "decodedBytes": 61341696,
-      "occupiedPixels": 13832394
+      "bytes": 5288830,
+      "decodedBytes": 45416448,
+      "occupiedPixels": 10146433
     },
     "air": {
       "size": [
-        1792,
-        2796
+        1024,
+        4036
       ],
-      "bytes": 2694574,
-      "decodedBytes": 20041728,
-      "occupiedPixels": 4375322
+      "bytes": 1900754,
+      "decodedBytes": 16531456,
+      "occupiedPixels": 3584476
     }
   }
 }

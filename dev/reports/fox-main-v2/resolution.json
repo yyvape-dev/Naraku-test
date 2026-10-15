@@ -1,0 +1,427 @@
+{
+  "DPR": 2,
+  "cases": [
+    {
+      "rank": 0,
+      "scale": 1,
+      "radius": 72,
+      "logicalWidth": 230.4,
+      "canvasPixels": [
+        750,
+        1074
+      ],
+      "screenScale": [
+        2.0833333333333335,
+        2.0833333333333335
+      ],
+      "requiredPixels": 480.00000000000006,
+      "sourcePixels": 1280,
+      "scratchPixels": 1280,
+      "upscale": 0.37500000000000006,
+      "decodedAtlases": [
+        "foxgust_air",
+        "foxgust_floor",
+        "foxsakura_a",
+        "foxsakura_b"
+      ],
+      "viewport": [
+        375,
+        667
+      ]
+    },
+    {
+      "rank": 1,
+      "scale": 1.25,
+      "radius": 90,
+      "logicalWidth": 288,
+      "canvasPixels": [
+        750,
+        1074
+      ],
+      "screenScale": [
+        2.0833333333333335,
+        2.0833333333333335
+      ],
+      "requiredPixels": 600,
+      "sourcePixels": 1280,
+      "scratchPixels": 1280,
+      "upscale": 0.46875,
+      "decodedAtlases": [
+        "foxgust_air",
+        "foxgust_floor",
+        "foxsakura_a",
+        "foxsakura_b"
+      ],
+      "viewport": [
+        375,
+        667
+      ]
+    },
+    {
+      "rank": 2,
+      "scale": 1.5625,
+      "radius": 112.5,
+      "logicalWidth": 360,
+      "canvasPixels": [
+        750,
+        1074
+      ],
+      "screenScale": [
+        2.0833333333333335,
+        2.0833333333333335
+      ],
+      "requiredPixels": 750,
+      "sourcePixels": 1280,
+      "scratchPixels": 1280,
+      "upscale": 0.5859375,
+      "decodedAtlases": [
+        "foxgust_air",
+        "foxgust_floor",
+        "foxsakura_a",
+        "foxsakura_b"
+      ],
+      "viewport": [
+        375,
+        667
+      ]
+    },
+    {
+      "rank": 3,
+      "scale": 1.953125,
+      "radius": 140.625,
+      "logicalWidth": 450,
+      "canvasPixels": [
+        750,
+        1074
+      ],
+      "screenScale": [
+        2.0833333333333335,
+        2.0833333333333335
+      ],
+      "requiredPixels": 937.5000000000001,
+      "sourcePixels": 1280,
+      "scratchPixels": 1280,
+      "upscale": 0.7324218750000001,
+      "decodedAtlases": [
+        "foxgust_air",
+        "foxgust_floor",
+        "foxsakura_a",
+        "foxsakura_b"
+      ],
+      "viewport": [
+        375,
+        667
+      ]
+    },
+    {
+      "rank": 4,
+      "scale": 2.44140625,
+      "radius": 175.78125,
+      "logicalWidth": 562.5,
+      "canvasPixels": [
+        750,
+        1074
+      ],
+      "screenScale": [
+        2.0833333333333335,
+        2.0833333333333335
+      ],
+      "requiredPixels": 1171.875,
+      "sourcePixels": 1280,
+      "scratchPixels": 1280,
+      "upscale": 0.91552734375,
+      "decodedAtlases": [
+        "foxgust_air",
+        "foxgust_floor",
+        "foxsakura_a",
+        "foxsakura_b"
+      ],
+      "viewport": [
+        375,
+        667
+      ]
+    },
+    {
+      "rank": 0,
+      "scale": 1,
+      "radius": 72,
+      "logicalWidth": 230.4,
+      "canvasPixels": [
+        786,
+        1390
+      ],
+      "screenScale": [
+        2.183333333333333,
+        2.183333333333333
+      ],
+      "requiredPixels": 503.03999999999996,
+      "sourcePixels": 1280,
+      "scratchPixels": 1280,
+      "upscale": 0.39299999999999996,
+      "decodedAtlases": [
+        "foxgust_air",
+        "foxgust_floor",
+        "foxsakura_a",
+        "foxsakura_b"
+      ],
+      "viewport": [
+        393,
+        852
+      ]
+    },
+    {
+      "rank": 1,
+      "scale": 1.25,
+      "radius": 90,
+      "logicalWidth": 288,
+      "canvasPixels": [
+        786,
+        1390
+      ],
+      "screenScale": [
+        2.183333333333333,
+        2.183333333333333
+      ],
+      "requiredPixels": 628.8,
+      "sourcePixels": 1280,
+      "scratchPixels": 1280,
+      "upscale": 0.49124999999999996,
+      "decodedAtlases": [
+        "foxgust_air",
+        "foxgust_floor",
+        "foxsakura_a",
+        "foxsakura_b"
+      ],
+      "viewport": [
+        393,
+        852
+      ]
+    },
+    {
+      "rank": 2,
+      "scale": 1.5625,
+      "radius": 112.5,
+      "logicalWidth": 360,
+      "canvasPixels": [
+        786,
+        1390
+      ],
+      "screenScale": [
+        2.183333333333333,
+        2.183333333333333
+      ],
+      "requiredPixels": 785.9999999999999,
+      "sourcePixels": 1280,
+      "scratchPixels": 1280,
+      "upscale": 0.6140625,
+      "decodedAtlases": [
+        "foxgust_air",
+        "foxgust_floor",
+        "foxsakura_a",
+        "foxsakura_b"
+      ],
+      "viewport": [
+        393,
+        852
+      ]
+    },
+    {
+      "rank": 3,
+      "scale": 1.953125,
+      "radius": 140.625,
+      "logicalWidth": 450,
+      "canvasPixels": [
+        786,
+        1390
+      ],
+      "screenScale": [
+        2.183333333333333,
+        2.183333333333333
+      ],
+      "requiredPixels": 982.4999999999999,
+      "sourcePixels": 1280,
+      "scratchPixels": 1280,
+      "upscale": 0.7675781249999999,
+      "decodedAtlases": [
+        "foxgust_air",
+        "foxgust_floor",
+        "foxsakura_a",
+        "foxsakura_b"
+      ],
+      "viewport": [
+        393,
+        852
+      ]
+    },
+    {
+      "rank": 4,
+      "scale": 2.44140625,
+      "radius": 175.78125,
+      "logicalWidth": 562.5,
+      "canvasPixels": [
+        786,
+        1390
+      ],
+      "screenScale": [
+        2.183333333333333,
+        2.183333333333333
+      ],
+      "requiredPixels": 1228.1249999999998,
+      "sourcePixels": 1280,
+      "scratchPixels": 1280,
+      "upscale": 0.9594726562499998,
+      "decodedAtlases": [
+        "foxgust_air",
+        "foxgust_floor",
+        "foxsakura_a",
+        "foxsakura_b"
+      ],
+      "viewport": [
+        393,
+        852
+      ]
+    },
+    {
+      "rank": 0,
+      "scale": 1,
+      "radius": 72,
+      "logicalWidth": 230.4,
+      "canvasPixels": [
+        1040,
+        1484
+      ],
+      "screenScale": [
+        2.888888888888889,
+        2.888888888888889
+      ],
+      "requiredPixels": 665.6,
+      "sourcePixels": 1280,
+      "scratchPixels": 1280,
+      "upscale": 0.52,
+      "decodedAtlases": [
+        "foxgust_air",
+        "foxgust_floor",
+        "foxsakura_a",
+        "foxsakura_b"
+      ],
+      "viewport": [
+        520,
+        900
+      ]
+    },
+    {
+      "rank": 1,
+      "scale": 1.25,
+      "radius": 90,
+      "logicalWidth": 288,
+      "canvasPixels": [
+        1040,
+        1484
+      ],
+      "screenScale": [
+        2.888888888888889,
+        2.888888888888889
+      ],
+      "requiredPixels": 832,
+      "sourcePixels": 1280,
+      "scratchPixels": 1280,
+      "upscale": 0.65,
+      "decodedAtlases": [
+        "foxgust_air",
+        "foxgust_floor",
+        "foxsakura_a",
+        "foxsakura_b"
+      ],
+      "viewport": [
+        520,
+        900
+      ]
+    },
+    {
+      "rank": 2,
+      "scale": 1.5625,
+      "radius": 112.5,
+      "logicalWidth": 360,
+      "canvasPixels": [
+        1040,
+        1484
+      ],
+      "screenScale": [
+        2.888888888888889,
+        2.888888888888889
+      ],
+      "requiredPixels": 1040,
+      "sourcePixels": 1280,
+      "scratchPixels": 1280,
+      "upscale": 0.8125,
+      "decodedAtlases": [
+        "foxgust_air",
+        "foxgust_floor",
+        "foxsakura_a",
+        "foxsakura_b"
+      ],
+      "viewport": [
+        520,
+        900
+      ]
+    },
+    {
+      "rank": 3,
+      "scale": 1.953125,
+      "radius": 140.625,
+      "logicalWidth": 450,
+      "canvasPixels": [
+        1040,
+        1484
+      ],
+      "screenScale": [
+        2.888888888888889,
+        2.888888888888889
+      ],
+      "requiredPixels": 1300,
+      "sourcePixels": 1280,
+      "scratchPixels": 1280,
+      "upscale": 1.015625,
+      "decodedAtlases": [
+        "foxgust_air",
+        "foxgust_floor",
+        "foxsakura_a",
+        "foxsakura_b"
+      ],
+      "viewport": [
+        520,
+        900
+      ]
+    },
+    {
+      "rank": 4,
+      "scale": 2.44140625,
+      "radius": 175.78125,
+      "logicalWidth": 562.5,
+      "canvasPixels": [
+        1040,
+        1484
+      ],
+      "screenScale": [
+        2.888888888888889,
+        2.888888888888889
+      ],
+      "requiredPixels": 1625,
+      "sourcePixels": 1280,
+      "scratchPixels": 1280,
+      "upscale": 1.26953125,
+      "decodedAtlases": [
+        "foxgust_air",
+        "foxgust_floor",
+        "foxsakura_a",
+        "foxsakura_b"
+      ],
+      "viewport": [
+        520,
+        900
+      ]
+    }
+  ],
+  "errors": [],
+  "realPhonePerformance": "unverified"
+}

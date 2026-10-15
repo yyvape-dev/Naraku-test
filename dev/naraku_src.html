@@ -1629,13 +1629,13 @@ function foxGustTracks(){
   FOX_GUST_TRACKS=(FOX_GUST_PACKED?.particles||[]).map(source=>{
     let p=source;
     if(p.petal>=0){
-      const born=.15+p.born*.65,age=born-.15,front=p.front;
+      const front=p.front,breakAt=front?.215:.16,born=breakAt+p.born*.65,age=born-breakAt;
       // Meet the two baked detached tongues (dance.gd fragment_a / fragment_b).
-      const root=front?[263+age*80,214-age*45]:[227+age*105,172-age*85];
+      const root=front?[267+age*122,221-age*30]:[202+age*77,157-age*110];
       // Three leading tongues, then smaller, shorter-lived pieces: leave air between masses.
       const j=ember++,lead=j===0||j===6||j===11;
       const size=lead?(j===0?1:j===6?.82:.68):.38+.18*(.5+.5*Math.sin(p.seed*2.7));
-      p={...p,born,width:p.width*size,life:p.life*(lead?.90:.62),p:[root[0]+Math.sin(p.seed*3)*9,root[1]+Math.cos(p.seed*2)*7],v:[(front?80:105)+p.v[0]*.35,(front?-45:-85)+p.v[1]*.35]};
+      p={...p,born,width:p.width*size,life:p.life*(lead?.90:.62),p:[root[0]+Math.sin(p.seed*3)*9,root[1]+Math.cos(p.seed*2)*7],v:[(front?122:77)+p.v[0]*.35,(front?-30:-110)+p.v[1]*.35]};
     }
     const dt=1/180,n=Math.ceil(p.life/dt)+1,a=new Float32Array(n*4);
     let x=p.p[0],y=p.p[1],vx=p.v[0],vy=p.v[1];

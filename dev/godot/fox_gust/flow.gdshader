@@ -8,6 +8,8 @@ uniform float seed=0.;
 uniform float cooling=0.;
 uniform vec2 root=vec2(.12,.94);
 uniform float deform=1.;
+uniform float peeling=0.;
+uniform float base_feather=0.;
 float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);}
 void vertex(){
@@ -30,12 +32,16 @@ void fragment(){
  float fuel=n*.60+fine*.20+(1.-h)*.32;
  float neck=exp(-pow((h-(.53+.05*sin(age*13.)))/.075,2.));
  float sever=neck*smoothstep(.12,.29,age)*.42*deform;
- float burn=1.-smoothstep(fuel-.12,fuel+.12,consume+sever);
+ // A transient blossom outline is pulled apart from its upstream side, not faded as an icon.
+ float peel=smoothstep(.04,.20,age)*((1.-UV.x)*1.45+h*.30)*peeling;
+ float burn=1.-smoothstep(fuel-.12,fuel+.12,consume+sever+peel);
  float lum=dot(c.rgb,vec3(.2126,.7152,.0722));
  c.rgb=mix(c.rgb,c.rgb*vec3(.82,.43,.33),cooling);
  c.rgb=mix(c.rgb,vec3(1.,.83,.65),smoothstep(.82,1.,lum)*(1.-cooling)*.06);
  // The contact crop is only a density mask: feather its cut edges.
  float contact=1.-smoothstep(.30,.61,length((UV-.5)*vec2(1.1,1.)));
- c.a*=opacity*burn*bounds*mix(contact,1.,step(.01,deform));
+ float upstream=smoothstep(.30,.72,UV.x+.13*sin(UV.y*9.));
+ float tear=smoothstep(.055,.15,age)*peeling;
+ c.a*=opacity*burn*bounds*mix(contact,1.,step(.01,deform))*mix(1.,1.-smoothstep(.92,1.,UV.y),base_feather)*mix(1.,upstream,tear);
  COLOR=c;
 }

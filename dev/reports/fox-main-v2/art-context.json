@@ -1,0 +1,274 @@
+{
+  "DPR": 2,
+  "ordinaryAttacksRetained": true,
+  "naturalEnemiesRetained": true,
+  "soulDialogSuppressed": true,
+  "fixedStep": true,
+  "cases": [
+    {
+      "bg": "crypt",
+      "rank": 0,
+      "castSeconds": 0.08333333333333333,
+      "background": "crypt",
+      "target": {
+        "x": 130.7527618696913,
+        "y": 317.01312063593076
+      },
+      "alive": 8
+    },
+    {
+      "bg": "crypt",
+      "rank": 0,
+      "castSeconds": 0.26666666666666666,
+      "background": "crypt",
+      "target": {
+        "x": 130.7527618696913,
+        "y": 317.01312063593076
+      },
+      "alive": 6
+    },
+    {
+      "bg": "crypt",
+      "rank": 0,
+      "castSeconds": 0.36666666666666664,
+      "background": "crypt",
+      "target": {
+        "x": 130.7527618696913,
+        "y": 317.01312063593076
+      },
+      "alive": 6
+    },
+    {
+      "bg": "crypt",
+      "rank": 0,
+      "castSeconds": 0.5666666666666667,
+      "background": "crypt",
+      "target": {
+        "x": 130.7527618696913,
+        "y": 317.01312063593076
+      },
+      "alive": 7
+    },
+    {
+      "bg": "crypt",
+      "rank": 0,
+      "castSeconds": 0.9666666666666667,
+      "background": "crypt",
+      "target": {
+        "x": 130.7527618696913,
+        "y": 317.01312063593076
+      },
+      "alive": 7
+    },
+    {
+      "bg": "crypt",
+      "rank": 0,
+      "castSeconds": 1.5666666666666667,
+      "background": "crypt",
+      "target": {
+        "x": 130.7527618696913,
+        "y": 317.01312063593076
+      },
+      "alive": 7
+    },
+    {
+      "bg": "crypt",
+      "rank": 4,
+      "castSeconds": 0.08333333333333333,
+      "background": "crypt",
+      "target": {
+        "x": 130.7527618696913,
+        "y": 317.01312063593076
+      },
+      "alive": 8
+    },
+    {
+      "bg": "crypt",
+      "rank": 4,
+      "castSeconds": 0.26666666666666666,
+      "background": "crypt",
+      "target": {
+        "x": 130.7527618696913,
+        "y": 317.01312063593076
+      },
+      "alive": 4
+    },
+    {
+      "bg": "crypt",
+      "rank": 4,
+      "castSeconds": 0.36666666666666664,
+      "background": "crypt",
+      "target": {
+        "x": 130.7527618696913,
+        "y": 317.01312063593076
+      },
+      "alive": 4
+    },
+    {
+      "bg": "crypt",
+      "rank": 4,
+      "castSeconds": 0.5666666666666667,
+      "background": "crypt",
+      "target": {
+        "x": 130.7527618696913,
+        "y": 317.01312063593076
+      },
+      "alive": 5
+    },
+    {
+      "bg": "crypt",
+      "rank": 4,
+      "castSeconds": 0.9666666666666667,
+      "background": "crypt",
+      "target": {
+        "x": 130.7527618696913,
+        "y": 317.01312063593076
+      },
+      "alive": 5
+    },
+    {
+      "bg": "crypt",
+      "rank": 4,
+      "castSeconds": 1.5666666666666667,
+      "background": "crypt",
+      "target": {
+        "x": 130.7527618696913,
+        "y": 317.01312063593076
+      },
+      "alive": 5
+    },
+    {
+      "bg": "cavern",
+      "rank": 0,
+      "castSeconds": 0.08333333333333333,
+      "background": "cavern",
+      "target": {
+        "x": 130.7527618696913,
+        "y": 317.01312063593076
+      },
+      "alive": 8
+    },
+    {
+      "bg": "cavern",
+      "rank": 0,
+      "castSeconds": 0.26666666666666666,
+      "background": "cavern",
+      "target": {
+        "x": 130.7527618696913,
+        "y": 317.01312063593076
+      },
+      "alive": 6
+    },
+    {
+      "bg": "cavern",
+      "rank": 0,
+      "castSeconds": 0.36666666666666664,
+      "background": "cavern",
+      "target": {
+        "x": 130.7527618696913,
+        "y": 317.01312063593076
+      },
+      "alive": 6
+    },
+    {
+      "bg": "cavern",
+      "rank": 0,
+      "castSeconds": 0.5666666666666667,
+      "background": "cavern",
+      "target": {
+        "x": 130.7527618696913,
+        "y": 317.01312063593076
+      },
+      "alive": 7
+    },
+    {
+      "bg": "cavern",
+      "rank": 0,
+      "castSeconds": 0.9666666666666667,
+      "background": "cavern",
+      "target": {
+        "x": 130.7527618696913,
+        "y": 317.01312063593076
+      },
+      "alive": 7
+    },
+    {
+      "bg": "cavern",
+      "rank": 0,
+      "castSeconds": 1.5666666666666667,
+      "background": "cavern",
+      "target": {
+        "x": 130.7527618696913,
+        "y": 317.01312063593076
+      },
+      "alive": 7
+    },
+    {
+      "bg": "cavern",
+      "rank": 4,
+      "castSeconds": 0.08333333333333333,
+      "background": "cavern",
+      "target": {
+        "x": 130.7527618696913,
+        "y": 317.01312063593076
+      },
+      "alive": 8
+    },
+    {
+      "bg": "cavern",
+      "rank": 4,
+      "castSeconds": 0.26666666666666666,
+      "background": "cavern",
+      "target": {
+        "x": 130.7527618696913,
+        "y": 317.01312063593076
+      },
+      "alive": 4
+    },
+    {
+      "bg": "cavern",
+      "rank": 4,
+      "castSeconds": 0.36666666666666664,
+      "background": "cavern",
+      "target": {
+        "x": 130.7527618696913,
+        "y": 317.01312063593076
+      },
+      "alive": 4
+    },
+    {
+      "bg": "cavern",
+      "rank": 4,
+      "castSeconds": 0.5666666666666667,
+      "background": "cavern",
+      "target": {
+        "x": 130.7527618696913,
+        "y": 317.01312063593076
+      },
+      "alive": 5
+    },
+    {
+      "bg": "cavern",
+      "rank": 4,
+      "castSeconds": 0.9666666666666667,
+      "background": "cavern",
+      "target": {
+        "x": 130.7527618696913,
+        "y": 317.01312063593076
+      },
+      "alive": 5
+    },
+    {
+      "bg": "cavern",
+      "rank": 4,
+      "castSeconds": 1.5666666666666667,
+      "background": "cavern",
+      "target": {
+        "x": 130.7527618696913,
+        "y": 317.01312063593076
+      },
+      "alive": 5
+    }
+  ],
+  "errors": []
+}

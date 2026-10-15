@@ -1,10 +1,11 @@
 """Measure real maximum-range pixel density at DPR 2, using the actual renderer."""
 from pathlib import Path
-import json
+import json,argparse
 from playwright.sync_api import sync_playwright
-out=Path('dev/reports/fox-sakura');out.mkdir(parents=True,exist_ok=True)
+parser=argparse.ArgumentParser();parser.add_argument('--base-url',default='http://127.0.0.1:8006');parser.add_argument('--out',default='dev/reports/fox-sakura');args=parser.parse_args()
+out=Path(args.out);out.mkdir(parents=True,exist_ok=True)
 with sync_playwright() as p:
- b=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);q=b.new_page(viewport={'width':393,'height':852},device_scale_factor=2);q.set_default_timeout(120000);q.set_default_navigation_timeout(120000);errors=[];q.on('pageerror',lambda e:errors.append(str(e)));q.goto('http://127.0.0.1:8006/index.html?foxfirefx=gust');q.wait_for_function('NARAKU_READY&&NARAKU.foxSkillReady()');results=[]
+ b=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);q=b.new_page(viewport={'width':393,'height':852},device_scale_factor=2);q.set_default_timeout(120000);q.set_default_navigation_timeout(120000);errors=[];q.on('pageerror',lambda e:errors.append(str(e)));q.goto(args.base_url.rstrip('/')+'/index.html?foxfirefx=gust');q.wait_for_function('NARAKU_READY&&NARAKU.foxSkillReady()');results=[]
  for width,height in [(375,667),(393,852),(520,900)]:
   q.set_viewport_size({'width':width,'height':height})
   for rank in [0,1,2,3,4]:

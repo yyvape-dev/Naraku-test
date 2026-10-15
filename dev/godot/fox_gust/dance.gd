@@ -69,12 +69,11 @@ func _ready():
  smoke.material=sm
  add_child(smoke)
  mesh_flame("sakura_burst",Vector2(.5,.53))
- mesh_flame("rear",Vector2(.12,.94))
- mesh_flame("front",Vector2(.50,.83))
+ mesh_flame("rear",Vector2(.5,.94))
+ mesh_flame("front",Vector2(.12,.88))
  mesh_flame("root",Vector2(.5,.8))
- mesh_flame("mid",Vector2(.5,.85),"fragment_a")
  mesh_flame("fragment_a",Vector2(.5,.85))
- mesh_flame("fragment_b",Vector2(.5,.85))
+ mesh_flame("fragment_b",Vector2(.15,.88))
  var grad=Gradient.new()
  grad.set_color(0,Color(1,.30,.08,.20))
  grad.set_color(1,Color(1,.14,.03,0))
@@ -111,7 +110,7 @@ func put(key:String,pos:Vector2,width:float,height:float,alpha:float,t:float,ero
  n.position=pos
  n.scale=Vector2(width/n.texture.get_width(),height/n.texture.get_height())
  n.visible=alpha>.001
- var params={"age":t,"opacity":alpha,"consume":erosion,"cooling":smoothstep(.16,.85,t),"gust":(wind(C,t).x-38)/145.,"deform":deform}
+ var params={"age":t,"opacity":alpha,"consume":erosion,"cooling":smoothstep(.16,.85,t),"gust":(wind(C,t).x-38)/145.,"deform":deform,"peeling":1. if key=="sakura_burst" else 0.,"base_feather":0. if key in ["sakura_burst","root"] else 1.}
  for k in params:
   n.material.set_shader_parameter(k,params[k])
 
@@ -131,24 +130,29 @@ func animate(t:float):
  smoke.material.set_shader_parameter("opacity",clampf(haze/.13,0,1)*pow(clampf(1.-haze/.76,0,1),1.7)*.11)
  smoke.material.set_shader_parameter("erosion",haze*.7)
  # A short five-cleft ignition silhouette, then wind consumes the lobes.
- var bloom=clampf((t-.025)/.05,0,1)*(1.-smoothstep(.23,.43,t))
+ var bloom=clampf((t-.018)/.045,0,1)*(1.-smoothstep(.17,.32,t))
  var bloom_size=1.-exp(-maxf(t-.025,0)*22.)
- put("sakura_burst",C+Vector2(-3,-12),lerpf(180,338,bloom_size),lerpf(70,190,bloom_size),bloom*.94 if rear else 0.,t,lerpf(-.20,1.25,smoothstep(.12,.41,t)),1.25)
- flames.sakura_burst.rotation=-.08
+ put("sakura_burst",C+Vector2(-3,-12),lerpf(180,330,bloom_size),lerpf(70,182,bloom_size),bloom*.94 if rear else 0.,t,lerpf(-.20,1.25,smoothstep(.10,.32,t)),1.25)
+ flames.sakura_burst.rotation=-.13+.07*smoothstep(.08,.28,t)
  var rise=1.-exp(-t*30.)
  var strength=clampf(t/.025,0,1)*pow(clampf(1.-maxf(0,t-.13)/.50,0,1),.75)
  var consume=lerpf(-.22,1.18,smoothstep(.12,.64,t))
- put("rear",C+Vector2(-48,-7),lerpf(95,225,rise),lerpf(62,208,rise),strength if rear else 0.,t,consume)
- put("front",C+Vector2(6,5),lerpf(125,292,rise),lerpf(30,118,rise),strength*.94 if front else 0.,t+.04,consume+.06,.45)
- put("mid",C+Vector2(-9,-8),lerpf(25,81,rise),lerpf(35,128,rise),strength*.85 if rear else 0.,t+.035,consume+.12,.8)
- flames.mid.rotation=-.18
+ # The rooted rear rises first; the low foreground follows instead of opening in unison.
+ put("rear",C+Vector2(-18,-6),lerpf(48,116,rise),lerpf(58,186,rise),strength*.94 if rear else 0.,t,consume,.85)
+ var front_age=maxf(0,t-.028)
+ var front_rise=1.-exp(-front_age*29.)
+ var front_strength=clampf(front_age/.025,0,1)*pow(clampf(1.-maxf(0,front_age-.09)/.43,0,1),.85)
+ put("front",C+Vector2(-35,5),lerpf(70,232,front_rise),lerpf(18,83,front_rise),front_strength*.90 if front else 0.,t+.025,consume+.04,.55)
  put("root",C+Vector2(-12,0),lerpf(18,50,rise),lerpf(13,40,rise),pow(clampf(1.-t/.13,0,1),1.3) if front else 0.,t,-.3,0.)
- var a=maxf(t-.15,0.)
- var detached=clampf(a/.04,0,1)*pow(clampf(1.-a/.48,0,1),1.3)
- put("fragment_a",C+Vector2(27+a*105,-68-a*85),33+20*a,57-24*a,detached*.84 if rear else 0.,t,lerpf(-.1,1.1,smoothstep(.18,.65,t)),.8)
- flames.fragment_a.rotation=-.20+a*.75
- put("fragment_b",C+Vector2(63+a*80,-26-a*45),45-20*a,42-10*a,detached*.75 if front else 0.,t+.08,consume+.05,.7)
- flames.fragment_b.rotation=.3-a*.7
+ # Two very different ruptures: a narrow rising tongue, then a low tearing shred.
+ var a=maxf(t-.16,0.)
+ var detached=clampf(a/.035,0,1)*pow(clampf(1.-a/.35,0,1),1.35)
+ put("fragment_a",C+Vector2(2+a*77,-83-a*110),24+9*a,62-30*a,detached*.82 if rear else 0.,t,lerpf(-.12,1.15,smoothstep(.19,.54,t)),.8)
+ flames.fragment_a.rotation=.06+a*.38
+ var b=maxf(t-.215,0.)
+ var shred=clampf(b/.03,0,1)*pow(clampf(1.-b/.29,0,1),1.45)
+ put("fragment_b",C+Vector2(67+b*122,-19-b*30),51-20*b,25-7*b,shred*.68 if front else 0.,t+.06,lerpf(-.10,1.15,smoothstep(.24,.55,t)),.55)
+ flames.fragment_b.rotation=.10-b*.45
  motes.clear()
  for part in ([] if baking else parts):
   var age=t-part.born
