@@ -15,6 +15,7 @@ const FRAME_COUNT := 36
 const FPS := 40.0
 const C := Vector2(200, 225)       # same anchor as the game (0.5, 0.5625)
 const SQ := 0.5                    # ground-plane squash (back-view perspective)
+const CLIMAX_HEAT := 0.36          # 1 = white-hot burst, 0 = deep red (user: 炸裂を赤黒く、白を半分に)
 
 var clock := 0.0
 var layer := "all"                 # floor / air / all
@@ -84,7 +85,7 @@ func _ready():
 	s_slash = add_sprite("slash", 3.0)
 	s_impact = add_sprite("impact", 5.0)
 	light.modulate = Color(1.12, 1.12, 1.12)
-	s_slash.self_modulate = Color(0.72, 0.72, 0.72); s_impact.self_modulate = Color(0.75, 0.75, 0.75); s_trail.self_modulate = Color(0.85, 0.85, 0.85)   # push hot parts above the bloom threshold (2D HDR)
+	s_slash.self_modulate = Color(0.8, 0.5, 0.42); s_impact.self_modulate = Color(0.8, 0.42, 0.34); s_trail.self_modulate = Color(0.85, 0.85, 0.85)   # push hot parts above the bloom threshold (2D HDR)
 	env = Environment.new()
 	env.background_mode = Environment.BG_CANVAS
 	env.glow_enabled = true
@@ -202,7 +203,7 @@ func build_gpu_particles():
 	m.particle_flag_align_y = true
 	m.scale_min = 0.12; m.scale_max = 0.3
 	m.scale_curve = curve([[0.0, 1.0], [1.0, 0.25]])
-	m.color_ramp = ramp([Color(1, 0.95, 0.8, 1), Color(1, 0.62, 0.22, 1), Color(0.85, 0.15, 0.03, 0.8), Color(0.3, 0.02, 0, 0)], [0.0, 0.25, 0.6, 1.0])
+	m.color_ramp = ramp([Color(1, 0.62, 0.3, 1), Color(0.95, 0.32, 0.08, 1), Color(0.85, 0.15, 0.03, 0.8), Color(0.3, 0.02, 0, 0)], [0.0, 0.25, 0.6, 1.0])
 	# 2) embers: rise from the cracks with turbulence, a slow rhythm against the impulse
 	a = gp(light, glow_tex, 46, 0.55, 0.08, "air", "light", 11)
 	n = a[0]; m = a[1]
@@ -256,7 +257,7 @@ func animate(t: float):
 	var air_light := shows("air", "light")
 	# strike: 0-0.05 wipe, burning edge; dissolves from 0.07
 	s_slash.visible = air_light and t < 0.22
-	set_fx(s_slash, 300, 1.0, lerpf(0.0, 1.08, out_cubic(t / 0.05)), lerpf(-0.3, 1.05, win(t, 0.07, 0.21)), 1.0 - win(t, 0.05, 0.2) * 0.7)
+	set_fx(s_slash, 300, 1.0, lerpf(0.0, 1.08, out_cubic(t / 0.05)), lerpf(-0.3, 1.05, win(t, 0.07, 0.21)), CLIMAX_HEAT * (1.0 - win(t, 0.05, 0.2) * 0.7))
 	s_slash.position = C + Vector2(0, -10)
 	# red tendrils linger and drift (contrast: slower element against the fast strike)
 	s_trail.visible = air_light and t > 0.03 and t < 0.5
@@ -265,7 +266,7 @@ func animate(t: float):
 	# impact burst: expo ease, peak 0.07, cools and erodes
 	var ia := t - 0.035
 	s_impact.visible = air_light and ia > 0.0 and t < 0.26
-	set_fx(s_impact, lerpf(70, 250, out_expo(ia / 0.08)), clamp01(ia / 0.012), 2.0, lerpf(-0.3, 1.05, win(t, 0.1, 0.25)), 1.0 - win(t, 0.07, 0.22))
+	set_fx(s_impact, lerpf(70, 250, out_expo(ia / 0.08)), clamp01(ia / 0.012), 2.0, lerpf(-0.3, 1.05, win(t, 0.1, 0.25)), CLIMAX_HEAT * (1.0 - win(t, 0.07, 0.22)))
 	s_impact.rotation = 0.12 * out_cubic(ia / 0.2)
 	# dust puffs (matte, floor)
 	for q in puffs:
@@ -318,6 +319,16 @@ func _draw_matte():
 			var sz: float = r.size * (1.1 - clampf(hgt / 220.0, 0.0, 0.7))
 			glow_at(n, st.g, Vector2(sz * 1.6, sz * 0.55), Color(0, 0, 0, 0.45 * fade * (1.0 - clampf(hgt / 260.0, 0.0, 0.8))))
 	if shows("air", "matte"):
+		# 赤黒い炸裂：the burst's silhouette in near-black red, slightly larger, under the light pass
+		var ia := t - 0.03
+		if ia > 0.0 and t < 0.32:
+			var w := lerpf(90, 290, out_expo(ia / 0.09))
+			var a := clamp01(ia / 0.015) * (1.0 - win(t, 0.12, 0.32))
+			n.draw_set_transform(C, 0.12 * out_cubic(ia / 0.2) + 0.2, Vector2.ONE)
+			n.draw_texture_rect(art.impact, Rect2(Vector2(-w, -w) * 0.5, Vector2(w, w)), false, Color(0.16, 0.015, 0.01, 0.8 * a))
+			n.draw_set_transform(C + Vector2(0, -10), 0.0, Vector2.ONE)
+			n.draw_texture_rect(art.slash, Rect2(Vector2(-160, -160), Vector2(320, 320)), false, Color(0.12, 0.01, 0.01, 0.55 * a))
+			n.draw_set_transform(Vector2.ZERO)
 		for r in rocks:
 			var age: float = t - r.delay
 			if age <= 0.0 or age > r.life: continue
@@ -376,8 +387,8 @@ func _draw_light():
 		var fl := clamp01(1.0 - absf(t - 0.06) / 0.05)
 		if fl > 0.0:
 			n.draw_set_transform(C + Vector2(0, -12), deg_to_rad(-40), Vector2.ONE)
-			glow_at(n, Vector2.ZERO, Vector2(200, 46), Color(1.0, 0.85, 0.6, 0.85 * fl))
-			glow_at(n, Vector2.ZERO, Vector2(70, 40), Color(1, 1, 1, 0.55 * fl))
+			glow_at(n, Vector2.ZERO, Vector2(200, 46), Color(0.95, 0.3, 0.12, 0.8 * fl))
+			glow_at(n, Vector2.ZERO, Vector2(60, 34), Color(1.0, 0.7, 0.5, 0.3 * fl))
 			n.draw_set_transform(Vector2.ZERO)
 		# light streaks: fast impulse
 		for q in rays:
@@ -386,7 +397,7 @@ func _draw_light():
 			var k: float = age / q.life
 			var d := Vector2(cos(q.a), sin(q.a) * 0.6)
 			var p: Vector2 = C + Vector2(0, -10) + d * (10.0 + q.spd * age * (1.0 - k * 0.4))
-			n.draw_line(p - d * q.len * (1.0 - k), p, heat_color(1.0 - k * 0.8, 0.9 * (1.0 - k)), 1.6 * (1.0 - k) + 0.5, true)
+			n.draw_line(p - d * q.len * (1.0 - k), p, heat_color(0.7 - k * 0.6, 0.9 * (1.0 - k)), 1.6 * (1.0 - k) + 0.5, true)
 		# hot rock rims cool quickly
 		for r in rocks:
 			var age: float = t - r.delay
