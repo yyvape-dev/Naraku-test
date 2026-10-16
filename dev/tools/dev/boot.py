@@ -2,13 +2,13 @@
    使い方: python3 boot.py <配布版.html> <出力png> [切り詰めバイト数]"""
 import sys, os, re
 from playwright.sync_api import sync_playwright
-html=os.path.abspath(sys.argv[1]); out=sys.argv[2]; cut=int(sys.argv[3]) if len(sys.argv)>3 else 0
+html=sys.argv[1] if sys.argv[1].startswith('http') else os.path.abspath(sys.argv[1]); out=sys.argv[2]; cut=int(sys.argv[3]) if len(sys.argv)>3 else 0
 if cut:
     d=open(html,'rb').read()[:cut]; html=out+'.cut.html'; open(html,'wb').write(d)
 with sync_playwright() as p:
     b=p.chromium.launch(); pg=b.new_page(viewport={'width':390,'height':844},device_scale_factor=1)
     errs=[]; pg.on('pageerror',lambda e: errs.append(str(e)[:120])); pg.on('console',lambda m: errs.append(m.text[:120]) if m.type=='error' else None)
-    pg.goto('file://'+html); pg.wait_for_timeout(600)
+    pg.goto(html if html.startswith('http') else 'file://'+html); pg.wait_for_timeout(600)
     if not cut: pg.evaluate('try{localStorage.clear()}catch(e){}'); pg.reload()   # 前回の記録を消して、最初の起動から始める
     pg.wait_for_timeout(2500 if not cut else 7500)
     title=pg.evaluate("()=>{const s=document.querySelector('#screen');return !s.classList.contains('on')?null:s.querySelector('#hub')?'街（ハブ画面）':s.querySelector('h1,h2').textContent}")

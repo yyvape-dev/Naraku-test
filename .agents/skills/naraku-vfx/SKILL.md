@@ -52,7 +52,12 @@ description: Narakuのスキル・攻撃・着弾演出を制作、改善、レ�
 ## 既存の入口
 
 - ソース：dev/naraku_src.html、配布：index.html
-- 再ビルド：python3 dev/tools/embed.py dev/naraku_src.html index.html dev/assets
+- 再ビルド（2026-10-16〜リンク方式が公開の既定）：python3 dev/tools/embed.py dev/naraku_src.html index.html dev/assets --link dev/assets/
+  - index.html は約0.5MB。画像は埋め込まず dev/assets/<名前>.webp?v=<ハッシュ> を読む。素材を足したら必ず再ビルド（?v が変わり古い画像が残らない）。
+  - 1ファイル版（画像入り・約63MB）が要るときだけ --link なしで作業フォルダへ出す。リポジトリには入れない（履歴が膨らむ）。
+  - リンク方式は file:// だと canvas の getImageData（スプライトのマゼンタ抜き等）が使えない。確認はリポジトリ直下で `python3 -m http.server 8765` を立て、smoke.py／boot.py に `http://127.0.0.1:8765/index.html` を渡す（どちらも http を受け付ける）。
+  - 起動時に必須の画像（顔・カットイン・背景・キャラのアトラス・地図）だけ待ち、「奈落へ降りる準備中 n%」を出す。超必殺の連番は起動後に fetch でキャッシュへ先読みする（展開は撃つときの seqLoad のまま）。
+- コマ補間（RIFE。2026-10-16）：超必殺の連番を2倍コマにした seq_lanaU24_*／seq_blueU24_*（調整パネル「なめらか」で元と切り替え、`SEQ24_SET`）。手順は Claude側の naraku-vfx スキル「8. コマの補間」：apt で mesa-vulkan-drivers（lavapipe）→ github.com/nihui/rife-ncnn-vulkan の 20221029 ubuntu zip（rife-v4.6）→ `VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/lvp_icd.json ./rife-ncnn-vulkan -i in -o out -m rife-v4.6 -n <元×2−1>`。ffmpeg の minterpolate はぼけるので使わない。
 - Godot・書き出し：dev/godot/quake/README.md、pack.py
 - Glow＋GPU粒子の実証済み手本：dev/godot/quake_bloom/（README・bake.sh・measure_white.py。下の「Glow・GPU粒子の実装手順」）
 - 比較：dev/mock/quake_demo.html、dev/mock/rift_demo.html、dev/mock/quake_compare.html（A/B/C比較）
