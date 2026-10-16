@@ -80,3 +80,16 @@
 総合smokeはClaude最新版のリンク方式へ統合後に完走、RESULT OK・エラーなし、操縦9/12・火力優先11/12。以前の「未完走」は途中経過。本検証ではChromium実行パスを指定し、既存のfavicon.ico欠損だけ204で代用。VFX素材やゲームの通信エラーは除外していない。ログdev/reports/blackhole/smoke-synced.log。
 
 HTTPのboot操作検証も起動→出撃→戦闘→勝利→帰還→街の各施設→保存/再開まで成功、errs なし。実行パスとfavicon代用に加え、テストで勝利時刻へ飛ばす箇所を固定0.9秒待ちからsim(.5)で進め、レベルアップ/停止のタイミング差を避けた一時ハーネスを使用。製品コードの時間処理は変更なし。boot-synced.log参照。
+
+## 次チャット向け確定状態（2026-10-16・公開確認後）
+- コード公開コミット f5e7dd04dfecca3d1f174907298d50a0418bf492。Naraku-test/mainへ反映・GitHub Pages公開済み。以前の「候補・未公開」は履歴。今回、本番Narakuには出していない。
+- ゲーム https://yyvape-dev.github.io/Naraku-test/?v=f5e7dd04 、比較 https://yyvape-dev.github.io/Naraku-test/dev/mock/blackhole_demo.html?v=f5e7dd04 。
+- シェリ超必殺「永劫凍獄」：ユーザー原画6枚→Godotの渦/凝縮/破裂、Glow＋2D HDR＋GPU粒子。標準30fps・3.2秒、RIFE60fpsは任意。見た目の改善は小さく、急な破裂の細部は柔らかくなるため60fpsを積極的に推さない。30fpsは追加復号約67.5MiB、60fpsは合計約135MiB。無指定では中割りを通信/復号しない。?blackholesmooth=1で60fps、?blackholefx=legacyで旧演出。比較のチェックでも切替。
+- 命中0.05秒40ダメージ＋3秒凍結、2.4秒230ダメージは維持。吸引・追加判定なし。ラナ通常攻撃のRIFE不採用・元12コマ維持も確定。
+- Claudeの6536fabを先に取り込み、「起」の持ち越し修正・装備表示・画像リンク方式を維持。公開indexは553299bytes。再ビルドは python3 dev/tools/embed.py dev/naraku_src.html index.html dev/assets --link dev/assets/ 。巨大な画像埋込版をコミットしない。
+- smoke RESULT OK（9/12・11/12）、boot操作成功、VFXの戦闘一致・時刻・削除・欠損時切替、RIFEの元コマ一致を確認。公開HTMLはローカルとSHA256一致。公開素材で375/393幅の描画・標準30fps・中割り未読込・Claude修正維持、公開比較の30/60fpsと旧演出切替を実ブラウザ確認しJSエラーなし。
+- 公開ブラウザ検証ではChromiumに環境proxy CAが未登録だったため、通常TLS検証を行うPython urllibで公開レスポンスを取得してブラウザのrouteへ渡した。TLS検証は無効化していない。実機iPhone/Safariでの品質・性能は未確認。
+- 制作/再生成 dev/godot/blackhole/、比較生成 dev/tools/dev/build_blackhole_player.py、検証 dev/tests/blackhole*.py、報告 dev/reports/blackhole/REPORT.md。全工程 build.sh はGodot→RIFE→リンク方式ビルド。/tmpのRIFEバイナリ/モデル/Vulkan環境は次セッションで残る保証なし。
+- 次の技は未指定。作業開始時は最新mainを取得し、本書・dev/vfx/STATUS.mdの末尾に加え先頭の現状も読み、AGENTS.mdと .agents/skills/naraku-vfx/SKILL.md を確認する。Claudeとの同時更新を上書きしない。
+
+追記：引き継ぎ保存時にClaudeの d4014c4（大地割りC案を標準採用）を検出し、その上へ本記録をリベースした。最新コードはd4014c4を含む。QUAKE_C・調整パネル「地割C」・localStorage naraku_quakeC、素材vfx_quakeC_floor/air.webpの追加を維持。詳細はHANDOFF先頭を参照。上記の公開実ブラウザ確認はシェリ公開f5e7dd0時点の結果で、d4014c4の戦闘一致/smokeはClaude側の記録。次の作業前にも最新mainを再取得すること。
