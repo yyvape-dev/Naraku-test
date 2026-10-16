@@ -694,6 +694,7 @@ img.frm{display:block;width:100%;height:100%}
 .tv-top .plus{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:calc(30px*var(--lk));color:rgba(110,75,40,.38)}
 .tv-top .od{position:absolute;left:0;right:0;bottom:7%;font-size:calc(9px*var(--lk));color:#fff3d6;text-align:center;letter-spacing:.2em;text-shadow:0 1px 2px #000,0 0 4px #000}
 .tv-row{position:absolute;left:6.6%;width:86.8%;height:9.9%;display:flex;align-items:center;gap:2%;padding:0 1.5%;box-sizing:border-box;color:#3a2412;cursor:pointer;border-radius:4px}
+.tv-pg{position:absolute;left:50%;top:84.6%;transform:translateX(-50%);padding:calc(4px*var(--lk)) calc(14px*var(--lk));font:700 calc(11px*var(--lk)) inherit;color:#3a2412;background:rgba(200,150,80,.25);border:1px solid #8a6534;border-radius:4px;cursor:pointer;white-space:nowrap}
 .tv-row:active{background:rgba(160,110,50,.14)}
 .tv-row.on{background:rgba(200,140,60,.12)}
 .tv-row .pf{position:relative;flex:none;width:calc(var(--lw,390px)*.0985);aspect-ratio:1;border-radius:3px;overflow:hidden;box-shadow:0 0 0 1.5px #8a6534,0 2px 4px rgba(60,35,15,.4);background:#241b14}
@@ -1097,11 +1098,17 @@ const CHARS={
   sword: {id:'sword', name:'ラナ',            short:'ラナ',    role:'女騎士・近接円形',     hp:180,range:135,cd:1.15,dmg:34,atk:'circle',aoe:62,    color:'#b9c2cc',far:{range:240,k:0.6,cd:1.3,spd:520,tex:'slash_b',col:'#ff4a3a'}},
   sister:{id:'sister',name:'マリアンヌ',      short:'マリアンヌ',role:'シスター・単体と治癒',hp:110,range:205,cd:1.25,dmg:14,atk:'single',shotSpd:430,heal:4,color:'#e9dca8'},
   blue:  {id:'blue',  name:'アベニウス',      short:'アベニウス',role:'蒼剣士・中距離扇状',   hp:130,range:170,cd:0.95,dmg:18,atk:'fan',   fan:0.9,   color:'#4fc3f7',far:{range:240,k:0.6,cd:1.3,spd:520,tex:'slash_a',col:'#4fc3f7'}},
+  ninja: {id:'ninja', name:'リンネ',          short:'リンネ',  role:'忍・暗殺単体',       hp:90, range:205,cd:0.38,dmg:9, atk:'single',shotSpd:760,crit:0.12,vsBig:1.6,color:'#ff3a3a'},
+  samurai:{id:'samurai',name:'シオウ',        short:'シオウ',  role:'侍・居合の貫通',     hp:125,range:265,cd:1.0, dmg:21,atk:'line',  lineW:22,  color:'#5fe0a0'},
   mage:  {id:'mage',  name:'シェリ',          short:'シェリ',  role:'魔術師・長射程貫通',hp:80, range:330,cd:1.6, dmg:24,atk:'line',  lineW:30,  color:'#a57be0'}
 };
-const CHAR_ORDER=['fox','sword','sister','mage','blue'];
+const CHAR_ORDER=['fox','sword','sister','mage','blue','ninja','samurai'];
+// 酒場で雇う仲間（2026-10-17 追加。最初は未加入。cost＝雇う金）
+const HIRE={ninja:{cost:300},samurai:{cost:300}};
+const hired=id=>!!(S&&S.roster[id]&&S.roster[id].hired!==false);
+const crew=()=>CHAR_ORDER.filter(hired);
 // キャラ固有の属性タグ。武器を持つと、武器の属性タグが加わる（gearStats がまとめる）
-const CHAR_TAG={fox:'phys',sword:'phys',blue:'phys',sister:'mag',mage:'mag'};
+const CHAR_TAG={fox:'phys',sword:'phys',blue:'phys',sister:'mag',mage:'mag',ninja:'phys',samurai:'phys'};
 const LINE_OFF=124,FOOT_OFF=22,ALLY_H=100; // 防衛線と味方の足元（アリーナ下端からの距離）、味方の表示身長
 
 const CARDS=[
@@ -1114,6 +1121,10 @@ const CARDS=[
   {id:'mg_inferno',owner:'mage',  name:'奈落の業火',kind:'target', r:112,dmg:170,reload:13,desc:'最大範囲を爆炎で薙ぐ',    pal:['#ffe0f0','#e0365f','#4a0f5a']},
   {id:'bl_moon',   owner:'blue',  name:'蒼月一閃',  kind:'target', shape:'row',hh:36,dmg:65,reload:9, desc:'横一列をまとめて斬り払う',pal:['#ffffff','#4fc3f7','#123a66']},
   {id:'bl_wave',   owner:'blue',  name:'一閃斬月',  kind:'instant',band:150,push:90,dmg:50,reload:12,desc:'防衛線の前を薙ぎ、敵を押し返す',pal:['#ffffff','#7fe0ff','#1a5a8a']},
+  {id:'nj_mark',   owner:'ninja', name:'影討ち',    kind:'target', r:46, dmg:150,boss:2,reload:7, desc:'狭い範囲に致命の一撃。強敵には2倍',pal:['#ffffff','#ff3a3a','#3a0508']},
+  {id:'nj_kunai',  owner:'ninja', name:'千本苦無',  kind:'target', r:118,dmg:36, slow:1.5,reload:9, desc:'苦無の雨で広く刻み、足を止める',pal:['#ffe6e6','#ff5a5a','#4a0a0a']},
+  {id:'sm_iai',    owner:'samurai',name:'居合・一文字',kind:'target',shape:'col',hw:24,dmg:115,reload:9,desc:'縦一列を、居合でまとめて斬り抜く',pal:['#ffffff','#5fe0a0','#0f3a2a']},
+  {id:'sm_wind',   owner:'samurai',name:'風断ち',    kind:'target', r:84, dmg:90, knock:30,reload:10,desc:'斬撃の嵐で範囲を刻み、押し返す',pal:['#f0fff6','#7dffb8','#14402c']},
   {id:'mg_void',   owner:'mage',  name:'凍てつく虚無',kind:'target',r:100,dmg:40, freeze:2.6,reload:10,desc:'範囲の敵を凍結させる',pal:['#ffffff','#8fd8ff','#2a4f9a']}
 ];
 
@@ -1149,7 +1160,9 @@ const MOTION={
   sister:{ms:[120,95,110,140,65,40,60,75,85,100,115,130],hit:5}, // 12コマ（動画AI。2026-10-10 本採用）：構え→杖を持ち手を上げ始める→掌を天へ（溜め）→掌を掲げたまま静止（溜め・最長。風の前の凪）→風が起こる（加速）→突風が噴き上がる（ヒット・最短）→ヴェールとスカートが最大に舞い上がる→減速して宙に浮く→裾が落ち始める→裾が収まる→手を下ろす→構え（ヒット後は徐々に長く＝噴き上げた風がふわりと減速して見える）
   mage:  {ms:[120,95,90,130,115,60,50,40,70,95,110,130],hit:7}, // 12コマ（動画AI。2026-10-10 本採用）：構え（手を後ろ）→右手を上げ始める→手を上げて振り向く→指を立てて溜め（長め2コマ）→指を鳴らす→外套が翻り始める→外套が大きく広がる（ヒット）→広がりきる→外套が落ち始める→戻り（手を後ろ）
   sword: {ms:[120,95,85,120,110,60,40,55,85,100,115,130],hit:6}, // 12コマ（動画AI。2026-10-10 本採用）：構え→剣を右へ出す→持ち上げる→頭上で溜め（長め2コマ）→振り出し（加速）→体の前を横一閃（ヒット・最短）→左へ振り抜く→低く残心2コマ→立ち上がり→構え（戻りは徐々に長く）
-  blue:  {ms:[120,95,90,135,115,60,50,40,70,95,110,130],hit:7}, // 12コマ（動画AI。2026-10-10 本採用）：構え→持ち上げ→頭上へ→頭上で溜め（長め2コマ）→振り下ろし（加速2コマ）→斬撃の弧（ヒット・最短）→振り抜き→マントの翻り→戻り→構え（戻りは徐々に長く）
+  blue:  {ms:[120,95,90,135,115,60,50,40,70,95,110,130],hit:7},
+  ninja: {ms:[120,85,60,70,55,60,70,115,40,60,95,130],hit:8},    // 12コマ（動画AI。2026-10-17）：構え→腰を落とす→右へ一閃→返す→回転斬り→斬り返し→薙ぎ→溜め（長め）→閃光の一突き（ヒット・最短）→斬り払い→残心→構え
+  samurai:{ms:[120,95,95,110,130,115,60,40,75,100,115,130],hit:7}, // 12コマ（動画AI。2026-10-17）：構え→刀を返す→持ち上げ→頭上へ→上段で溜め（長め2コマ）→振り下ろし→斬り抜く（ヒット・最短）→突き出し→残心→戻り→構え // 12コマ（動画AI。2026-10-10 本採用）：構え→持ち上げ→頭上へ→頭上で溜め（長め2コマ）→振り下ろし（加速2コマ）→斬撃の弧（ヒット・最短）→振り抜き→マントの翻り→戻り→構え（戻りは徐々に長く）
   // 敵（ヒットは5コマ目。重い敵ほど溜めと回収を長く取る）
   skel:  {ms:[105,90,75,70,45,120],hit:4},
   beast: {ms:[100,85,75,65,40,115],hit:4},
@@ -1338,19 +1351,19 @@ const TSHOP=[{id:'oil',price:90,cap:3},{id:'salve',price:130,cap:3},{id:'incense
    ========================================================= */
 const SPR={ally:{},enemy:{},face:{},cut:{},bg:{}};
 /* スキル発動時のカットイン用の横長画像。ビルド時に差し込まれる */
-const CUTS=/*__CUTS_START__*/{"blue":"dev/assets/cut_blue.webp?v=800e8099","fox":"dev/assets/cut_fox.webp?v=559cb8e3","mage":"dev/assets/cut_mage.webp?v=4eccf29a","sister":"dev/assets/cut_sister.webp?v=e2af9c68","sword":"dev/assets/cut_sword.webp?v=d317d64a"}/*__CUTS_END__*/;
+const CUTS=/*__CUTS_START__*/{"blue":"dev/assets/cut_blue.webp?v=800e8099","fox":"dev/assets/cut_fox.webp?v=559cb8e3","mage":"dev/assets/cut_mage.webp?v=4eccf29a","ninja":"dev/assets/cut_ninja.webp?v=12d8b89b","samurai":"dev/assets/cut_samurai.webp?v=d7bb7613","sister":"dev/assets/cut_sister.webp?v=e2af9c68","sword":"dev/assets/cut_sword.webp?v=d317d64a"}/*__CUTS_END__*/;
 /* 超必殺のカットインの立ち絵（背景を抜いた9:16）。assets/ult_<キャラ>.webp がビルド時に差し込まれる。無ければ札の絵で代用。
    最初の発動でカクつかないよう、読み込み時に先に展開しておく */
-const ULTS=/*__ULTS_START__*/{"blue":"dev/assets/ult_blue.webp?v=706ab151","fox":"dev/assets/ult_fox.webp?v=4856ea9b","mage":"dev/assets/ult_mage.webp?v=66226a57","sister":"dev/assets/ult_sister.webp?v=111ec84a","sword":"dev/assets/ult_sword.webp?v=45d3426d"}/*__ULTS_END__*/;
+const ULTS=/*__ULTS_START__*/{"blue":"dev/assets/ult_blue.webp?v=706ab151","fox":"dev/assets/ult_fox.webp?v=4856ea9b","mage":"dev/assets/ult_mage.webp?v=66226a57","ninja":"dev/assets/ult_ninja.webp?v=e1406739","samurai":"dev/assets/ult_samurai.webp?v=3a7d9a4f","sister":"dev/assets/ult_sister.webp?v=111ec84a","sword":"dev/assets/ult_sword.webp?v=45d3426d"}/*__ULTS_END__*/;
 const ULT_IMG={};for(const k in ULTS){const im=new Image();im.alt='';im.src=ULTS[k];if(im.decode)im.decode().catch(()=>{});ULT_IMG[k]=im}
 /* サイドエリア用の正面顔（正方形に切り出し済み）。ビルド時に差し込まれる */
-const FACES=/*__FACES_START__*/{"blue":"dev/assets/face_blue.webp?v=d1d65e1d","fox":"dev/assets/face_fox.webp?v=57294a33","mage":"dev/assets/face_mage.webp?v=8113876d","sister":"dev/assets/face_sister.webp?v=32dce9bc","sword":"dev/assets/face_sword.webp?v=c6cf5c58"}/*__FACES_END__*/;
+const FACES=/*__FACES_START__*/{"blue":"dev/assets/face_blue.webp?v=d1d65e1d","fox":"dev/assets/face_fox.webp?v=57294a33","mage":"dev/assets/face_mage.webp?v=8113876d","ninja":"dev/assets/face_ninja.webp?v=0b59333e","samurai":"dev/assets/face_samurai.webp?v=8b1959e5","sister":"dev/assets/face_sister.webp?v=32dce9bc","sword":"dev/assets/face_sword.webp?v=c6cf5c58"}/*__FACES_END__*/;
 /* 強化の札の絵（4:5の縦長）。assets/upart_<キー>.webp を置くとビルド時に差し込まれる。
    キーは札のid（p_dmg など。その札専用の絵）か、系統名（phys / mag / all / common / taboo。系統共通の絵）。無ければ紋章で代用 */
 const UPARTS=/*__UPARTS_START__*/{"all":"dev/assets/upart_all.webp?v=b034d68d","common":"dev/assets/upart_common.webp?v=dbfd44b2","mag":"dev/assets/upart_mag.webp?v=b9a34d4c","phys":"dev/assets/upart_phys.webp?v=e8467b5d","taboo":"dev/assets/upart_taboo.webp?v=a8b5e929"}/*__UPARTS_END__*/;
 /* UIの素材。assets/ui_<名前>.webp がビルド時に差し込まれる。leather=操作エリアとサイドエリアの地（継ぎ目なしタイル）/ rewind=逆転の右手の演出絵（黒背景）/ town=街の一枚絵（縦長 941×1672。建物の位置は HUB の表）/
    map=探索の盤面（縦長。上下反転で継ぐ）/ medals=マスのメダル（3×3のシート。透過）/ pieces=キャラクターの駒（横5コマ。透過）/ table=机に置いた地図盤（縦長1枚。盤の内側の位置は TABLE_IN）/ smoke=煙（横3コマ。透過）。どれも無ければコードで描いた代わりの見た目で動く */
-const UI=/*__UI_START__*/{"battle_back_skill":"dev/assets/ui_battle_back_skill.webp?v=15be207c","battle_back_strategy":"dev/assets/ui_battle_back_strategy.webp?v=3cd37fbc","battle_button_frame":"dev/assets/ui_battle_button_frame.webp?v=0bd2fe54","battle_card_frame":"dev/assets/ui_battle_card_frame.webp?v=94ccdbe3","battle_extracted_base":"dev/assets/ui_battle_extracted_base.webp?v=d5fc8f75","battle_extracted_card_frame":"dev/assets/ui_battle_extracted_card_frame.webp?v=e6d3eb7b","battle_face_blue":"dev/assets/ui_battle_face_blue.webp?v=ee087d5e","battle_face_fox":"dev/assets/ui_battle_face_fox.webp?v=76a5d093","battle_face_mage":"dev/assets/ui_battle_face_mage.webp?v=6974f074","battle_face_sister":"dev/assets/ui_battle_face_sister.webp?v=447c034c","battle_face_sword":"dev/assets/ui_battle_face_sword.webp?v=2077b2ff","battle_status_frame":"dev/assets/ui_battle_status_frame.webp?v=87f0a57b","battle_strategy_chase":"dev/assets/ui_battle_strategy_chase.webp?v=39356747","battle_strategy_heal":"dev/assets/ui_battle_strategy_heal.webp?v=4ac40551","battle_strategy_redraw":"dev/assets/ui_battle_strategy_redraw.webp?v=0143aa81","battle_strategy_reset":"dev/assets/ui_battle_strategy_reset.webp?v=cc75a6b3","battle_strategy_revive":"dev/assets/ui_battle_strategy_revive.webp?v=12566a9b","battle_strategy_ult":"dev/assets/ui_battle_strategy_ult.webp?v=c94ff79a","battle_tray_full":"dev/assets/ui_battle_tray_full.webp?v=0f564bb4","card_blue":"dev/assets/ui_card_blue.webp?v=ebbc6d54","card_board":"dev/assets/ui_card_board.webp?v=78907028","card_fox":"dev/assets/ui_card_fox.webp?v=747710c3","card_frame":"dev/assets/ui_card_frame.webp?v=f6f34bcf","card_mage":"dev/assets/ui_card_mage.webp?v=56db34cf","card_sister":"dev/assets/ui_card_sister.webp?v=2687d855","card_sword":"dev/assets/ui_card_sword.webp?v=226d10b8","fac_church":"dev/assets/ui_fac_church.webp?v=d6db7bd7","fac_hut":"dev/assets/ui_fac_hut.webp?v=fc4dfd5c","fac_inn":"dev/assets/ui_fac_inn.webp?v=0f6aa72d","fac_party":"dev/assets/ui_fac_party.webp?v=3522dcd1","fac_shop":"dev/assets/ui_fac_shop.webp?v=54664bca","fac_smith":"dev/assets/ui_fac_smith.webp?v=d648b179","inn_ledger":"dev/assets/ui_inn_ledger.webp?v=841caecc","inn_morn":"dev/assets/ui_inn_morn.webp?v=5ccdcfd0","inn_room":"dev/assets/ui_inn_room.webp?v=003b0995","inn_stable":"dev/assets/ui_inn_stable.webp?v=c160e36d","inn_win":"dev/assets/ui_inn_win.webp?v=78662811","leather":"dev/assets/ui_leather.webp?v=689ae82b","map":"dev/assets/ui_map.webp?v=20a3f245","medals":"dev/assets/ui_medals.webp?v=a1d2f0f6","npc_church":"dev/assets/ui_npc_church.webp?v=fdc70e40","npc_hut":"dev/assets/ui_npc_hut.webp?v=fbae6c7a","npc_inn":"dev/assets/ui_npc_inn.webp?v=a091a3c1","npc_party":"dev/assets/ui_npc_party.webp?v=30068b4c","npc_shop":"dev/assets/ui_npc_shop.webp?v=36a2b627","npc_smith":"dev/assets/ui_npc_smith.webp?v=127a52c8","pieces":"dev/assets/ui_pieces.webp?v=6e76c92f","rail_banner":"dev/assets/ui_rail_banner.webp?v=dcad9023","rail_board":"dev/assets/ui_rail_board.webp?v=77644fe6","rail_candle":"dev/assets/ui_rail_candle.webp?v=4520f70f","rail_frame":"dev/assets/ui_rail_frame.webp?v=cf203db5","rewind":"dev/assets/ui_rewind.webp?v=ca7ccacd","sm_card":"dev/assets/ui_sm_card.webp?v=6e4443be","sm_icons":"dev/assets/ui_sm_icons.webp?v=80b73dbe","sm_row":"dev/assets/ui_sm_row.webp?v=20ceff8f","sm_sheet":"dev/assets/ui_sm_sheet.webp?v=30b1d240","sm_slot":"dev/assets/ui_sm_slot.webp?v=0c2184ad","sm_socket":"dev/assets/ui_sm_socket.webp?v=a90fe013","sm_stone":"dev/assets/ui_sm_stone.webp?v=6946735e","sm_tab":"dev/assets/ui_sm_tab.webp?v=806f4f7c","smoke":"dev/assets/ui_smoke.webp?v=d29f6d54","table":"dev/assets/ui_table.webp?v=18d28fc4","th_coin":"dev/assets/ui_th_coin.webp?v=0d40560e","th_cry":"dev/assets/ui_th_cry.webp?v=3f02e486","th_day":"dev/assets/ui_th_day.webp?v=7898977e","th_ic":"dev/assets/ui_th_ic.webp?v=137e9cb2","th_panel":"dev/assets/ui_th_panel.webp?v=de432569","th_tag":"dev/assets/ui_th_tag.webp?v=6de9cea8","th_vig":"dev/assets/ui_th_vig.webp?v=932d220e","town":"dev/assets/ui_town.webp?v=371c19be","tv_arna":"dev/assets/ui_tv_arna.webp?v=9a09aa21","tv_board":"dev/assets/ui_tv_board.webp?v=e53cd92a","tv_btn":"dev/assets/ui_tv_btn.webp?v=f5ec9c91","tv_chip":"dev/assets/ui_tv_chip.webp?v=7b2e5b91","tv_detail":"dev/assets/ui_tv_detail.webp?v=d6617a5a","tv_icons":"dev/assets/ui_tv_icons.webp?v=0056ecef"}/*__UI_END__*/;
+const UI=/*__UI_START__*/{"battle_back_skill":"dev/assets/ui_battle_back_skill.webp?v=15be207c","battle_back_strategy":"dev/assets/ui_battle_back_strategy.webp?v=3cd37fbc","battle_button_frame":"dev/assets/ui_battle_button_frame.webp?v=0bd2fe54","battle_card_frame":"dev/assets/ui_battle_card_frame.webp?v=94ccdbe3","battle_extracted_base":"dev/assets/ui_battle_extracted_base.webp?v=d5fc8f75","battle_extracted_card_frame":"dev/assets/ui_battle_extracted_card_frame.webp?v=e6d3eb7b","battle_face_blue":"dev/assets/ui_battle_face_blue.webp?v=ee087d5e","battle_face_fox":"dev/assets/ui_battle_face_fox.webp?v=76a5d093","battle_face_mage":"dev/assets/ui_battle_face_mage.webp?v=6974f074","battle_face_ninja":"dev/assets/ui_battle_face_ninja.webp?v=2ad5e8c2","battle_face_samurai":"dev/assets/ui_battle_face_samurai.webp?v=0425ca9a","battle_face_sister":"dev/assets/ui_battle_face_sister.webp?v=447c034c","battle_face_sword":"dev/assets/ui_battle_face_sword.webp?v=2077b2ff","battle_status_frame":"dev/assets/ui_battle_status_frame.webp?v=87f0a57b","battle_strategy_chase":"dev/assets/ui_battle_strategy_chase.webp?v=39356747","battle_strategy_heal":"dev/assets/ui_battle_strategy_heal.webp?v=4ac40551","battle_strategy_redraw":"dev/assets/ui_battle_strategy_redraw.webp?v=0143aa81","battle_strategy_reset":"dev/assets/ui_battle_strategy_reset.webp?v=cc75a6b3","battle_strategy_revive":"dev/assets/ui_battle_strategy_revive.webp?v=12566a9b","battle_strategy_ult":"dev/assets/ui_battle_strategy_ult.webp?v=c94ff79a","battle_tray_full":"dev/assets/ui_battle_tray_full.webp?v=0f564bb4","card_blue":"dev/assets/ui_card_blue.webp?v=ebbc6d54","card_board":"dev/assets/ui_card_board.webp?v=78907028","card_fox":"dev/assets/ui_card_fox.webp?v=747710c3","card_frame":"dev/assets/ui_card_frame.webp?v=f6f34bcf","card_mage":"dev/assets/ui_card_mage.webp?v=56db34cf","card_ninja":"dev/assets/ui_card_ninja.webp?v=004894cf","card_samurai":"dev/assets/ui_card_samurai.webp?v=c97c796d","card_sister":"dev/assets/ui_card_sister.webp?v=2687d855","card_sword":"dev/assets/ui_card_sword.webp?v=226d10b8","fac_church":"dev/assets/ui_fac_church.webp?v=d6db7bd7","fac_hut":"dev/assets/ui_fac_hut.webp?v=fc4dfd5c","fac_inn":"dev/assets/ui_fac_inn.webp?v=0f6aa72d","fac_party":"dev/assets/ui_fac_party.webp?v=3522dcd1","fac_shop":"dev/assets/ui_fac_shop.webp?v=54664bca","fac_smith":"dev/assets/ui_fac_smith.webp?v=d648b179","inn_ledger":"dev/assets/ui_inn_ledger.webp?v=841caecc","inn_morn":"dev/assets/ui_inn_morn.webp?v=5ccdcfd0","inn_room":"dev/assets/ui_inn_room.webp?v=003b0995","inn_stable":"dev/assets/ui_inn_stable.webp?v=c160e36d","inn_win":"dev/assets/ui_inn_win.webp?v=78662811","leather":"dev/assets/ui_leather.webp?v=689ae82b","map":"dev/assets/ui_map.webp?v=20a3f245","medals":"dev/assets/ui_medals.webp?v=a1d2f0f6","npc_church":"dev/assets/ui_npc_church.webp?v=fdc70e40","npc_hut":"dev/assets/ui_npc_hut.webp?v=fbae6c7a","npc_inn":"dev/assets/ui_npc_inn.webp?v=a091a3c1","npc_party":"dev/assets/ui_npc_party.webp?v=30068b4c","npc_shop":"dev/assets/ui_npc_shop.webp?v=36a2b627","npc_smith":"dev/assets/ui_npc_smith.webp?v=127a52c8","pieces":"dev/assets/ui_pieces.webp?v=488dc5f6","rail_banner":"dev/assets/ui_rail_banner.webp?v=dcad9023","rail_board":"dev/assets/ui_rail_board.webp?v=77644fe6","rail_candle":"dev/assets/ui_rail_candle.webp?v=4520f70f","rail_frame":"dev/assets/ui_rail_frame.webp?v=cf203db5","rewind":"dev/assets/ui_rewind.webp?v=ca7ccacd","sm_card":"dev/assets/ui_sm_card.webp?v=6e4443be","sm_icons":"dev/assets/ui_sm_icons.webp?v=80b73dbe","sm_row":"dev/assets/ui_sm_row.webp?v=20ceff8f","sm_sheet":"dev/assets/ui_sm_sheet.webp?v=30b1d240","sm_slot":"dev/assets/ui_sm_slot.webp?v=0c2184ad","sm_socket":"dev/assets/ui_sm_socket.webp?v=a90fe013","sm_stone":"dev/assets/ui_sm_stone.webp?v=6946735e","sm_tab":"dev/assets/ui_sm_tab.webp?v=806f4f7c","smoke":"dev/assets/ui_smoke.webp?v=d29f6d54","table":"dev/assets/ui_table.webp?v=18d28fc4","th_coin":"dev/assets/ui_th_coin.webp?v=0d40560e","th_cry":"dev/assets/ui_th_cry.webp?v=3f02e486","th_day":"dev/assets/ui_th_day.webp?v=7898977e","th_ic":"dev/assets/ui_th_ic.webp?v=137e9cb2","th_panel":"dev/assets/ui_th_panel.webp?v=de432569","th_tag":"dev/assets/ui_th_tag.webp?v=6de9cea8","th_vig":"dev/assets/ui_th_vig.webp?v=932d220e","town":"dev/assets/ui_town.webp?v=371c19be","tv_arna":"dev/assets/ui_tv_arna.webp?v=9a09aa21","tv_board":"dev/assets/ui_tv_board.webp?v=e53cd92a","tv_btn":"dev/assets/ui_tv_btn.webp?v=f5ec9c91","tv_chip":"dev/assets/ui_tv_chip.webp?v=7b2e5b91","tv_detail":"dev/assets/ui_tv_detail.webp?v=d6617a5a","tv_icons":"dev/assets/ui_tv_icons.webp?v=0056ecef"}/*__UI_END__*/;
 // assets/event_<名前>.webp。配布版にも埋め込むので、公開先のパスに依存しない。
 const EVENT_ART=/*__EVENTS_START__*/{"altar":"dev/assets/event_altar.webp?v=6d39085f","bones":"dev/assets/event_bones.webp?v=e9d55e77","camp":"dev/assets/event_camp.webp?v=07cd7fd4","chest":"dev/assets/event_chest.webp?v=04403d90","chest_open":"dev/assets/event_chest_open.webp?v=a8b14fd0","collapse":"dev/assets/event_collapse.webp?v=1763218f","spring":"dev/assets/event_spring.webp?v=915c08ac","wounded":"dev/assets/event_wounded.webp?v=48325713"}/*__EVENTS_END__*/;
 /* 攻撃とスキルのVFX（assets/vfx_<名前>.webp）。黒背景の光もの＝加算合成で重ねる（黒は消える）。氷と地割れだけ透過の絵を普通に重ねる。
@@ -1676,6 +1689,8 @@ const VFXK={
   fox:  {glow:'#ff5a8a',petal:['#ffd0c8','#ff4a6e','#7a2a8a'],ring:'#ff7aa0'},
   blue: {glow:'#2f9cff',streak:['#5fc8ff','#f0ffff'],ring:'#9fe4ff'},
   mage: {glow:'#9b5cff',streak:['#b48cff','#f6efff'],petal:['#f6efff','#b48cff','#5b2a9e'],ring:'#cdb0ff'},
+  ninja: {glow:'#ff2a2a',streak:['#ff4a4a','#ffd0d0'],ring:'#ff5a5a'},
+  samurai:{glow:'#3fe090',streak:['#7dffb8','#f0fff6'],ring:'#9fffd0'},
   sister:{glow:'#ffcf6a',streak:['#ffe3a0','#fffbea'],petal:['#fffbea','#ffe39a','#c99a48'],ring:'#ffe9a8'},
   dustMax:900,k:1   // k：残滓の量の倍率（重いときはここを下げる）
 };
@@ -2108,7 +2123,7 @@ function bgFor(depth,kind){
   if(css){const st=document.createElement('style');st.textContent=css;document.head.appendChild(st)}
 })();
 /* 焼き込み済み素材（透過・足元そろえ済みの等間隔アトラス）。ビルド時に差し込まれる。無いキャラは仮絵で動く */
-const EMBED=/*__EMBED_START__*/{"beast":{"cols":6,"cw":345,"ch":230,"ax":172.5,"ay":225,"refH":217.0,"target":"enemy","src":"dev/assets/beast.webp?v=e622d425"},"blue":{"cols":12,"cw":460,"ch":445,"ax":230.0,"ay":438,"refH":260.0,"target":"ally","src":"dev/assets/blue.webp?v=ffbde5c0"},"fox":{"cols":12,"cw":251,"ch":269,"ax":125.5,"ay":264,"refH":260.0,"target":"ally","src":"dev/assets/fox.webp?v=595b36f5"},"knight":{"cols":6,"cw":190,"ch":274,"ax":95.0,"ay":270,"refH":200.0,"target":"enemy","src":"dev/assets/knight.webp?v=2d0e59aa"},"mage":{"cols":12,"cw":304,"ch":270,"ax":152.0,"ay":265,"refH":260.0,"target":"ally","src":"dev/assets/mage.webp?v=bb040a63"},"ogre":{"cols":6,"cw":390,"ch":268,"ax":195.0,"ay":263,"refH":220.0,"target":"enemy","src":"dev/assets/ogre.webp?v=e0c3095c"},"scorp":{"cols":6,"cw":305,"ch":291,"ax":152.5,"ay":275,"refH":270.0,"target":"enemy","src":"dev/assets/scorp.webp?v=5315e671"},"shaman":{"cols":6,"cw":443,"ch":232,"ax":221.5,"ay":227,"refH":220.0,"target":"enemy","src":"dev/assets/shaman.webp?v=6ddfaf3a"},"sister":{"cols":12,"cw":183,"ch":275,"ax":91.5,"ay":269,"refH":260.0,"target":"ally","src":"dev/assets/sister.webp?v=69fc0720"},"skel":{"cols":6,"cw":221,"ch":241,"ax":110.5,"ay":236,"refH":190.0,"target":"enemy","src":"dev/assets/skel.webp?v=1d9f5ee9"},"sword":{"cols":12,"cw":443,"ch":292,"ax":221.5,"ay":287,"refH":189.0,"target":"ally","src":"dev/assets/sword.webp?v=6cc92919"}}/*__EMBED_END__*/;
+const EMBED=/*__EMBED_START__*/{"beast":{"cols":6,"cw":345,"ch":230,"ax":172.5,"ay":225,"refH":217.0,"target":"enemy","src":"dev/assets/beast.webp?v=e622d425"},"blue":{"cols":12,"cw":460,"ch":445,"ax":230.0,"ay":438,"refH":260.0,"target":"ally","src":"dev/assets/blue.webp?v=ffbde5c0"},"fox":{"cols":12,"cw":251,"ch":269,"ax":125.5,"ay":264,"refH":260.0,"target":"ally","src":"dev/assets/fox.webp?v=595b36f5"},"knight":{"cols":6,"cw":190,"ch":274,"ax":95.0,"ay":270,"refH":200.0,"target":"enemy","src":"dev/assets/knight.webp?v=2d0e59aa"},"mage":{"cols":12,"cw":304,"ch":270,"ax":152.0,"ay":265,"refH":260.0,"target":"ally","src":"dev/assets/mage.webp?v=bb040a63"},"ninja":{"cols":12,"cw":613,"ch":272,"ax":306.5,"ay":266,"refH":260.0,"target":"ally","src":"dev/assets/ninja.webp?v=62b6f045"},"ogre":{"cols":6,"cw":390,"ch":268,"ax":195.0,"ay":263,"refH":220.0,"target":"enemy","src":"dev/assets/ogre.webp?v=e0c3095c"},"samurai":{"cols":12,"cw":462,"ch":320,"ax":231.0,"ay":314,"refH":260.0,"target":"ally","src":"dev/assets/samurai.webp?v=317c6a33"},"scorp":{"cols":6,"cw":305,"ch":291,"ax":152.5,"ay":275,"refH":270.0,"target":"enemy","src":"dev/assets/scorp.webp?v=5315e671"},"shaman":{"cols":6,"cw":443,"ch":232,"ax":221.5,"ay":227,"refH":220.0,"target":"enemy","src":"dev/assets/shaman.webp?v=6ddfaf3a"},"sister":{"cols":12,"cw":183,"ch":275,"ax":91.5,"ay":269,"refH":260.0,"target":"ally","src":"dev/assets/sister.webp?v=69fc0720"},"skel":{"cols":6,"cw":221,"ch":241,"ax":110.5,"ay":236,"refH":190.0,"target":"enemy","src":"dev/assets/skel.webp?v=1d9f5ee9"},"sword":{"cols":12,"cw":443,"ch":292,"ax":221.5,"ay":287,"refH":189.0,"target":"ally","src":"dev/assets/sword.webp?v=6cc92919"}}/*__EMBED_END__*/;
 /* 表示の微調整。s=大きさ(%) x,y=位置のずらし量。調整パネルの値をビルド時に固定値として差し込む */
 const TUNE=/*__TUNE_START__*/{"blue":{"s":94,"x":0,"y":20},"sister":{"s":106,"x":0,"y":20},"mage":{"s":101,"x":0,"y":20},"beast":{"s":87,"x":0,"y":0},"knight":{"s":89,"x":0,"y":0},"scorp":{"s":127,"x":0,"y":0},"sword":{"s":100,"x":0,"y":20},"fox":{"s":100,"x":0,"y":20}}/*__TUNE_END__*/;
 CHAR_ORDER.concat(Object.keys(ENEMIES)).forEach(k=>{TUNE[k]=Object.assign({s:100,x:0,y:0},TUNE[k]||{})});
@@ -2230,7 +2245,7 @@ function placeholderSheet(kinds,fn){
   return c;
 }
 function figBack(g,k,f){
-  const P={fox:{body:'#6b2f22',trim:'#c9772e',hair:'#e0913a'},sword:{body:'#59616b',trim:'#aeb7c2',hair:'#4a3626'},sister:{body:'#1d2540',trim:'#e9e2cf',hair:'#1d2540'},mage:{body:'#17131f',trim:'#6b46a8',hair:'#17131f'},blue:{body:'#e9e2cf',trim:'#2a6f9a',hair:'#15171c'}}[k];
+  const P={ninja:{body:'#6a1416',trim:'#c9a24a',hair:'#e8dcc0'},samurai:{body:'#1c1a24',trim:'#3a9a6a',hair:'#3a2a5a'},fox:{body:'#6b2f22',trim:'#c9772e',hair:'#e0913a'},sword:{body:'#59616b',trim:'#aeb7c2',hair:'#4a3626'},sister:{body:'#1d2540',trim:'#e9e2cf',hair:'#1d2540'},mage:{body:'#17131f',trim:'#6b46a8',hair:'#17131f'},blue:{body:'#e9e2cf',trim:'#2a6f9a',hair:'#15171c'}}[k];
   const th=SWING[f],lean=[0,-1,-2,2,3,1][f];
   g.fillStyle='#120f0d';g.fillRect(-9,-24,7,24);g.fillRect(2,-24,7,24);
   if(k==='fox'){g.fillStyle=P.hair;g.beginPath();g.ellipse(-15,-30,8,17,0.5+f*0.08,0,TAU);g.fill();g.fillStyle='#fff1d8';g.beginPath();g.ellipse(-21,-43,4,6,0.5,0,TAU);g.fill()}
@@ -2277,7 +2292,7 @@ function figFront(g,k,f){
 function drawFace(g,k,S){
   g.save();g.scale(S/60,S/60);
   const bg=g.createLinearGradient(0,0,0,60);bg.addColorStop(0,'#241b14');bg.addColorStop(1,'#070605');g.fillStyle=bg;g.fillRect(0,0,60,60);
-  const C={fox:{cloth:'#6b2f22',hair:'#e0913a',eye:'#f6c14a'},sword:{cloth:'#59616b',hair:'#4a3626',eye:'#9fb0c4'},sister:{cloth:'#1d2540',hair:'#1d2540',eye:'#7fb4e8'},mage:{cloth:'#17131f',hair:'#17131f',eye:'#c79bff'},blue:{cloth:'#e9e2cf',hair:'#15171c',eye:'#4fc3f7'}}[k];
+  const C={ninja:{cloth:'#6a1416',hair:'#e8dcc0',eye:'#c0392b'},samurai:{cloth:'#1c1a24',hair:'#3a2a5a',eye:'#e0a030'},fox:{cloth:'#6b2f22',hair:'#e0913a',eye:'#f6c14a'},sword:{cloth:'#59616b',hair:'#4a3626',eye:'#9fb0c4'},sister:{cloth:'#1d2540',hair:'#1d2540',eye:'#7fb4e8'},mage:{cloth:'#17131f',hair:'#17131f',eye:'#c79bff'},blue:{cloth:'#e9e2cf',hair:'#15171c',eye:'#4fc3f7'}}[k];
   g.fillStyle=C.cloth;g.beginPath();g.moveTo(4,60);g.quadraticCurveTo(30,36,56,60);g.fill();
   if(k==='fox'){g.fillStyle=C.hair;g.beginPath();g.moveTo(14,22);g.lineTo(15,4);g.lineTo(26,15);g.moveTo(46,22);g.lineTo(45,4);g.lineTo(34,15);g.fill()}
   if(k==='mage'||k==='sister'){g.fillStyle=C.hair;g.beginPath();g.moveTo(30,5);g.quadraticCurveTo(8,10,10,48);g.lineTo(50,48);g.quadraticCurveTo(52,10,30,5);g.fill()}
@@ -2476,7 +2491,7 @@ const maxHpOf=m=>CHARS[m.id].hp*(1+gearStats(m).hp/100);
         localStorage が使えない環境でも止まらないよう必ず try/catch で守り、エクスポート用のコードを保険にする ---- */
 const SAVE_KEY='naraku_save_v1';
 function newSave(){
-  const roster={};CHAR_ORDER.forEach(id=>{roster[id]={id,hpR:1,madness:0,collapsed:false,surge:false,w:null,a:null}});
+  const roster={};CHAR_ORDER.forEach(id=>{roster[id]={id,hpR:1,madness:0,collapsed:false,surge:false,w:null,a:null,hired:!HIRE[id]}});
   return{v:1,gold:TCFG.startGold,mats:0,day:1,runs:0,clears:0,floorMax:1,floor:1,nid:1,inv:[],bag:{oil:1,salve:0,incense:0},picks:['fox','sword','mage'],roster,run:null};
 }
 // 装備は短い配列にして書く（写しのコードを短くするため）。surge は見た目だけの印なので書かない
@@ -2500,10 +2515,11 @@ function fixSave(o){
   TSHOP.forEach(t=>{d.bag[t.id]=toInt(o.bag&&o.bag[t.id],0,t.cap,0)});
   CHAR_ORDER.forEach(id=>{
     const s=o.roster&&o.roster[id],m=d.roster[id];if(!s||typeof s!=='object')return;
+    if(HIRE[id])m.hired=s.hired===true;
     const h=+s.hpR;m.collapsed=!!s.collapsed;m.madness=m.collapsed?100:toInt(s.madness,0,99,0);m.hpR=m.collapsed?0:clamp(h===h?h:1,0.01,1);
     m.w=item(s.w,'w');m.a=item(s.a,'a');
   });
-  const ids=x=>{const out=[];(Array.isArray(x)?x:[]).forEach(id=>{if(CHAR_ORDER.indexOf(id)>=0&&out.indexOf(id)<0&&out.length<3)out.push(id)});return out};
+  const ids=x=>{const out=[];(Array.isArray(x)?x:[]).forEach(id=>{if(CHAR_ORDER.indexOf(id)>=0&&d.roster[id].hired&&out.indexOf(id)<0&&out.length<3)out.push(id)});return out};
   d.picks=ids(o.picks);
   const r=o.run;
   if(r&&typeof r==='object'){ // 探索の途中経過。マップは seed から作り直す
@@ -2560,11 +2576,11 @@ function saveRun(){
 
 /* ---- 街の操作（画面からも検証からも、ここを通す） ---- */
 function townParty(){P={members:S.picks.map(id=>S.roster[id]),rewinds:0}}
-const living=()=>CHAR_ORDER.filter(id=>!S.roster[id].collapsed);
+const living=()=>crew().filter(id=>!S.roster[id].collapsed);
 const canDive=()=>S.picks.length===3&&S.picks.every(id=>!S.roster[id].collapsed);
 // 出撃の3人（選んだ順に左・中・右）。崩壊した仲間は選べないが、外すことはできる
 function togglePick(id){
-  const i=S.picks.indexOf(id),m=S.roster[id];if(!m)return false;
+  const i=S.picks.indexOf(id),m=S.roster[id];if(!m||!hired(id))return false;
   if(i>=0)S.picks.splice(i,1);else if(S.picks.length<3&&!m.collapsed)S.picks.push(id);else return false;
   townParty();save();return true;
 }
@@ -2716,7 +2732,8 @@ function pickTargets(a,n){
 function hitFrom(a,e,k){
   if(e.dead)return;
   const m=a.M;let dmg=a.d.dmg*m.dmg*k,crit=false;
-  if(m.crit>0&&B.rk()<m.crit){dmg*=3;crit=true}
+  if(a.d.vsBig&&(e.elite||e.d.boss))dmg*=a.d.vsBig;
+  const cr=m.crit+(a.d.crit||0);if(cr>0&&B.rk()<cr){dmg*=3;crit=true}
   if(m.burn){e.burnT=3;e.burnDps=Math.max(e.burnDps,dmg*0.25*m.burn);e.burnBy=a.d.id}
   if(m.chill)e.slowT=Math.max(e.slowT,0.8+0.5*m.chill);
   if(m.knock&&e.knT<=0){e.knT=0.7;e.y-=(8+5*m.knock)*(e.d.boss?0.1:e.elite?0.3:1)}
@@ -2761,7 +2778,9 @@ function allyHit(a,tg,rep,singleOnly=false){
     const ox=a.x,oy=B.lineY-34;let dx=tg.x-ox,dy=(tg.y-18)-oy;const L=Math.hypot(dx,dy)||1;dx/=L;dy/=L;
     const len=rg+40,lw=d.lineW*(1+0.5*m.pierce);
     const mv=d.id==='mage'&&vtex('mage_beam'),hs=[];
-    if(!mv){FX.sh.push({k:'beam',x:ox,y:oy,dx,dy,len,t:0,life:0.24,col:d.color,w:lw*(VT.orb?0.6:1)});
+    if(d.id==='samurai'){FX.sh.push({k:'beam',x:ox,y:oy,dx,dy,len,t:0,life:0.18,col:d.color,w:lw*0.55});
+      fxTex({n:'slash_a',col:d.color,x:ox+dx*len*0.45,y:oy+dy*len*0.45,w:Math.min(160,len*0.5),rot:Math.atan2(dy,dx)-Math.PI/4,life:0.22,s0:0.8,s1:1.05,fi:0.06,fo:1.5,a:rep?0.7:1})}
+    else if(!mv){FX.sh.push({k:'beam',x:ox,y:oy,dx,dy,len,t:0,life:0.24,col:d.color,w:lw*(VT.orb?0.6:1)});
       fxTex({n:'orb',col:'#d9c2ff',x:ox,y:oy,mx:dx*len,my:dy*len,w:34,rot:0,rot1:5,life:0.26,s0:0.7,s1:1,fi:0.05,fo:1.2})}
     for(const e of B.enemies){if(e.dead)continue;const px=e.x-ox,py=e.y-18-oy,pr=px*dx+py*dy;if(pr<0||pr>len)continue;if(Math.abs(px*dy-py*dx)<=lw*0.5+e.d.r*e.sc){hitFrom(a,e,1);hs.push(e)}}
     if(mv)mageFx(a,ox+dx*len,oy+dy*len,lw,rep,hs);
@@ -2991,6 +3010,14 @@ const ULT_DEF={
     const v=CARDS.find(o=>o.id==='mg_void'),f=CARDS.find(o=>o.id==='mg_inferno'),hh=B.lineY*0.5/B.M.skR;fxBlackhole();
     B.impacts.push({t:0.05,c:Object.assign({},v,{shape:'row',hh,dmg:40,freeze:3,fx:'full',ult:'mage'}),x:W/2,y:B.lineY*0.5,k:1});
     B.impacts.push({t:2.4,c:Object.assign({},f,{shape:'row',hh,dmg:230,fx:'full',ult:'mage'}),x:W/2,y:B.lineY*0.5,k:1})}},
+  ninja: {name:'終の刻',    col:'#ff2a2a',fire(a){ // 体力の多い敵から順に8体へ、致命の一撃を刻む
+    const b=CARDS.find(o=>o.id==='nj_mark'),c=Object.assign({},b,{dmg:260,boss:2.5,ult:'ninja'});
+    const es=B.enemies.filter(e=>!e.dead&&e.y>10&&e.y<B.lineY).sort((p,q)=>q.hp-p.hp||p.idx-q.idx).slice(0,8),pts=es.map(e=>({x:e.x,y:e.y-16}));
+    for(let i=0;pts.length<8;i++)pts.push({x:40+(i*97)%280,y:B.lineY*(0.2+((i*37)%60)/100)});
+    pts.forEach((p,i)=>B.impacts.push({t:0.1+i*0.09,c,x:p.x,y:p.y,k:1}))}},
+  samurai:{name:'花鳥風月',  col:'#5fe0a0',fire(a){ // 戦場を縦に4本、端から順に居合で斬り抜く
+    const b=CARDS.find(o=>o.id==='sm_iai'),c=Object.assign({},b,{hw:46,dmg:150,ult:'samurai'});
+    for(let i=0;i<4;i++)B.impacts.push({t:0.06+i*0.16,c,x:45+i*90,y:B.lineY*0.5,k:1})}},
   blue:  {name:'斬月三日月',col:'#4fc3f7',fire(a){const b=CARDS.find(o=>o.id==='bl_moon'),hh=B.lineY/6/B.M.skR,c=Object.assign({},b,{hh,dmg:120,ult:'blue'});if(ultSeqOn('blue'))FX.blueU={t:0};for(let i=0;i<3;i++)B.impacts.push({t:0.05+i*0.22,c,x:W/2,y:B.lineY*(5-2*i)/6,k:1})}}
 };
 let ULT=null;const ULT_DUR=1.3;
@@ -3005,7 +3032,7 @@ function comboArmed(){const c=B&&B.combo;return c&&!ULT&&!B.ultUsed[c.id]&&B.t-c
 function comboBar(c){const cb=comboArmed();return cb===c.owner?'<span class="cb" style="animation-duration:'+CFG.comboWin+'s;animation-delay:-'+(B.t-B.combo.t).toFixed(2)+'s"></span>':''}
 /* カットインの立ち絵の置き方：fx,fy＝絵の中の顔の中心（絵の幅・高さに対する割合）、fw＝顔の幅（絵の幅に対する割合）。
    どのキャラも、戦場の (ULT_POS.x, ULT_POS.y) に顔が来て、顔の幅が戦場の幅×ULT_POS.face になるように置く（絵の幅は戦場の幅の1.0〜1.4倍に収める） */
-const ULT_ART={sword:{fx:.50,fy:.38,fw:.29},blue:{fx:.68,fy:.36,fw:.18},mage:{fx:.66,fy:.15,fw:.23},sister:{fx:.51,fy:.30,fw:.25},fox:{fx:.68,fy:.33,fw:.26}};
+const ULT_ART={ninja:{fx:.70,fy:.29,fw:.15},samurai:{fx:.66,fy:.19,fw:.13},sword:{fx:.50,fy:.38,fw:.29},blue:{fx:.68,fy:.36,fw:.18},mage:{fx:.66,fy:.15,fw:.23},sister:{fx:.51,fy:.30,fw:.25},fox:{fx:.68,fy:.33,fw:.26}};
 const ULT_POS={x:.55,y:.36,face:.27};
 function startUlt(a,consume=true){
   const id=a.d.id,def=ULT_DEF[id];if(!def)return;
@@ -3056,7 +3083,7 @@ function impact(c,x,y,k,shadow=false){
     if(c.slow)e.slowT=Math.max(e.slowT,c.slow);
     if(c.freeze)e.frzT=Math.max(e.frzT,c.freeze*(e.elite?0.5:1));
     if(c.knock)e.y-=c.knock*k*(e.elite?0.3:1);
-    hurt(e,dmg,c.pal[1],false,false,c.owner,'skill');
+    hurt(e,dmg*((c.boss&&(e.elite||e.d.boss))?c.boss:1),c.pal[1],false,false,c.owner,'skill');
   }
   if(c.shape!=='full'&&c.fx!=='full'&&(c.dmg||0)>0)jcImpact(x,y,B.kills-k0);
   if(c.healFlat)for(const a of B.allies)if(a.alive){a.hp=Math.min(a.max,a.hp+c.healFlat*k);fxSpark(a.x,a.y-64,'#bff0c0',6)}
@@ -3079,7 +3106,7 @@ function castInstant(c,a){
     for(const e of B.enemies){
       if(e.dead||e.y<top)continue;
       e.y-=c.push*(e.d.boss?0.1:e.elite?0.3:1);e.knT=Math.max(e.knT,0.5);
-      hurt(e,dmg,c.pal[1],false,false,c.owner,'skill');
+      hurt(e,dmg*((c.boss&&(e.elite||e.d.boss))?c.boss:1),c.pal[1],false,false,c.owner,'skill');
     }
     fxRow(B.lineY-c.band*0.5,c.band*0.5,c.pal);
     fxTex({n:'slash_a',col:c.pal[1],x:W/2,y:B.lineY-c.band*0.5,w:W*1.3,rot:1.0,sq:0.6,life:0.45,s0:0.85,s1:1.1,fi:0.05,fo:1.4});
@@ -4681,7 +4708,7 @@ const VIEWS={
   },
   party(){if(TVART&&facHas('party')){facTvList();return}VIEWS.partyPlain()},
   partyPlain(){
-    townScreen('酒場','出撃する3人を、左・中・右の順に選ぶ',CHAR_ORDER.map(id=>{const m=S.roster[id],i=S.picks.indexOf(id);
+    townScreen('酒場','出撃する3人を、左・中・右の順に選ぶ',crew().map(id=>{const m=S.roster[id],i=S.picks.indexOf(id);
       return charRow(id,'<button class="mini'+(i>=0?' go':'')+'" data-pick="'+id+'"'+(i<0&&(m.collapsed||S.picks.length>=3)?' disabled':'')+'>'+(i>=0?'出撃 '+['左','中','右'][i]:m.collapsed?'崩壊':'待機')+'</button><button class="mini" data-go="char" data-arg="'+id+'">装備</button>')}).join('')
       +'<div class="tw-lead dim">属性の札は、その属性を持つ味方の通常攻撃に効きます。武器を持つと、キャラ固有の属性に武器の属性が加わります。</div>','',['town']);
   },
@@ -4725,7 +4752,7 @@ const VIEWS={
   inn(){if(INNART&&facHas('inn')){facInn();return}VIEWS.innPlain()},
   innPlain(){
     const al=living().map(id=>S.roster[id]),low=al.some(m=>m.hpR<TCFG.stableHp);
-    townScreen('宿屋','泊まると1日が過ぎる',CHAR_ORDER.map(id=>charRow(id,'',false)).join(''),
+    townScreen('宿屋','泊まると1日が過ぎる',crew().map(id=>charRow(id,'',false)).join(''),
       '<button class="tbtn" data-inn="bed"'+(S.gold<TCFG.bed?' disabled':'')+'>寝台で休む　金 '+TCFG.bed+'<small>全員の体力が全快し、狂気 −'+TCFG.bedMad+'%</small></button>'
       +'<button class="tbtn sub" data-inn="stable"'+(low?'':' disabled')+'>馬小屋で休む　無料<small>体力が'+Math.round(TCFG.stableHp*100)+'%まで戻る。狂気は下がらない</small></button>',['town']);
   },
@@ -4921,11 +4948,13 @@ function facSmith(){
   facHit(cd);
 }
 // 酒場（仲間表と詳細画面）。板の中身はモードごとに #tvSheet を丸ごと描き直す。装備選び（pick）は従来の本文（facPage）に戻す
-const TV_ROLE={fox:8,sword:9,sister:10,mage:11,blue:12},TV_TAG={phys:13,mag:14},TV_RC=['#5a4a36','#1f5f9e','#6a3aa8','#9a6a10'];
+const TV_ROLE={fox:8,sword:9,sister:10,mage:11,blue:12,ninja:8,samurai:12},TV_TAG={phys:13,mag:14},TV_RC=['#5a4a36','#1f5f9e','#6a3aa8','#9a6a10'];
 const TV_PROF={fox:'狐の耳を持つ身軽な斥候。投げ刃を矢継ぎ早に放ち、迫る敵を一体ずつ確実に仕留める。人懐こいが、戦場では驚くほど冷静。',
   sword:'誇り高い女騎士。大剣のひと振りで、周りの敵をまとめて薙ぎ払う。最前線に立ち、仲間の盾となることを誓っている。',
   sister:'奈落に祈りを捧げ続けるシスター。聖なる光で敵を討ち、傷ついた仲間を癒やす。穏やかな笑みの奥に、揺るがぬ信念を秘める。',
   mage:'古い魔導書を携えた魔術師。遠くの敵まで一直線に貫く術を得意とする。知識欲が強く、奈落の謎にも興味を隠さない。',
+  ninja:'赤い装束の暗殺者。二振りの刃で急所だけを狙い、強敵ほど深く刻む。口数は少なく、仕事を選ばない。',
+  samurai:'猫の耳を持つ流浪の侍。居合の一太刀は遠くの敵まで一直線に斬り抜く。礼を重んじるが、間合いに入った敵は逃さない。',
   blue:'蒼い光をまとう剣士。三日月のような剣閃を扇状に放ち、中ほどの距離の敵を一掃する。寡黙だが、仲間への信頼は厚い。'};
 const tvIc=(n,cls)=>'<i class="tv-ic'+(cls?' '+cls:'')+'" style="background-position:'+(n%4)*100/3+'% '+Math.floor(n/4)*100/3+'%"></i>';
 const tvRole=id=>CHARS[id].role.split('・')[0];
@@ -4943,20 +4972,25 @@ function tvHead(title,sub){
   $('#facStat').innerHTML='<span>出撃 <b>'+S.picks.length+'</b> / 3</span><span>'+S.day+'日目</span>';
 }
 function tvEnter(){const k='party',fresh=facCur()!==k;if(fresh){facMount(k);if(TV.v!==k)SMOPEN=true}return fresh}
+let TVPG=0;
+function hireChar(id){if(!HIRE[id]||hired(id))return false;if(S.gold<HIRE[id].cost)return false;S.gold-=HIRE[id].cost;S.roster[id].hired=true;save();return true}
 function facTvList(){
   tvEnter();FBACK=['town'];tvMode('l');$('#fac').classList.toggle('open',SMOPEN);
   tvHead('酒場','出撃する3人を選ぶ');
   const TX=[13.7,40.8,68.2],TY=[28.6,39.4,50.5,61.8,73.2],pct=v=>Math.round(v);
   let h=TX.map((x,i)=>{const id=S.picks[i];return'<button class="tv-top" style="left:'+x+'%"'+(id?' data-tvch="'+id+'" aria-label="'+CHARS[id].name+'"':' aria-label="空き"')+'>'
     +(id?'<canvas data-id="'+id+'" width="240" height="320"></canvas>':'<span class="plus">＋</span>')+'<span class="od">'+['左','中','右'][i]+'</span></button>'}).join('');
-  CHAR_ORDER.forEach((id,i)=>{const m=S.roster[id],g=gearStats(m),mx=Math.round(maxHpOf(m)),hp=Math.round(mx*m.hpR),pi=S.picks.indexOf(id);
-    const st=m.collapsed?'dead':pi>=0?'go':'idle';
+  const NPG=Math.ceil(CHAR_ORDER.length/5);TVPG=Math.min(TVPG,NPG-1);
+  CHAR_ORDER.slice(TVPG*5,TVPG*5+5).forEach((id,i)=>{const m=S.roster[id],g=gearStats(m),mx=Math.round(maxHpOf(m)),hp=Math.round(mx*m.hpR),pi=S.picks.indexOf(id),hr=hired(id);
+    const st=!hr?'hire':m.collapsed?'dead':pi>=0?'go':'idle';
     h+='<div class="tv-row'+(pi>=0?' on':'')+(m.collapsed?' dead':'')+'" data-tvch="'+id+'" style="top:'+TY[i]+'%">'
       +'<span class="pf"><canvas data-id="'+id+'" width="120" height="160"></canvas></span>'
       +'<span class="nb"><div class="nm">'+CHARS[id].name+'</div><div class="rl">'+tvIc(TV_ROLE[id])+tvRole(id)+'</div><div class="gs">ATK +'+gearPowTxt(m,g,'w')+'・DFN +'+gearPowTxt(m,g,'a')+'</div></span>'
       +'<span class="bs"><span class="tv-bl">HP<b>'+hp+' / '+mx+'</b></span><div class="tv-bar hp"><i style="width:'+pct(m.hpR*100)+'%"></i></div>'
       +'<span class="tv-bl">狂気<b>'+pct(m.madness)+' / 100</b></span><div class="tv-bar md"><i style="width:'+pct(m.madness)+'%"></i></div></span>'
-      +'<button class="tv-chip '+st+'" data-tvpk="'+id+'"'+(m.collapsed?' disabled':'')+'><span>'+(st==='go'?'出撃中':st==='dead'?'崩壊':'待機中')+'</span></button></div>'});
+      +(hr?'<button class="tv-chip '+st+'" data-tvpk="'+id+'"'+(m.collapsed?' disabled':'')+'><span>'+(st==='go'?'出撃中':st==='dead'?'崩壊':'待機中')+'</span></button></div>'
+        :'<button class="tv-chip idle" data-tvhire="'+id+'"><span>雇う '+HIRE[id].cost+'G</span></button></div>')});
+  if(NPG>1)h+='<button class="tv-pg" data-tvpg="1">'+(TVPG+1)+' / '+NPG+'　'+(TVPG+1<NPG?'次へ ▶':'◀ 戻る')+'</button>';
   $('#tvSheet').innerHTML=h;
   facSay();facHit(null);paintFaces();
   // ATK・DFN の行は「元値(+強化分)」で長くなるので、欄に収まるまで文字を縮める
@@ -4986,7 +5020,8 @@ function facTvChar(id){
     +(ex.length?'<div class="gr ex">'+ex.join('')+'</div>':'')+'</div>'
     +'<div class="tvc-tab">装備</div>'+eq('w',11.4,26.8)+eq('a',53.7,68.2)
     +'<div class="tvc-tab b">人物概要</div><div class="tvc-pr">'+(TV_PROF[id]||d.role)+'</div>'
-    +'<button class="tvc-bt tv-chip '+(pi>=0?'go':m.collapsed?'dead':'idle')+'" style="left:6.5%" data-tvpk="'+id+'"'+(m.collapsed?' disabled':'')+'><span>'+(pi>=0?'出撃から外す':m.collapsed?'精神崩壊':'出撃させる')+'</span></button>'
+    +(!hired(id)?'<button class="tvc-bt tv-chip idle" style="left:6.5%" data-tvhire="'+id+'"><span>'+HIRE[id].cost+'Gで雇う</span></button>'
+      :'<button class="tvc-bt tv-chip '+(pi>=0?'go':m.collapsed?'dead':'idle')+'" style="left:6.5%" data-tvpk="'+id+'"'+(m.collapsed?' disabled':'')+'><span>'+(pi>=0?'出撃から外す':m.collapsed?'精神崩壊':'出撃させる')+'</span></button>')
     +'<button class="tvc-bt tv-chip sub" style="left:35.75%" data-go="pick" data-arg="'+id+':w"><span>装備変更</span></button>'
     +'<button class="tvc-bt tv-chip sub" style="left:65%" data-fback><span>戻る</span></button></div>';
   $('#tvSheet').innerHTML=h;
@@ -5011,10 +5046,11 @@ function facInn(){
   const X=[4.6,23.4,42,60.4,79.2],pct=v=>Math.round(v)+'%';
   let h=pg('bed','l','寝台',TCFG.bed+'G','体力 全快<br>狂気 −'+TCFG.bedMad+'%',okB,'金が足りない')
     +pg('stable','r','馬小屋','無料','体力 '+Math.round(TCFG.stableHp*100)+'%まで<br>狂気は下がらない',low,'いまは不要');
-  CHAR_ORDER.forEach((id,i)=>{const m=S.roster[id],fc='<span class="f"><canvas data-id="'+id+'" width="120" height="160"></canvas></span>';
-    if(m.collapsed){h+='<button class="inn-sl dead'+(INNPK===id?' pk':'')+'" data-innpk="'+id+'" style="left:'+X[i]+'%">'+fc+'<span class="dd">教会へ</span></button>';return}
+  const IC=crew(),IST=IC.length>5?90/IC.length:0,IX=i=>IST?(4.6+i*IST).toFixed(1)+'%;width:'+(IST-0.8).toFixed(1):X[i];
+  IC.forEach((id,i)=>{const m=S.roster[id],fc='<span class="f"><canvas data-id="'+id+'" width="120" height="160"></canvas></span>';
+    if(m.collapsed){h+='<button class="inn-sl dead'+(INNPK===id?' pk':'')+'" data-innpk="'+id+'" style="left:'+IX(i)+'%">'+fc+'<span class="dd">教会へ</span></button>';return}
     const n=innNext(m,INNSEL);
-    h+='<button class="inn-sl'+(INNPK===id?' pk':'')+'" data-innpk="'+id+'" style="left:'+X[i]+'%" aria-label="'+CHARS[id].name+'">'+fc
+    h+='<button class="inn-sl'+(INNPK===id?' pk':'')+'" data-innpk="'+id+'" style="left:'+IX(i)+'%" aria-label="'+CHARS[id].name+'">'+fc
       +'<span class="b hp"><i class="pv" style="width:'+pct(n.hp*100)+'"></i><i class="now" style="width:'+pct(m.hpR*100)+'"></i></span>'
       +'<span class="b md"><i class="lost" style="width:'+pct(m.madness)+'"></i><i class="now" style="width:'+pct(n.mad)+'"></i></span></button>'});
   let inf;
@@ -5082,6 +5118,8 @@ window.addEventListener('resize',()=>{if(facOn())facFit()});
 // 街の画面のタップ
 function townClick(ev){
   const q=a=>{const b=ev.target.closest('['+a+']');return b&&!b.disabled?b:null};let b;
+  if((b=q('data-tvpg'))){say('');TVPG=(TVPG+1)%Math.ceil(CHAR_ORDER.length/5);reView();return}
+  if((b=q('data-tvhire'))){const id=b.dataset.tvhire;if(hireChar(id))say(CHARS[id].name+'が仲間に加わった。');else say('金が足りないみたい。'+HIRE[id].cost+'G 必要よ。',true);reView();return}
   if((b=q('data-tvpk'))){const id=b.dataset.tvpk;if(togglePick(id))say('');else say(S.roster[id].collapsed?'精神崩壊している。教会で呼び戻そう。':'出撃は3人まで。先に誰かを外してね。',true);reView();return}
   if((b=q('data-tvch'))){say('');showView('char',b.dataset.tvch);return}
   if((b=q('data-hubgo'))){say('');hubGo(b.dataset.hubgo);return}
@@ -5509,7 +5547,7 @@ window.NARAKU={
   fresh(){SAVE_ON=false;S=newSave();showTown();return S},sortie(seed){townParty();if(!canDive())return false;beginRun(seed);return true},
   startRun(ids,seed,floor){SAVE_ON=false;S=newSave();S.picks=ids.slice();if(floor){S.floorMax=Math.max(S.floorMax,floor);S.floor=floor}beginRun(seed)},
   // 街の操作と装備・セーブ
-  town:{show:showTown,view:showView,pick:togglePick,equip:equipItem,unequip,enhance,breakItem,breakAll,inn:innStay,revive,buy:shopBuy,floor:setFloor,bank:bankLoot},
+  town:{show:showTown,view:showView,pick:togglePick,hire:hireChar,equip:equipItem,unequip,enhance,breakItem,breakAll,inn:innStay,revive,buy:shopBuy,floor:setFloor,bank:bankLoot},
   look:{set:setLook,get:id=>allyLook(id).key,frames:id=>allyLook(id).seq.length,list:id=>lookList(id).map(o=>o.key)},
   hub:{HUB,select:hubSelect,enter:hubEnter,tick:hubTick,get sel(){return HSEL},get on(){return!!HUBS}},
   MOTION,MOTION_DEF,HIT_AT,motionOf,frameAt,
