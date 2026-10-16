@@ -17,11 +17,11 @@ script=r"""()=>{
  start();N.B.allies.forEach(a=>{a.cdT=100000;a.hp=a.max=1e9});N.B.life=100000;N.B.dur=100000;for(let i=0;i<5000;i++){N.B.slots[4].card=null;N.B.slots[4].refill=0;N.sim(1/60);counts[N.B.slots[4].card.effect]++}assert('rare probabilities',counts.revive>140&&counts.revive<280&&counts.ult>140&&counts.ult<280);
  start();let B=N.B;B.allies.forEach(a=>a.hp=a.max*.2);B.allies[2].alive=false;B.allies[2].hp=0;
  use('heal');assert('25% heal without revive',B.allies.slice(0,2).every(a=>Math.abs(a.hp-(a.max*.2+Math.round(a.max*.25)))<.001)&&B.allies[2].hp===0);
- assert('30 second strategy cooldown',B.slots[4].refill===30&&!B.slots[4].card&&B.queue.every(c=>c.category!=='strategy'));
+ assert('20 second strategy cooldown',B.slots[4].refill===20&&!B.slots[4].card&&B.queue.every(c=>c.category!=='strategy'));
  start();B=N.B;N.useCard(0,180,100);const before=skills(),wait=B.slots[0].refill;
  use('redraw');assert('redraw conserves skills and empty wait',skills()===before&&!B.slots[0].card&&B.slots[0].refill===wait&&B.slots.slice(1,4).every(s=>s.card));
  start();B=N.B;N.useCard(0,180,100);N.useCard(1,180,100);const cd=B.allies.map(a=>a.cdT).join();use('reset');
- assert('prepare fills all skill slots only',B.slots.slice(0,4).every(s=>s.card&&s.refill===0)&&B.slots[4].refill===30&&B.allies.map(a=>a.cdT).join()===cd);
+ assert('prepare fills all skill slots only',B.slots.slice(0,4).every(s=>s.card&&s.refill===0)&&B.slots[4].refill===20&&B.allies.map(a=>a.cdT).join()===cd);
  start();B=N.B;use('chase');assert('chase lasts ten seconds',B.chaseUntil===B.t+10);
  // Compare actual normal-attack damage for all five characters, including ranged fallback.
  const attack=(id,chase,far=false,multi=0)=>{
@@ -49,7 +49,7 @@ script=r"""()=>{
   N.sim(.01);assert('ult completes '+used,!N.ULT&&B.impacts.length>0);
  }
  start();B=N.B;B.allies.forEach(a=>a.cdT=10000);B.life=10000;B.dur=10000;use('heal');
- N.sim(29.9);assert('strategy not early',!B.slots[4].card&&B.slots[4].refill>0);N.sim(.2);assert('strategy replenishes at 30',B.slots[4].card?.category==='strategy');
+ N.sim(19.9);assert('strategy not early',!B.slots[4].card&&B.slots[4].refill>0);N.sim(.2);assert('strategy replenishes at 20',B.slots[4].card?.category==='strategy');
  return {checks,counts,attacks};
 }"""
 with sync_playwright() as p:
@@ -69,7 +69,11 @@ with sync_playwright() as p:
    pg.evaluate("effect=>{NARAKU.start(['sword','fox','mage'],4242);document.querySelector('#btnPause').click();NARAKU.B.slots[4].card=NARAKU.STRATEGIES.find(c=>c.effect===effect)}",effect)
    pg.wait_for_timeout(60);pg.screenshot(path=str(out/f'{effect}-{w}x{h}.png'))
    pg.click('#btnPause');pg.locator('#hand [data-i="4"]').tap(position={'x':32,'y':32});pg.wait_for_timeout(50)
-   assert pg.evaluate('NARAKU.B.slots[4].card===null&&NARAKU.B.slots[4].max===30'),(w,effect)
+   assert pg.evaluate('NARAKU.B.sel===4&&NARAKU.B.slots[4].card!==null'),(w,effect,'first tap selects')
+   pg.evaluate("window.revealSeen=false;const observer=new MutationObserver(()=>{const el=document.querySelector('#strategyReveal');if(el){window.revealSeen=!!el.querySelector('.back img')&&!!el.querySelector('.front img');observer.disconnect()}});observer.observe(document.body,{childList:true})")
+   pg.locator('#hand [data-i="4"]').tap(position={'x':32,'y':32});pg.wait_for_timeout(50)
+   assert pg.evaluate('window.revealSeen'),(w,effect,'reveal mounted')
+   assert pg.evaluate('NARAKU.B.slots[4].card===null&&NARAKU.B.slots[4].max===20'),(w,effect)
    pg.click('#btnPause')
   result['touch'][f'{w}x{h}']={'skillSlots':4,'strategyEffects':6}
  assert not errors,errors
