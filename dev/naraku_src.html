@@ -1055,7 +1055,7 @@ img.frm{display:block;width:100%;height:100%}
     </div>
     <div id="mapOps"><button id="btnGo">進む</button><button id="btnBag">荷物</button><button id="btnBack">街へ帰還</button></div>
     <div id="tune">
-      <div class="trow"><select id="tuneSel" aria-label="調整する対象"></select><label class="ck"><input type="checkbox" id="tuneAnim" checked>再生</label><label class="ck"><input type="checkbox" id="tuneMark">基準点</label><label class="ck"><input type="checkbox" id="tuneJuice">手応え</label><label class="ck"><input type="checkbox" id="tune24">なめらか</label></div>
+      <div class="trow"><select id="tuneSel" aria-label="調整する対象"></select><label class="ck"><input type="checkbox" id="tuneAnim" checked>再生</label><label class="ck"><input type="checkbox" id="tuneMark">基準点</label><label class="ck"><input type="checkbox" id="tuneJuice">手応え</label><label class="ck"><input type="checkbox" id="tune24">なめらか</label><label class="ck"><input type="checkbox" id="tuneQuake">地割C</label></div>
       <div class="trow" id="tuneLook"></div>
       <div class="trow" data-k="s"><span class="tl">大きさ</span><button class="step" data-d="-1" aria-label="小さく">−</button><input type="range" min="50" max="200" step="1" aria-label="大きさ"><button class="step" data-d="1" aria-label="大きく">＋</button><span class="tv"></span></div>
       <div class="trow" data-k="x"><span class="tl">左右</span><button class="step" data-d="-1" aria-label="左へ">−</button><input type="range" min="-60" max="60" step="1" aria-label="左右"><button class="step" data-d="1" aria-label="右へ">＋</button><span class="tv"></span></div>
@@ -1499,7 +1499,19 @@ function vtex(n,col){ // col を渡すと、白い光をその色に染めた写
 }
 // Godot-baked 大地割り: one shared atlas per layer; no per-frame Image objects.
 const QUAKE_VFX={enabled:new URLSearchParams(location.search).get('quakefx')==='godot',frames:58,cols:8,life:2.4,layerFlags:{floor:true,air:true},times:[0.0,0.025,0.05,0.075,0.1,0.125,0.15,0.175,0.2,0.225,0.25,0.275,0.3,0.325,0.35,0.375,0.4,0.44,0.48,0.52,0.56,0.6,0.64,0.68,0.72,0.76,0.8,0.84,0.88,0.92,0.96,1.0,1.06666666666667,1.13333333333333,1.2,1.26666666666667,1.33333333333333,1.4,1.46666666666667,1.53333333333333,1.6,1.66666666666667,1.73333333333333,1.8,1.84,1.88,1.92,1.96,2.0,2.04,2.08,2.12,2.16,2.2,2.24,2.28,2.32,2.36]};
+// 大地割り C案（Claude制作のGodot焼き：2D HDR発光＋GPU粒子。6×6・36コマ・40fps・0.9秒。dev/godot/quake_bloom）。
+// 既定で入。調整パネルの「地割C」で旧演出と見比べられる（localStorage naraku_quakeC）。?quakefx=godot はCodex版、?quakefx=legacy は旧演出。
+const QUAKE_C={frames:36,cols:6,fps:40,life:0.9,on:!/^(godot|legacy)$/.test(new URLSearchParams(location.search).get('quakefx')||'')};
+const QUAKE_C_KEY='naraku_quakeC';
+try{if(localStorage.getItem(QUAKE_C_KEY)==='0')QUAKE_C.on=false}catch(e){}
+function quakeCReady(){return !!(vtex('quakeC_floor')&&vtex('quakeC_air'))}
 function fxQuake(x,y,r){
+  if(QUAKE_C.on&&quakeCReady()){
+    const w=r*3;
+    for(const layer of ['floor','air'])FX.sh.push({k:'quake',mode:'C',layer,x,y,w,t:0,life:QUAKE_C.life});
+    FX.shake=Math.min(16,FX.shake+r*.065);
+    return true;
+  }
   if(!QUAKE_VFX.enabled||!vtex('quake_floor')||!vtex('quake_air'))return false;
   const w=r*3;
   for(const layer of ['floor','air'])FX.sh.push({k:'quake',layer,x,y,w,t:0,life:QUAKE_VFX.life});
@@ -1507,6 +1519,13 @@ function fxQuake(x,y,r){
   return true;
 }
 function drawQuake(g,s){
+  if(s.mode==='C'){
+    const im=vtex('quakeC_'+s.layer);if(!im||s.t<0)return;
+    const frame=Math.min(QUAKE_C.frames-1,Math.floor(s.t*QUAKE_C.fps)),tile=im.width/QUAKE_C.cols;
+    g.save();g.globalAlpha=1;g.globalCompositeOperation='source-over';
+    g.drawImage(im,(frame%QUAKE_C.cols)*tile,Math.floor(frame/QUAKE_C.cols)*tile,tile,tile,s.x-s.w*.5,s.y-s.w*.5625,s.w,s.w);
+    g.restore();return;
+  }
   const im=vtex('quake_'+s.layer);if(!im||s.t<0||!QUAKE_VFX.layerFlags[s.layer])return;
   let frame=0;while(frame+1<QUAKE_VFX.frames&&QUAKE_VFX.times[frame+1]<=s.t)frame++;
   const tile=im.width/QUAKE_VFX.cols;
@@ -5368,7 +5387,7 @@ function openTune(){
   const keys=B.allies.map(a=>a.d.id).concat(Object.keys(ENEMIES));
   if(keys.indexOf(tuneKey)<0)tuneKey=keys[0];
   $('#tuneSel').innerHTML=keys.map(k=>'<option value="'+k+'"'+(k===tuneKey?' selected':'')+'>'+tuneLabel(k)+'</option>').join('');
-  $('#tuneMark').checked=CFG.showAnchor;$('#tuneJuice').checked=JC.on;$('#tune24').checked=SEQ24;$('#tuneAnim').checked=tuneAnim;
+  $('#tuneMark').checked=CFG.showAnchor;$('#tuneJuice').checked=JC.on;$('#tune24').checked=SEQ24;$('#tuneQuake').checked=QUAKE_C.on;$('#tuneAnim').checked=tuneAnim;
   pausedBefore=paused;paused=true;tuning=true;aim.on=false;B.sel=null;
   $('#cmd').classList.add('tuning');syncTune();
 }
@@ -5387,6 +5406,7 @@ $('#tuneSel').addEventListener('change',ev=>{tuneKey=ev.target.value;syncTune()}
 $('#tuneAnim').addEventListener('change',ev=>{tuneAnim=ev.target.checked});
 $('#tuneMark').addEventListener('change',ev=>{CFG.showAnchor=ev.target.checked});
 $('#tune24').addEventListener('change',ev=>{SEQ24=ev.target.checked;seq24Apply();try{localStorage.setItem(SEQ24_KEY,SEQ24?'1':'0')}catch(e){}});
+$('#tuneQuake').addEventListener('change',ev=>{QUAKE_C.on=ev.target.checked;try{localStorage.setItem(QUAKE_C_KEY,QUAKE_C.on?'1':'0')}catch(e){}});
 $('#tuneJuice').addEventListener('change',ev=>{JC.on=ev.target.checked;if(!JC.on)jcReset();try{localStorage.setItem(JC_KEY,JC.on?'1':'0')}catch(e){}});
 $('#tuneClose').addEventListener('click',closeTune);
 $('#tuneReset').addEventListener('click',()=>{Object.assign(TUNE[tuneKey],TUNE_BASE[tuneKey]);saveTune();syncTune()});
@@ -5498,7 +5518,7 @@ window.NARAKU={
   go(id){if(!stepTo(id))return false;arrive();return mode},
   info:id=>nodeInfo(id),light:()=>lightState(),nodeXY:id=>{R.camY=null;const q=mapXY(R.map.nodes[id]);return{x:q.x/W,y:q.y/H}},choose:chooseNode,buy:buyItem,leave:leaveNode,next:afterVictory,giveUp,
   retreat(){if(mode!=='map'||R.walk)return false;endRun('return');return true},
-  vfx:{tick:updFX,blackholeReady,blackholeSmoothReady,shadowReady,ready:()=>!!(vtex('quake_floor')&&vtex('quake_air')),riftReady:()=>!!(vtex('rift_floor')&&vtex('rift_air'))},QUAKE_VFX,RIFT_VFX,SHADOW_VFX,BLACKHOLE_VFX,useCard,startRewind,updRewind,dropSig,dropFor,get ULT(){return ULT},ULT_DEF,startUlt,SEQ,ULT_SEQ,
+  vfx:{tick:updFX,blackholeReady,blackholeSmoothReady,shadowReady,ready:()=>!!(vtex('quake_floor')&&vtex('quake_air')),quakeCReady,riftReady:()=>!!(vtex('rift_floor')&&vtex('rift_air'))},QUAKE_VFX,QUAKE_C,RIFT_VFX,SHADOW_VFX,BLACKHOLE_VFX,useCard,startRewind,updRewind,dropSig,dropFor,get ULT(){return ULT},ULT_DEF,startUlt,SEQ,ULT_SEQ,
   pick:chooseUp,
   grant(id){const u=UPS.find(x=>x.id===id);if(!u||!B)return false;applyUp(u);return true},
   // bot=スキルを撃つ自動操縦 / pick=強化を選ぶ関数（提示3枚と B を受け取り番号を返す。省略すると何も取らない）
