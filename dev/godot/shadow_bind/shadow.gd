@@ -104,7 +104,7 @@ func _process(dt):
  animate(fmod(clock+dt,2.2))
 func bake():
  DirAccess.make_dir_recursive_absolute("res://frames")
- for l in ["floor","air"]:
+ for l in (["floor"] if "--floor-only" in OS.get_cmdline_user_args() else ["floor","air"]):
   for p in ["matte","light"]:
    layer=l;pass_name=p
    for gp in particles:gp.emitting=false;gp.restart()

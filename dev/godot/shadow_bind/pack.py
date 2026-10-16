@@ -1,12 +1,15 @@
 """Pack Godot's premultiplied matte and black-background HDR/glow captures."""
 from pathlib import Path
-import json
+import json,sys
 import numpy as np
 from PIL import Image
 root=Path(__file__).resolve().parent
 assets=root.parents[1]/'assets'
 report={'frames':54,'fps':60,'bakeFps':30,'playbackRate':2,'life':.9,'cols':9,'rows':6,'anchor':[.5,365/512],'widthPerRadius':3.4,'sourceSize':[1254,1254]}
 for layer,tile in [('floor',192),('air',512)]:
+ if '--floor-only' in sys.argv and layer=='air':
+  report[layer]=json.loads((root/'atlas.json').read_text())[layer]
+  continue
  atlas=Image.new('RGBA',(tile*9,tile*6))
  edge=0
  for i in range(54):
