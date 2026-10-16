@@ -1539,6 +1539,30 @@ function drawFB(g,s){const F=FB[s.id],im=vtex(F.n);if(!im||s.t<0)return;
   g.save();g.translate(s.x,s.y);g.rotate(s.rot);g.scale(s.fl,1);
   g.drawImage(im,sx,sy,tile,tile,-s.w/2,-s.w/2,s.w,s.w);
   g.globalCompositeOperation='lighter';g.globalAlpha=0.45;g.drawImage(im,sx,sy,tile,tile,-s.w/2,-s.w/2,s.w,s.w);g.restore()}
+/* 真・花鳥風月（シオウの体力8割以下で超必殺が変わる。2026-10-17）。実時間の進行（秒）：
+   0〜0.3 画面が白黒へ・上下に黒帯／0.3〜0.8 静止に近いスロー（世界0.12倍）。刃の光がにじむ
+   0.8 一閃：戦場の全員へ大打撃・白い閃光・揺れ／0.8〜1.9 通常攻撃の斬撃（samurai_fb）を戦場いっぱいで流す（世界0.35倍）
+   1.9〜2.6 色と速さが戻る。色は 'saturation' 合成で抜き、斬撃だけは後から色つきで重ねる */
+const SHIN={dur:2.6,hit:0.8,slash:1.1,dmg:380};
+function shinStart(){FX.shin={t:0,hit:false}}
+function shinScale(){const S0=FX.shin;if(!S0)return 1;const t=S0.t;return t<0.3?1-t/0.3*0.88:t<0.8?0.12:t<1.9?0.35:Math.min(1,0.35+(t-1.9)/0.7*0.65)}
+function shinTick(dt){const S0=FX.shin;if(!S0)return;S0.t+=dt;
+  if(!S0.hit&&S0.t>=SHIN.hit){S0.hit=true;const b=CARDS.find(o=>o.id==='sm_iai');
+    impact(Object.assign({},b,{shape:'row',hh:B.lineY*0.5/B.M.skR,dmg:SHIN.dmg,ult:'samurai',shin:1}),W/2,B.lineY*0.5,1);FX.shake=Math.min(16,FX.shake+14);jcStop(0.12)}
+  if(S0.t>=SHIN.dur)FX.shin=null}
+function drawShin(g){const S0=FX.shin;if(!S0)return;const t=S0.t;
+  const gray=t<0.3?t/0.3:t<1.9?1:Math.max(0,1-(t-1.9)/0.7);
+  g.save();g.globalCompositeOperation='saturation';g.globalAlpha=gray;g.fillStyle='#808080';g.fillRect(0,0,W,H);
+  g.globalCompositeOperation='source-over';g.globalAlpha=gray*0.25;g.fillStyle='#000';g.fillRect(0,0,W,H);g.restore();
+  const bar=H*0.075*gray;g.fillStyle='#000';g.fillRect(0,0,W,bar);g.fillRect(0,H-bar,W,bar);
+  const F=FB.samurai,im=vtex(F.n);if(!im)return;const tile=im.width/4,cx=W/2,cy=B.lineY*0.46,w=Math.max(W,B.lineY)*1.25;
+  const put=(fr,a,sc)=>{g.save();g.translate(cx,cy);g.rotate(-0.12);g.scale(sc,sc);g.globalAlpha=a;
+    g.drawImage(im,(fr%4)*tile,Math.floor(fr/4)*tile,tile,tile,-w/2,-w/2,w,w);g.globalCompositeOperation='lighter';g.globalAlpha=a*0.6;
+    g.drawImage(im,(fr%4)*tile,Math.floor(fr/4)*tile,tile,tile,-w/2,-w/2,w,w);g.restore()};
+  if(t>=0.3&&t<SHIN.hit)put(0,(t-0.3)/(SHIN.hit-0.3)*0.55,0.55+(t-0.3)*0.4); // 溜め：刃の光が細くにじむ
+  if(t>=SHIN.hit){const u=(t-SHIN.hit)/SHIN.slash;if(u<1)put(Math.min(F.frames-1,Math.floor(u*F.frames)),1,1+u*0.08);
+    const fl=1-(t-SHIN.hit)/0.18;if(fl>0){g.globalAlpha=fl*0.85;g.fillStyle='#f4fff8';g.fillRect(0,0,W,H);g.globalAlpha=1}}
+}
 function drawQuake(g,s){
   if(s.mode==='C'){
     const im=vtex('quakeC_'+s.layer);if(!im||s.t<0)return;
@@ -2432,7 +2456,7 @@ const cv=$('#cv'),ctx=cv.getContext('2d'),app=$('#app');
 
 function defenseLineY(){const r=$('#arena').getBoundingClientRect();return H-LINE_OFF+60*H/Math.max(1,r.height)}
 function layout(){B.lineY=defenseLineY();B.allies.forEach(a=>{a.x=W*[0.18,0.5,0.82][a.slot];a.y=H-FOOT_OFF})}
-function clearFX(){FX.parts.length=0;FX.dust.length=0;FX.ghosts.length=0;FX.sh.length=0;FX.floats.length=0;FX.shake=0;FX.banner=null;FX.breach=0;FX.cut=null;for(const id in ULT_SEQ){FX[ULT_SEQ[id].fx]=null;seqFree(ULT_SEQ[id].n)}if(typeof BAR!=='undefined')BAR.emb.length=0;jcReset()}
+function clearFX(){FX.shin=null;FX.parts.length=0;FX.dust.length=0;FX.ghosts.length=0;FX.sh.length=0;FX.floats.length=0;FX.shake=0;FX.banner=null;FX.breach=0;FX.cut=null;for(const id in ULT_SEQ){FX[ULT_SEQ[id].fx]=null;seqFree(ULT_SEQ[id].n)}if(typeof BAR!=='undefined')BAR.emb.length=0;jcReset()}
 
 function newBattle(seed){
   const rs=mulberry32(seed),rc=mulberry32(hash32(seed^0x5A5A5A5A)),K=BKINDS[BOPT.kind],dep=BOPT.depth||0,fl=(BOPT.floor||1)-1;
@@ -3025,7 +3049,8 @@ const ULT_DEF={
     const es=B.enemies.filter(e=>!e.dead&&e.y>10&&e.y<B.lineY).sort((p,q)=>q.hp-p.hp||p.idx-q.idx).slice(0,8),pts=es.map(e=>({x:e.x,y:e.y-16}));
     for(let i=0;pts.length<8;i++)pts.push({x:40+(i*97)%280,y:B.lineY*(0.2+((i*37)%60)/100)});
     pts.forEach((p,i)=>B.impacts.push({t:0.1+i*0.09,c,x:p.x,y:p.y,k:1}))}},
-  samurai:{name:'花鳥風月',  col:'#5fe0a0',fire(a){ // 戦場を縦に4本、端から順に居合で斬り抜く
+  samurai:{name:'花鳥風月',  col:'#5fe0a0',fire(a){ // 戦場を縦に4本、端から順に居合で斬り抜く。シオウの体力が8割以下なら「真・花鳥風月」
+    if(a&&a.hp<=a.max*0.8){shinStart();return}
     const b=CARDS.find(o=>o.id==='sm_iai'),c=Object.assign({},b,{hw:46,dmg:150,ult:'samurai'});
     for(let i=0;i<4;i++)B.impacts.push({t:0.06+i*0.16,c,x:45+i*90,y:B.lineY*0.5,k:1})}},
   blue:  {name:'斬月三日月',col:'#4fc3f7',fire(a){const b=CARDS.find(o=>o.id==='bl_moon'),hh=B.lineY/6/B.M.skR,c=Object.assign({},b,{hh,dmg:120,ult:'blue'});if(ultSeqOn('blue'))FX.blueU={t:0};for(let i=0;i<3;i++)B.impacts.push({t:0.05+i*0.22,c,x:W/2,y:B.lineY*(5-2*i)/6,k:1})}}
@@ -3099,6 +3124,7 @@ function impact(c,x,y,k,shadow=false){
   if(c.healFlat)for(const a of B.allies)if(a.alive){a.hp=Math.min(a.max,a.hp+c.healFlat*k);fxSpark(a.x,a.y-64,'#bff0c0',6)}
   if(c.zone)B.zones.push({x,hw,t:c.zone,life:c.zone,tick:0.5,dps:c.zdps*B.M.skDmg*k*(ow?ow.sk:1),c});
   if(c.ult==='mage'&&BLACKHOLE_VFX.enabled&&blackholeReady()&&FX.sh.some(s=>s.k==='blackhole')){FX.shake=Math.min(16,FX.shake+(c.dmg>100?10:3));return}
+  if(c.shin)return;
   if(c.ult==='blue'&&ultSeqOn('blue')){FX.shake=Math.min(16,FX.shake+7);return}
   if(c.ult==='fox'&&ultSeqOn('fox')){FX.shake=Math.min(16,FX.shake+3);return} // 百鬼狐火の連番：絵は連番に任せ、着弾の爆発は描かない（揺れだけ） // 斬月三日月の連番：絵は連番に任せ、横一列の光の帯は描かない（揺れだけ）
   if(c.id==='fox_bind'&&!c.ult&&(shadow||fxShadow(x,y,r,.16)))return;
@@ -3880,6 +3906,7 @@ function render(T){
     g.beginPath();g.moveTo(aim.x-9,aim.y);g.lineTo(aim.x+9,aim.y);g.moveTo(aim.x,aim.y-9);g.lineTo(aim.x,aim.y+9);g.stroke();g.globalAlpha=1;
   }
   g.restore();
+  drawShin(g);
   jcDrawCombo(g,T);
   if(FX.breach>0){const gr=g.createLinearGradient(0,H-160,0,H);gr.addColorStop(0,'rgba(210,58,46,0)');gr.addColorStop(1,'rgba(210,58,46,'+0.6*FX.breach+')');g.fillStyle=gr;g.fillRect(0,H-160,W,160)}
   drawBossBar(g);
@@ -5532,10 +5559,11 @@ function frame(ts){
   else if(mode==='battle'&&!paused&&JC.stop>0){JC.stop-=dtR;if(JC.stop<=0)JC.cool=0.07} // ヒットストップ：世界ごと止める（step を呼ばないだけ）
   else if(mode==='battle'&&!paused){
     if(JC.cool>0)JC.cool-=dtR;
-    accum+=dtR*speed;let n=0;
+    const sk=FX.shin?shinScale():1;shinTick(dtR);
+    accum+=dtR*speed*sk;let n=0;
     while(accum>=STEP&&n<10){step(STEP);accum-=STEP;n++;if(mode!=='battle')break}
     if(n>=10)accum=0;
-    updFX(dtR*speed);jcTick(dtR*speed);
+    updFX(dtR*speed*sk);jcTick(dtR*speed*sk);
   }else if(mode==='rewinding'){updRewind(dtR);updFX(dtR)}
   else if(mode==='map'||mode==='node'){updMap(dtR);updFX(dtR)}
   else if(mode!=='battle'&&mode!=='levelup')updFX(dtR); // 強化の選択中は演出も含めて完全停止
@@ -5566,7 +5594,7 @@ window.NARAKU={
   go(id){if(!stepTo(id))return false;arrive();return mode},
   info:id=>nodeInfo(id),light:()=>lightState(),nodeXY:id=>{R.camY=null;const q=mapXY(R.map.nodes[id]);return{x:q.x/W,y:q.y/H}},choose:chooseNode,buy:buyItem,leave:leaveNode,next:afterVictory,giveUp,
   retreat(){if(mode!=='map'||R.walk)return false;endRun('return');return true},
-  vfx:{tick:updFX,blackholeReady,blackholeSmoothReady,shadowReady,ready:()=>!!(vtex('quake_floor')&&vtex('quake_air')),quakeCReady,riftReady:()=>!!(vtex('rift_floor')&&vtex('rift_air'))},QUAKE_VFX,QUAKE_C,RIFT_VFX,SHADOW_VFX,BLACKHOLE_VFX,useCard,startRewind,updRewind,dropSig,dropFor,get ULT(){return ULT},ULT_DEF,startUlt,SEQ,ULT_SEQ,
+  vfx:{tick:updFX,blackholeReady,blackholeSmoothReady,shadowReady,ready:()=>!!(vtex('quake_floor')&&vtex('quake_air')),quakeCReady,riftReady:()=>!!(vtex('rift_floor')&&vtex('rift_air'))},QUAKE_VFX,QUAKE_C,RIFT_VFX,SHADOW_VFX,BLACKHOLE_VFX,SHIN,shinStart,useCard,startRewind,updRewind,dropSig,dropFor,get ULT(){return ULT},ULT_DEF,startUlt,SEQ,ULT_SEQ,
   pick:chooseUp,
   grant(id){const u=UPS.find(x=>x.id===id);if(!u||!B)return false;applyUp(u);return true},
   // bot=スキルを撃つ自動操縦 / pick=強化を選ぶ関数（提示3枚と B を受け取り番号を返す。省略すると何も取らない）
