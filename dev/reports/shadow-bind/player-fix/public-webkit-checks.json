@@ -1,0 +1,161 @@
+{
+  "engine": "webkit",
+  "secondsToReady": 8.52,
+  "onePlayer": true,
+  "arenaNonBlackSamples": 43627,
+  "assetFailureVisible": true,
+  "resources": [
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/vfx_circle.webp?v=a2b492d6de8b",
+      "size": 31900,
+      "decoded": 31900
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/vfx_shadow_floor.webp?v=dd25939e0ba3",
+      "size": 201554,
+      "decoded": 201554
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/vfx_shadow_air.webp?v=ca8edcd3386b",
+      "size": 3907616,
+      "decoded": 3907616
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/ui_battle_button_frame.webp?v=6d58256d04d7",
+      "size": 47360,
+      "decoded": 47360
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/ui_battle_back_skill.webp?v=2f552c5340c2",
+      "size": 352470,
+      "decoded": 352470
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/ui_battle_extracted_base.webp?v=8f17b302084b",
+      "size": 129752,
+      "decoded": 129752
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/ui_battle_status_frame.webp?v=4b2dd60235fc",
+      "size": 139058,
+      "decoded": 139058
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/ui_battle_extracted_card_frame.webp?v=879e0100189e",
+      "size": 180490,
+      "decoded": 180490
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/ui_battle_back_strategy.webp?v=ab06c555be12",
+      "size": 411134,
+      "decoded": 411134
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/ui_battle_face_fox.webp?v=d1829e1ed05e",
+      "size": 112528,
+      "decoded": 112528
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/ui_card_sword.webp?v=607924bb3495",
+      "size": 57058,
+      "decoded": 57058
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/ui_battle_face_mage.webp?v=faf671ff7d31",
+      "size": 128090,
+      "decoded": 128090
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/ui_card_fox.webp?v=d38c37be3da2",
+      "size": 41862,
+      "decoded": 41862
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/ui_battle_face_sword.webp?v=e2dc894b33ed",
+      "size": 122716,
+      "decoded": 122716
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/ui_card_mage.webp?v=efe0cb94df95",
+      "size": 24498,
+      "decoded": 24498
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/ui_battle_strategy_heal.webp?v=54b9f427ef2b",
+      "size": 309506,
+      "decoded": 309506
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/ui_battle_strategy_reset.webp?v=271076e8aed0",
+      "size": 381576,
+      "decoded": 381576
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/face_fox.webp?v=b13d095b5db3",
+      "size": 18082,
+      "decoded": 18082
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/ui_battle_strategy_revive.webp?v=d70e057796c4",
+      "size": 335744,
+      "decoded": 335744
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/bg_camp.webp?v=415a5d1abb07",
+      "size": 291810,
+      "decoded": 291810
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/ui_battle_strategy_redraw.webp?v=b398ab2a70e7",
+      "size": 282052,
+      "decoded": 282052
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/ui_battle_strategy_chase.webp?v=4d7a6b5f815b",
+      "size": 247728,
+      "decoded": 247728
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/ui_battle_strategy_ult.webp?v=da3f700a8e46",
+      "size": 456058,
+      "decoded": 456058
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/face_sword.webp?v=5568c43b04b4",
+      "size": 18506,
+      "decoded": 18506
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/face_mage.webp?v=4a7d5f8aacba",
+      "size": 17514,
+      "decoded": 17514
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/fox.webp?v=63b6e9b60f1b",
+      "size": 173052,
+      "decoded": 173052
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/skel.webp?v=e241a557d315",
+      "size": 61502,
+      "decoded": 61502
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/sword.webp?v=0d4051091440",
+      "size": 138806,
+      "decoded": 138806
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/knight.webp?v=94eb920f266b",
+      "size": 61532,
+      "decoded": 61532
+    },
+    {
+      "url": "https://yyvape-dev.github.io/Naraku-test/dev/assets/mage.webp?v=3fa64400c70d",
+      "size": 197034,
+      "decoded": 197034
+    }
+  ],
+  "errors": [],
+  "requestFailures": []
+}

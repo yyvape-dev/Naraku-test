@@ -22,3 +22,5 @@
 生成コマンド：`python3 dev/tools/dev/build_shadow_player.py`。元ソース変更後はこのプレイヤーも再生成する。
 
 最終ローカル検証：Chromium 1.15秒、WebKit 2.53秒で準備完了。どちらも393×852のCanvasに非黒画素を確認し、VFXを撮影。従来/試作切替・最大範囲・保存無効・通信遮断時の表示/再読込が成功、JSエラーなし。Linux WebKitであり実機Safariの保証ではない。各engine-checks.json参照。素材とプレイヤーURLに内容ハッシュを付け、更新時の古いキャッシュを避ける。
+
+公開検証（a9bca38）：実際のGitHub Pages URLをChromium/WebKitで開き、戦場と影縫いの実描画・切替・最大・失敗案内を確認。準備完了はChromium約3.87秒/WebKit約8.52秒。JSエラー・正常ページの通信失敗なし。public-*-checks.json参照。WebKitの標準selectが白地に白文字となったため、カスタム外観と暗色を明示する小修正も追加。
