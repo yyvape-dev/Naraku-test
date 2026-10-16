@@ -1678,6 +1678,39 @@ function drawRiftK(g,s,ly){
   }
   g.restore();
 }
+/* 凍てつく虚無・原画版（シェリ mg_void。2026-10-17。ユーザー原画6枚・黒背景、tools/dev/icefb.py で焼く。原画は vfx/src_mage_void）。
+   assets/vfx_mage_void.webp＝256pxのマス×26（6列）。鍵のコマ：0 魔法陣／5 冷気の渦／10 氷柱／15 氷原（最大）／20 砕ける／25 煌めき。間は RIFE で補間したコマ。
+   マスの中で魔法陣の中心は高さ0.75。着弾点に合わせ、幅＝r×2.5。
+   時間（秒、着弾から）：0〜0.45 魔法陣→渦→氷柱が伸びる→氷原／〜0.95 氷原が軋み（13〜15コマを行き来）、光が脈打ち冷気が昇る／0.95〜1.3 砕けて欠片が飛ぶ／〜2.3 煌めきが薄れる。凍った敵ごとの氷は凍結の長さ（2.6秒）どおり。
+   描く層は敵の上・味方の下。凍った敵ごとの氷（ice）は従来どおり。既定で入。?voidfx=legacy で旧演出。見た目だけ */
+const VOIDK={n:'mage_void',frames:26,cols:6,life:2.3,on:new URLSearchParams(location.search).get('voidfx')!=='legacy',
+  key:[[0,0],[0.12,5],[0.3,10],[0.45,15],[0.95,15],[1.3,20],[1.7,25],[2.3,25]]};
+const voidKOn=()=>VOIDK.on&&!!vtex(VOIDK.n);
+const ICEC={c0:'#eaf8ff',c1:'#8fd8ff',sh:'#cfeeff'};
+function fxVoidK(x,y,r){
+  if(!voidKOn())return false;
+  FX.sh.push({k:'voidk',x,y,w:r*2.5,t:0,life:VOIDK.life});
+  FX.sh.push({k:'flash',x,y:y-r*0.3,r:r*1.3,t:0,life:0.2,col:'#bfe9ff'});
+  dustBurst('streak',x,y,14,{ang:-Math.PI/2,spread:2.4,v0:120,v1:300,jit:r*0.6,l0:0.14,l1:0.16,p:{drag:4,w:1.3,len:10,c0:ICEC.c0,c1:ICEC.c1}});
+  FX.shake=Math.min(16,FX.shake+5);return true;
+}
+function drawVoidK(g,s){
+  const im=vtex(VOIDK.n);if(!im||s.t<0)return;
+  const t=s.t,K=VOIDK.key;let f=K[K.length-1][1];
+  for(let i=0;i<K.length-1;i++)if(t<K[i+1][0]){f=K[i][1]+(K[i+1][1]-K[i][1])*(t-K[i][0])/(K[i+1][0]-K[i][0]);break}
+  if(t>0.45&&t<0.95)f-=1.6*(0.5-0.5*Math.cos((t-0.45)*TAU*2)); // 氷原の間は少し前のコマと行き来して軋ませる
+  const fr=Math.min(VOIDK.frames-1,Math.round(f)),T=im.width/VOIDK.cols,sx=(fr%VOIDK.cols)*T,sy=Math.floor(fr/VOIDK.cols)*T;
+  const grow=t<0.45?0.82+0.18*(1-Math.pow(1-t/0.45,3)):1,w=s.w*grow,x0=s.x-w/2,y0=s.y-w*0.75;
+  const a=t>1.7?Math.max(0,1-(t-1.7)/0.6):1,hold=t>0.45&&t<0.95,pul=hold?0.5+0.5*Math.sin(VFXT*7+s.x):0;
+  g.save();g.globalCompositeOperation='source-over';g.globalAlpha=a*(hold?0.88:1);g.drawImage(im,sx,sy,T,T,x0,y0,w,w);
+  g.globalCompositeOperation='lighter';g.globalAlpha=a*(0.22+0.2*pul+(t<0.2?0.35:0));g.drawImage(im,sx,sy,T,T,x0,y0,w,w);g.restore();
+  // 冷気：氷原の間、白い靄が昇る／砕ける瞬間に欠片と光の筋を外へ（1回だけ）
+  if(hold&&Math.random()<0.5)dustBurst('petal',s.x+(Math.random()-0.5)*w*0.7,s.y-Math.random()*w*0.35,1,{ang:-Math.PI/2,spread:0.8,v0:15,v1:45,l0:0.6,l1:0.5,spin:3,p:{drag:0.8,w:1.4+Math.random()*1.4,wob:5,c0:ICEC.c0,c1:ICEC.c1,c2:'#2a4f9a'}});
+  if(t>=1.0&&!s.burst){s.burst=1;FX.shake=Math.min(16,FX.shake+4);
+    for(let i=0;i<5;i++){const yy=s.y-w*(0.1+i*0.11);
+      dustBurst('shard',s.x,yy,4,{ang:-Math.PI/2,spread:3,v0:80,v1:220,jit:w*0.35,l0:0.45,l1:0.35,spin:20,p:{grav:380,drag:1.2,w:2+Math.random()*2.4,c0:ICEC.sh,c1:ICEC.c1}});
+      dustBurst('streak',s.x,yy,3,{ang:-Math.PI/2,spread:3,v0:160,v1:320,jit:w*0.3,l0:0.1,l1:0.12,p:{drag:4,w:1.2,len:9,c0:ICEC.c0,c1:ICEC.c1}})}}
+}
 const dv=(v,d)=>v==null?d:v;
 // 弾のように数が多く小さい絵は、表示の大きさ（3倍の解像度）に縮めた写しを使う（スマホの負荷を下げる）
 function vsmall(n,col,w,h){const key='s'+n+(col||'')+w+'x'+h;let c=VC[key];if(c)return c;const t=vtex(n,col);if(!t)return null;
@@ -2144,6 +2177,10 @@ function lanaFx(cx,cy,r,rep,hits){
 function fxSkillTex(c,x,y,r,hh,hits){
   if(c.shape==='col')return; // 縦一列（乾坤一擲）は fxCol と地割れの帯で描く
   if(c.shape==='row'){fxTex({n:'slash_a',col:c.pal[1],x:W/2,y,w:W*1.25,rot:1.0,sq:Math.min(0.6,hh*3.2/(W*0.9)),life:0.42,s0:0.85,s1:1.08,fi:0.06,fo:1.4});return}
+  if(c.id==='mg_void'&&!c.ult&&fxVoidK(x,y,r)){ // 原画版：中央の絵は連番に任せ、凍った敵ごとの氷だけ従来どおり
+    let n=0;for(const e of hits||[]){if(n++>=14)break;const hh2=e.d.h*e.sc*TUNE[e.type].s/100,d=c.freeze*(e.elite?0.5:1);
+      fxTex({n:'ice',ly:'top',x:e.x,y:e.y+4,w:Math.max(30,hh2*0.72),ay:0.95,life:Math.max(0.6,d),s0:0.3,s1:1,fi:0.03,fo:4})}
+    return}
   fxTex({n:'circle',col:c.pal[1],x,y,w:r*2.3,sq:0.55,life:0.85,s0:0.55,s1:1,rot:0,rot1:0.7,a:0.75,fi:0.1,fo:1.3});
   if(c.id==='fox_fire')fxTex({n:'burst',x,y,w:r*2.2,life:0.5,s0:0.35,s1:1.05,rot:Math.random()*TAU,fi:0.06,fo:1.6});
   else if(c.id==='mg_inferno')fxTex({n:'burst',col:c.pal[1],x,y,w:r*2.3,life:0.6,s0:0.3,s1:1.08,rot:Math.random()*TAU,fi:0.05,fo:1.5});
@@ -3184,7 +3221,7 @@ function impact(c,x,y,k,shadow=false){
   if(c.id==='fox_bind'&&!c.ult&&(shadow||fxShadow(x,y,r,.16)))return;
   if(c.id==='sw_quake'&&!c.ult&&fxQuake(x,y,r))return;
   if(c.id==='sw_rift'&&!c.ult&&(fxRift(x,hw)||fxRiftK(x,hw)))return;
-  if(c.fx==='full')fxFull(c.pal);else if(c.shape==='row')fxRow(y,hh,c.pal);else if(c.shape==='col')(c.ult==='sword'?ultLanaCol:fxCol)(x,hw,c.pal);else fxExplosion(x,y,r,c.pal);
+  if(c.id==='mg_void'&&!c.ult&&voidKOn()){}else if(c.fx==='full')fxFull(c.pal);else if(c.shape==='row')fxRow(y,hh,c.pal);else if(c.shape==='col')(c.ult==='sword'?ultLanaCol:fxCol)(x,hw,c.pal);else fxExplosion(x,y,r,c.pal);
   if(c.fx==='full')return;
   if(c.freeze){const hits=[];for(const e of B.enemies)if(!e.dead&&e.frzT>0&&Math.hypot(e.x-x,e.y-16-y)<=r+e.d.r*e.sc)hits.push(e);fxSkillTex(c,x,y,r,hh,hits)}
   else fxSkillTex(c,x,y,r,hh,null);
@@ -3903,7 +3940,7 @@ function render(T){
     g.save();g.globalAlpha=1-u;g.translate(o.x,o.y+u*10);blit(g,set,f,o.h);g.globalCompositeOperation='lighter';g.globalAlpha=(1-u)*0.45;blit(g,set,f,o.h);g.restore();
   }
   jcDrawPops(g);
-  for(const s of FX.sh)if(s.k==='tex'&&s.ly==='top')drawTex(g,s);else if(s.k==='riftk')drawRiftK(g,s,'top');
+  for(const s of FX.sh)if(s.k==='tex'&&s.ly==='top')drawTex(g,s);else if(s.k==='riftk')drawRiftK(g,s,'top');else if(s.k==='voidk')drawVoidK(g,s);
   for(const s of FX.sh)if(s.k==='blackhole'&&s.layer==='air')drawBlackhole(g,s);else if(s.k==='shadow'&&s.layer==='air')drawShadow(g,s);
   ULTLIT=null;for(const id in ULT_SEQ)if(FX[ULT_SEQ[id].fx])drawUltSeq(g,id); // 超必殺の連番（味方の後ろに1枚。味方は光の色を受ける）
   for(const a of B.allies)drawAlly(g,a,T);
