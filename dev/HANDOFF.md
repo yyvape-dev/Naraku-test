@@ -826,3 +826,8 @@ HTTPのboot操作検証も起動→出撃→戦闘→勝利→帰還→街の各
 - 次の技は未指定。作業開始時は最新mainを取得し、本書・dev/vfx/STATUS.mdの末尾に加え先頭の現状も読み、AGENTS.mdと .agents/skills/naraku-vfx/SKILL.md を確認する。Claudeとの同時更新を上書きしない。
 
 追記：引き継ぎ保存時にClaudeの d4014c4（大地割りC案を標準採用）を検出し、その上へ本記録をリベースした。最新コードはd4014c4を含む。QUAKE_C・調整パネル「地割C」・localStorage naraku_quakeC、素材vfx_quakeC_floor/air.webpの追加を維持。詳細はHANDOFF先頭を参照。上記の公開実ブラウザ確認はシェリ公開f5e7dd0時点の結果で、d4014c4の戦闘一致/smokeはClaude側の記録。次の作業前にも最新mainを再取得すること。
+
+## 2026-10-16 探索の焚き火に挿絵・レア民家休息
+ユーザー添付の4枚を順にevent_rest_1/2・event_rest_house_1/2.webpへ。通常各45%、レア各5%（計10%）。通常は既存の体力+40%／狂気−20%の選択を維持。レアは「うち捨てられた民家を見つけ、ゆっくり夜を過ごせた。」生存中の探索メンバーの体力100%・狂気0へ到着時に回復し、完了マスとして保存。精神崩壊の蘇生は既存ルールを維持。restArt(n)でマスseedから固定抽選、再開による引き直し・回復の二重適用なし。既存の異変挿絵画面を共用し、絵は4:3全体表示。index.htmlはリンク方式で生成。今回の変更先はNaraku-test。
+dev/tests/rest.pyで4種類×375/393幅のタッチ操作・通常2選択・全回復・保存再開を検証。10万seedは通常44884/45181、レア4963/4972。JSエラーなし。画像・checks.json・仕様はdev/reports/rest/。実機iPhone未確認。
+総合smoke RESULT OK（操縦9/12・火力優先11/12）、boot操作・保存再開も成功、エラーなし。実行環境のChromium指定・favicon.icoのみ204代用の一時ハーネスでHTTP検証。dev/reports/rest/smoke.log・boot.log参照。

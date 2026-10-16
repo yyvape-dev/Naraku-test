@@ -1,0 +1,85 @@
+{
+  "counts100000": {
+    "rest_2": 45181,
+    "rest_1": 44884,
+    "rest_house_1": 4963,
+    "rest_house_2": 4972
+  },
+  "cases": {
+    "rest_1": {
+      "seed": 1,
+      "id": 4
+    },
+    "rest_2": {
+      "seed": 2,
+      "id": 3
+    },
+    "rest_house_1": {
+      "seed": 11,
+      "id": 16
+    },
+    "rest_house_2": {
+      "seed": 14,
+      "id": 6
+    }
+  },
+  "checks": [
+    {
+      "art": "rest_1",
+      "width": 375,
+      "effects": true,
+      "resume": true,
+      "touch": true
+    },
+    {
+      "art": "rest_2",
+      "width": 375,
+      "effects": true,
+      "resume": true,
+      "touch": true
+    },
+    {
+      "art": "rest_house_1",
+      "width": 375,
+      "effects": true,
+      "resume": true,
+      "touch": true
+    },
+    {
+      "art": "rest_house_2",
+      "width": 375,
+      "effects": true,
+      "resume": true,
+      "touch": true
+    },
+    {
+      "art": "rest_1",
+      "width": 393,
+      "effects": true,
+      "resume": true,
+      "touch": true
+    },
+    {
+      "art": "rest_2",
+      "width": 393,
+      "effects": true,
+      "resume": true,
+      "touch": true
+    },
+    {
+      "art": "rest_house_1",
+      "width": 393,
+      "effects": true,
+      "resume": true,
+      "touch": true
+    },
+    {
+      "art": "rest_house_2",
+      "width": 393,
+      "effects": true,
+      "resume": true,
+      "touch": true
+    }
+  ],
+  "errors": []
+}
