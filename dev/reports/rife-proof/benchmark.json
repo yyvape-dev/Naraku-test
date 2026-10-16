@@ -1,0 +1,12 @@
+{
+  "light": {
+    "seconds": 2.412,
+    "returncode": 0,
+    "log": "[0 llvmpipe (LLVM 19.1.7, 256 bits)]  queueC=0[1]  queueG=0[1]  queueT=0[1]\n[0 llvmpipe (LLVM 19.1.7, 256 bits)]  bugsbn1=0  bugbilz=0  bugcopc=0  bugihfa=0\n[0 llvmpipe (LLVM 19.1.7, 256 bits)]  fp16-p/s/a=1/1/1  int8-p/s/a=1/1/1\n[0 llvmpipe (LLVM 19.1.7, 256 bits)]  subgroup=8  basic=1  vote=1  ballot=1  shuffle=1\n"
+  },
+  "mask": {
+    "seconds": 1.12,
+    "returncode": 0,
+    "log": "[0 llvmpipe (LLVM 19.1.7, 256 bits)]  queueC=0[1]  queueG=0[1]  queueT=0[1]\n[0 llvmpipe (LLVM 19.1.7, 256 bits)]  bugsbn1=0  bugbilz=0  bugcopc=0  bugihfa=0\n[0 llvmpipe (LLVM 19.1.7, 256 bits)]  fp16-p/s/a=1/1/1  int8-p/s/a=1/1/1\n[0 llvmpipe (LLVM 19.1.7, 256 bits)]  subgroup=8  basic=1  vote=1  ballot=1  shuffle=1\n"
+  }
+}

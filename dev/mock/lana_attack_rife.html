@@ -1,0 +1,24 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ラナ通常攻撃・RIFE比較</title>
+<style>*{box-sizing:border-box}body{margin:0;padding:18px;background:#17151b;color:#eee8f5;font:14px/1.6 system-ui,sans-serif}h1{font-size:22px;margin:0 0 6px}p{color:#bab2c4;margin:0 0 12px;max-width:800px}.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:14px 0}button,select{font:inherit;border:1px solid #766682;border-radius:5px;background:#2b2433;color:#f2ebfa;padding:8px 12px}select{-webkit-appearance:none;appearance:none;color-scheme:dark}main{display:flex;gap:14px;flex-wrap:wrap}.panel{width:min(443px,100%)}h2{font-size:15px;margin:0 0 6px}canvas{width:100%;height:auto;display:block;background:#24212b;border:1px solid #51455c;border-radius:5px}input[type=range]{width:min(44vw,360px)}output{font-variant-numeric:tabular-nums}.note{margin-top:14px}</style>
+<h1>ラナの通常攻撃 — RIFE補間</h1><p>キャラの振りかぶり・振り抜き・構えへの戻りを比較します。左は元の12コマ、右は中間を足した24コマ。攻撃全体の長さと、命中する時刻は同じです。</p>
+<div class="controls"><button id="play">停止</button><button id="restart">もう一度</button><label>速度 <select id="speed"><option value="1">実戦の速さ</option><option value=".5">1/2</option><option value=".25">1/4</option></select></label><label><input type="checkbox" id="large"> 拡大</label><span id="status">読み込み中…</span></div>
+<div class="controls"><label>時点 <input id="time" type="range" min="0" max=".45" step=".001" value="0"></label><output id="clock">0.000秒</output><span id="hit"></span></div>
+<main><section class="panel"><h2>元の12コマ</h2><canvas id="old" width="443" height="292"></canvas></section><section class="panel"><h2>RIFE v4.6・24コマ</h2><canvas id="new" width="443" height="292"></canvas></section></main>
+<p class="note">通常攻撃は最大0.45秒、命中はその55%（0.2475秒）。元の溜め・加速・残心の配分を保っています。拡大を外すとゲーム内相当の大きさで表示します。急な振り抜きでは中間の剣・マントに歪みが残る試作です。キャラ本体の比較用で、斬撃エフェクトは重ねていません。</p>
+<script>
+const $=s=>document.querySelector(s),duration=.45,hitTime=duration*.55,ms=[120,95,85,120,110,60,40,55,85,100,115,130];
+let playing=true,elapsed=0,last=0,images=null,metadata=null;
+function image(src){return new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>reject(Error('素材を読み込めませんでした'));im.src=src})}
+function position(u){const total=ms.reduce((a,b)=>a+b),pre=ms.slice(0,6).reduce((a,b)=>a+b);const t=u<.55?u/.55*pre:pre+(u-.55)/.45*(total-pre);let acc=0;for(let i=0;i<12;i++){if(t<acc+ms[i])return i+(t-acc)/ms[i];acc+=ms[i]}return 11.999}
+function paint(){if(!images)return;const f=elapsed>=duration?0:position(Math.min(.999999,elapsed/duration));const indices=[Math.floor(f),Math.min(23,Math.floor(f*2))];
+ for(let j=0;j<2;j++){const canvas=$(j?'#new':'#old'),g=canvas.getContext('2d');g.clearRect(0,0,443,292);const m=metadata[j],i=indices[j],cols=j?m.cols:12;
+  g.fillStyle='#75687d';g.fillRect(20,278,403,1);const h=$('#large').checked?m.refH:100*.85,w=m.cw*h/m.refH,ih=m.ch*h/m.refH;
+  g.drawImage(images[j],i%cols*m.cw,Math.floor(i/cols)*m.ch,m.cw,m.ch,221.5-m.ax*h/m.refH,278-m.ay*h/m.refH,w,ih);
+ }
+ $('#time').value=Math.min(duration,elapsed);$('#clock').textContent=Math.min(duration,elapsed).toFixed(3)+'秒';$('#hit').textContent=elapsed>=hitTime&&elapsed<duration?'命中後':'溜め・振り出し';
+}
+Promise.all([image('../assets/sword.webp?v=lana-original'),image('../motion/lana_rife/sword_rife.webp?v=lana-rife-1'),fetch('../assets/sword.json').then(r=>r.json()),fetch('../motion/lana_rife/sword_rife.json').then(r=>r.json())]).then(v=>{images=v.slice(0,2);metadata=v.slice(2);$('#status').textContent='再生できます';paint()}).catch(e=>{$('#status').textContent=e.message});
+$('#play').onclick=()=>{playing=!playing;$('#play').textContent=playing?'停止':'再生'};$('#restart').onclick=()=>{elapsed=0;playing=true;$('#play').textContent='停止';paint()};$('#large').onchange=paint;
+$('#time').oninput=e=>{elapsed=Number(e.target.value);playing=false;$('#play').textContent='再生';paint()};
+function tick(ts){let dt=Math.min(.05,(ts-(last||ts))/1000)*Number($('#speed').value);last=ts;if(playing&&images){elapsed+=dt;if(elapsed>.9)elapsed=0;paint()}requestAnimationFrame(tick)}requestAnimationFrame(tick);
+</script></html>

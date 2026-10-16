@@ -1,0 +1,20 @@
+[
+  {
+    "browser": "chromium",
+    "nontransparentPixels": [
+      12629,
+      15608
+    ],
+    "errors": [],
+    "controls": "seek, enlarge, restart passed"
+  },
+  {
+    "browser": "webkit",
+    "nontransparentPixels": [
+      12629,
+      15608
+    ],
+    "errors": [],
+    "controls": "seek, enlarge, restart passed"
+  }
+]

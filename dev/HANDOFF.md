@@ -751,3 +751,10 @@ dev/tests/shadow_bind.pyで3シード×通常/最大範囲の戦闘一致・命�
 ユーザーが公開ページで旧フレームと黒画面のままと報告。以前の公開検証はファイル一致までで、実ブラウザ起動確認が不足。今回公開URLをChromiumで起動すると再現せず。約51MB×2ゲーム同時読込は重いため、比較専用shadow_bind_player.htmlを必要素材の外部参照で生成（約501KB、素材約8.9MB）。iframeを1つへ減らし「表示」で従来/試作を切替、進捗・失敗・再読込表示、画像デコードと初期化後に表示。比較は保存を読まず/書かず、背景camp固定。index.html・VFX本体は変更しない。生成はdev/tools/dev/build_shadow_player.py。検証はdev/tests/shadow_player.py。端末の直接原因は断定しない。詳細dev/reports/shadow-bind/player-fix/REPORT.md。
 軽量版のローカルChromium/WebKit検証成功。実Canvasの非黒画素とVFX画像、従来/試作切替・最大範囲・保存無効・素材通信遮断時の失敗/再読込を確認。素材/プレイヤーURLに内容ハッシュ。実機Safari未確認。公開後も実URLをブラウザ検証する。
 公開URLをChromium/WebKitで実ブラウザ検証し、描画・切替・最大・失敗案内まで成功。準備完了3.87秒/8.52秒。WebKitの選択欄が白地白文字だったためappearance/color-schemeを明示する追加調整を実施。
+
+## 2026-10-16 RIFE v4.6＋lavapipeの実行確認
+
+ユーザーの可否確認に対し、公式20221029 Ubuntuリリースから実行ファイル/rife-v4.6モデルだけ約12.9MBを選択取得。/tmp/naraku-rifeにMesa lavapipeも展開、Vulkan PHYSICAL_DEVICE_TYPE_CPUで実行。既存ラナ36→37の中間光416×752とアルファ208×376を実生成。光初回10.227秒・ウォーム2.412秒、実マスク1.120秒。RGBAマスクはAを抽出しグレースケール補間後に黒RGB＋Aへ戻す。48→96全体は未実測、95/96枚の端処理と映像/マスクの境界・にじみ要確認。dev/reports/rife-proofに比較・出力・手順。ゲーム素材・公開ページ未変更、対象は選択待ち。
+
+## 2026-10-16 ラナ通常攻撃が正しい対象
+ユーザー「違くて、ラナの通常攻撃モーションの話だった」で訂正。直前の必殺技36→37試験は対象取り違え。正しい通常攻撃sword.webp12→24をRIFE4.6で作成、比較dev/mock/lana_attack_rife.html。通常ゲーム変更なし、最大.45秒/命中.2475秒の対応維持。元12枚は画素一致で保持。高速な振り抜きの中間は剣・マントが歪むため未採用候補。dev/motion/lana_rife/README.mdとdev/reports/lana-attack-rife/。Chromium/WebKit検証、公開比較用。
