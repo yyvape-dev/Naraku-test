@@ -1,0 +1,159 @@
+{
+  "secondsToReady": 2.17,
+  "onePlayer": true,
+  "resources": [
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/ui_battle_button_frame.webp",
+      "size": 47360,
+      "decoded": 47360
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/vfx_circle.webp",
+      "size": 31900,
+      "decoded": 31900
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/vfx_shadow_floor.webp",
+      "size": 201554,
+      "decoded": 201554
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/vfx_shadow_air.webp",
+      "size": 3907616,
+      "decoded": 3907616
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/ui_battle_back_skill.webp",
+      "size": 352470,
+      "decoded": 352470
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/ui_battle_back_strategy.webp",
+      "size": 411134,
+      "decoded": 411134
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/ui_battle_extracted_base.webp",
+      "size": 129752,
+      "decoded": 129752
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/ui_battle_extracted_card_frame.webp",
+      "size": 180490,
+      "decoded": 180490
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/ui_battle_face_fox.webp",
+      "size": 112528,
+      "decoded": 112528
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/ui_battle_status_frame.webp",
+      "size": 139058,
+      "decoded": 139058
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/ui_battle_face_sword.webp",
+      "size": 122716,
+      "decoded": 122716
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/ui_battle_face_mage.webp",
+      "size": 128090,
+      "decoded": 128090
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/ui_card_fox.webp",
+      "size": 41862,
+      "decoded": 41862
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/ui_card_sword.webp",
+      "size": 57058,
+      "decoded": 57058
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/ui_card_mage.webp",
+      "size": 24498,
+      "decoded": 24498
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/ui_battle_strategy_redraw.webp",
+      "size": 282052,
+      "decoded": 282052
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/ui_battle_strategy_heal.webp",
+      "size": 309506,
+      "decoded": 309506
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/ui_battle_strategy_reset.webp",
+      "size": 381576,
+      "decoded": 381576
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/ui_battle_strategy_revive.webp",
+      "size": 335744,
+      "decoded": 335744
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/ui_battle_strategy_chase.webp",
+      "size": 247728,
+      "decoded": 247728
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/bg_camp.webp",
+      "size": 291810,
+      "decoded": 291810
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/ui_battle_strategy_ult.webp",
+      "size": 456058,
+      "decoded": 456058
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/face_fox.webp",
+      "size": 18082,
+      "decoded": 18082
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/face_sword.webp",
+      "size": 18506,
+      "decoded": 18506
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/face_mage.webp",
+      "size": 17514,
+      "decoded": 17514
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/fox.webp",
+      "size": 173052,
+      "decoded": 173052
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/sword.webp",
+      "size": 138806,
+      "decoded": 138806
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/mage.webp",
+      "size": 197034,
+      "decoded": 197034
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/skel.webp",
+      "size": 61502,
+      "decoded": 61502
+    },
+    {
+      "url": "http://127.0.0.1:8765/dev/assets/knight.webp",
+      "size": 61532,
+      "decoded": 61532
+    }
+  ],
+  "errors": [],
+  "requestFailures": [],
+  "assetFailureVisible": true
+}

@@ -1,17 +1,18 @@
 <!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>影縫い・青紫の影しばり試作</title>
-<style>*{box-sizing:border-box}body{margin:0;padding:20px;background:#100f16;color:#ebe7ff;font:14px/1.6 system-ui,sans-serif}h1{font-size:23px;margin:0 0 6px}p{color:#b1acc4;max-width:850px}.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0}button,select{padding:9px 14px;background:#232034;color:#ece7ff;border:1px solid #706197;border-radius:6px;font:inherit}main{display:flex;gap:20px;flex-wrap:wrap}.panel{width:min(393px,100%)}h2{font-size:15px}.stage{width:100%;height:659px;overflow:hidden;border:1px solid #50455e;border-radius:6px}iframe{width:393px;height:659px;border:0;transform-origin:top left;pointer-events:none}input[type=range]{width:min(45vw,300px)}a{color:#a3c9ff}</style>
-<h1>影縫い — 青紫の影しばり・2倍速</h1><p>影の帯が立ち上がり、巻き付いて締まり、ほどけて消える試作です。添付の5枚を使い、帯の内部の流れと、足元の影を動かしています。動きは前回の2倍速。締まる瞬間の光と、外へ広がる青黒〜紫のぼかした円を重ねています。</p>
+<style>*{box-sizing:border-box}body{margin:0;padding:20px;background:#100f16;color:#ebe7ff;font:14px/1.6 system-ui,sans-serif}h1{font-size:23px;margin:0 0 6px}p{color:#b1acc4;max-width:850px}.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0}button,select{padding:9px 14px;background:#232034;color:#ece7ff;border:1px solid #706197;border-radius:6px;font:inherit}main{display:flex;gap:20px;flex-wrap:wrap}.panel{width:min(393px,100%)}h2{font-size:15px}.stage{position:relative;width:100%;height:659px;overflow:hidden;border:1px solid #50455e;border-radius:6px}iframe{width:393px;height:659px;border:0;transform-origin:top left;pointer-events:none}input[type=range]{width:min(45vw,300px)}a{color:#a3c9ff}#loading{position:absolute;inset:0;display:grid;place-items:center;background:#100f16ed;color:#d8c9ff;text-align:center;padding:20px;z-index:3}#loading[hidden]{display:none}.stage.failed iframe{visibility:hidden}</style>
+<h1>影縫い — 青紫の影しばり・2倍速</h1><p>青紫の影と、足元から広がる柔らかな発光の円。2倍速・0.9秒の試作です。</p>
 <div class="controls"><button id="replay">もう一度</button><button id="pause">停止</button><label>速度 <select id="speed"><option value="1">標準（2倍速）</option><option value="0.5">1/2</option><option value="0.25">1/4</option></select></label><label>範囲 <select id="range"><option value="1">通常</option><option value="2.44140625">最大拡大</option></select></label><span id="status">読み込み中…</span></div>
 <div class="controls"><label><input id="floor" type="checkbox" checked> 足元の影・柔らかな円</label><label><input id="air" type="checkbox" checked> 巻き付く影</label><label>時点 <input id="scrub" type="range" min="0" max="0.9" step="0.01" value="0"></label><output id="time">0.00秒</output></div>
-<main><section class="panel"><h2>従来</h2><div class="stage"><iframe title="従来の影縫い" src="../../index.html?shadowfx=legacy&v=shadow-soft-circle"></iframe></div></section><section class="panel"><h2>試作 — 青紫の影が収束</h2><div class="stage"><iframe title="影縫いの青紫試作" src="../../index.html?shadowfx=godot&v=shadow-soft-circle"></iframe></div></section></main>
-<p>使用0.16秒後の命中・15ダメージ・4.5秒の鈍足・装填8秒は従来どおりです。絵は0.9秒で消えます。鈍足は当たった敵に残る効果で、残った絵に追加判定はありません。比較用の戦場は固定しています。最大範囲では画面の外へ広がります。</p>
+<div class="controls"><label>表示 <select id="variant"><option value="godot">試作：青紫の影と柔らかな円</option><option value="legacy">従来の演出</option></select></label></div>
+<main><section class="panel"><h2 id="variantTitle">試作 — 青紫の影が収束</h2><div class="stage"><iframe title="影縫いの軽量比較" src="shadow_bind_player.html?shadowfx=godot&v=d0cc419e8846"></iframe><div id="loading" role="status">読み込み中…</div></div></section></main>
+<p>使用0.16秒後の命中・15ダメージ・4.5秒の鈍足・装填8秒は従来どおりです。絵は0.9秒で消えます。鈍足は当たった敵に残る効果で、残った絵に追加判定はありません。比較用の戦場は固定しています。「表示」で従来と試作を切り替えられます。最大範囲では画面の外へ広がります。</p>
 <p><a href="../../index.html?shadowfx=godot&v=shadow-soft-circle">ゲームで試作を使う</a></p>
 <script>
 const $=s=>document.querySelector(s),frames=[...document.querySelectorAll('iframe')];let engines=[],playing=true,elapsed=0,previous=0;
 function fit(){frames.forEach(f=>{const z=f.parentElement.clientWidth/393;f.style.transform=`scale(${z})`;f.parentElement.style.height=`${659*z}px`})}addEventListener('resize',fit);fit();
 function setup(){
  engines.forEach((N,i)=>{
-  N.start(['sword','fox','mage'],4242);N.sim(12);const sample=N.B.enemies.find(e=>!e.dead);
+  N.SHADOW_VFX.enabled=$('#variant').value==='godot';N.setBg('camp');N.start(['sword','fox','mage'],4242);N.sim(12);const sample=N.B.enemies.find(e=>!e.dead);
   N.start(['sword','fox','mage'],4242);frames[i].contentDocument.querySelector('#btnPause').click();N.QUAKE_VFX.preview=true;N.B.enemies=[[135,245],[180,278],[225,240],[175,320]].map(([x,y],j)=>({...sample,idx:900+j,x,y,hp:1000,max:1000,spd:0,st:'walk',dead:false,pend:0,tg:null,atkT:999,cd:999,flash:0,slowT:0,ph:0}));
   N.B.allies.forEach(a=>{a.cdT=999;a.animT=-1});N.B.dur=999;N.B.shots.length=0;N.B.impacts.length=0;
   for(const k of ['sh','parts','dust','floats','ghosts'])N.FX[k].length=0;N.FX.cut=null;N.FX.banner=null;N.FX.shake=0;
@@ -21,13 +22,27 @@ function setup(){
 }
 function advance(dt){if(dt<=0)return;engines.forEach(N=>{N.sim(dt);N.vfx.tick(dt);N.FX.shake=0});elapsed+=dt}
 function display(){$('#time').textContent=Math.min(elapsed,.9).toFixed(2)+'秒';$('#scrub').value=Math.min(elapsed,.9)}
-const ready=setInterval(()=>{try{if(frames.every(f=>f.contentWindow.NARAKU_READY&&f.contentWindow.NARAKU.vfx.shadowReady())){engines=frames.map(f=>f.contentWindow.NARAKU);clearInterval(ready);setup();$('#status').textContent='再生できます'}}catch(e){$('#status').textContent='同じサイト上で開いてください'}},100);
-$('#replay').onclick=()=>{if(engines.length!==2)return;setup();playing=true;$('#pause').textContent='停止'};
+const loadStarted=performance.now();let preparing=false;
+function fail(message){clearInterval(ready);$('#status').textContent='読み込みに失敗しました';$('#loading').hidden=false;$('#loading').textContent=message+'。「再読み込み」を押してください。';$('#replay').textContent='再読み込み';$('.stage').classList.add('failed');}
+const ready=setInterval(()=>{
+ try{
+  const w=frames[0].contentWindow,progress=w.PREVIEW_LOAD;
+  if(progress?.error){fail('演出素材を読み込めませんでした');return}
+  const label=progress?'素材を読み込み中 '+progress.done+'/'+progress.total:'プレイヤーを読み込み中…';
+  $('#status').textContent=label;$('#loading').textContent=label;
+  if(w.NARAKU_READY&&w.NARAKU.vfx.shadowReady()&&!preparing){
+   preparing=true;engines=[w.NARAKU];clearInterval(ready);setup();
+   requestAnimationFrame(()=>requestAnimationFrame(()=>{$('#loading').hidden=true;$('#status').textContent='再生できます'}));
+  }else if(performance.now()-loadStarted>90000)fail('素材の読み込みが完了しませんでした');
+ }catch(e){fail('プレイヤーを読み込めませんでした')}
+},100);
+$('#variant').onchange=()=>{if(engines.length!==frames.length)return;setup();$('#variantTitle').textContent=$('#variant').value==='godot'?'試作 — 青紫の影が収束':'従来の影縫い'};
+$('#replay').onclick=()=>{if($('.stage').classList.contains('failed')){location.reload();return}if(engines.length!==frames.length)return;setup();playing=true;$('#pause').textContent='停止'};
 $('#pause').onclick=()=>{playing=!playing;$('#pause').textContent=playing?'停止':'再生'};
-$('#range').onchange=()=>{if(engines.length===2)setup()};
+$('#range').onchange=()=>{if(engines.length===frames.length)setup()};
 for(const id of ['floor','air'])$('#'+id).onchange=()=>{engines.forEach(N=>N.SHADOW_VFX.layerFlags[id]=$('#'+id).checked)};
-$('#scrub').oninput=()=>{if(engines.length!==2)return;const target=Number($('#scrub').value);setup();playing=false;$('#pause').textContent='再生';for(let t=0;t<target-1e-6;t+=1/60)advance(Math.min(1/60,target-t));display()};
+$('#scrub').oninput=()=>{if(engines.length!==frames.length)return;const target=Number($('#scrub').value);setup();playing=false;$('#pause').textContent='再生';for(let t=0;t<target-1e-6;t+=1/60)advance(Math.min(1/60,target-t));display()};
 let accumulator=0;
 function loop(ts){const dt=Math.min(.05,(ts-(previous||ts))/1000)*Number($('#speed').value);previous=ts;
- if(playing&&engines.length===2){accumulator+=dt;while(accumulator>=1/60){advance(1/60);accumulator-=1/60}display();if(elapsed>1.5)setup()}requestAnimationFrame(loop)}requestAnimationFrame(loop);
+ if(playing&&engines.length===frames.length){accumulator+=dt;while(accumulator>=1/60){advance(1/60);accumulator-=1/60}display();if(elapsed>1.5)setup()}requestAnimationFrame(loop)}requestAnimationFrame(loop);
 </script></html>
