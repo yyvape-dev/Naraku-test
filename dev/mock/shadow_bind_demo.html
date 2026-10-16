@@ -1,11 +1,11 @@
 <!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>影縫い・青紫の影しばり試作</title>
 <style>*{box-sizing:border-box}body{margin:0;padding:20px;background:#100f16;color:#ebe7ff;font:14px/1.6 system-ui,sans-serif}h1{font-size:23px;margin:0 0 6px}p{color:#b1acc4;max-width:850px}.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0}button,select{padding:9px 14px;background:#232034;color:#ece7ff;border:1px solid #706197;border-radius:6px;font:inherit}main{display:flex;gap:20px;flex-wrap:wrap}.panel{width:min(393px,100%)}h2{font-size:15px}.stage{width:100%;height:659px;overflow:hidden;border:1px solid #50455e;border-radius:6px}iframe{width:393px;height:659px;border:0;transform-origin:top left;pointer-events:none}input[type=range]{width:min(45vw,300px)}a{color:#a3c9ff}</style>
-<h1>影縫い — 青紫の影しばり</h1><p>影の帯が立ち上がり、巻き付いて締まり、ほどけて消える試作です。添付の5枚を使い、帯の内部の流れと、足元の影を動かしています。</p>
-<div class="controls"><button id="replay">もう一度</button><button id="pause">停止</button><label>速度 <select id="speed"><option value="1">等速</option><option value="0.5">1/2</option><option value="0.25">1/4</option></select></label><label>範囲 <select id="range"><option value="1">通常</option><option value="2.44140625">最大拡大</option></select></label><span id="status">読み込み中…</span></div>
-<div class="controls"><label><input id="floor" type="checkbox" checked> 足元の影</label><label><input id="air" type="checkbox" checked> 巻き付く影</label><label>時点 <input id="scrub" type="range" min="0" max="1.8" step="0.01" value="0"></label><output id="time">0.00秒</output></div>
-<main><section class="panel"><h2>従来</h2><div class="stage"><iframe title="従来の影縫い" src="../../index.html?shadowfx=legacy"></iframe></div></section><section class="panel"><h2>試作 — 青紫の影が収束</h2><div class="stage"><iframe title="影縫いの青紫試作" src="../../index.html?shadowfx=godot"></iframe></div></section></main>
-<p>使用0.16秒後の命中・15ダメージ・4.5秒の鈍足・装填8秒は従来どおりです。絵は1.8秒で消えます。鈍足は当たった敵に残る効果で、残った絵に追加判定はありません。比較用の戦場は固定しています。最大範囲では画面の外へ広がります。</p>
-<p><a href="../../index.html?shadowfx=godot">ゲームで試作を使う</a></p>
+<h1>影縫い — 青紫の影しばり・2倍速</h1><p>影の帯が立ち上がり、巻き付いて締まり、ほどけて消える試作です。添付の5枚を使い、帯の内部の流れと、足元の影を動かしています。動きは前回の2倍速。締まる瞬間に控えめな青紫の光が走ります。</p>
+<div class="controls"><button id="replay">もう一度</button><button id="pause">停止</button><label>速度 <select id="speed"><option value="1">標準（2倍速）</option><option value="0.5">1/2</option><option value="0.25">1/4</option></select></label><label>範囲 <select id="range"><option value="1">通常</option><option value="2.44140625">最大拡大</option></select></label><span id="status">読み込み中…</span></div>
+<div class="controls"><label><input id="floor" type="checkbox" checked> 足元の影</label><label><input id="air" type="checkbox" checked> 巻き付く影</label><label>時点 <input id="scrub" type="range" min="0" max="0.9" step="0.01" value="0"></label><output id="time">0.00秒</output></div>
+<main><section class="panel"><h2>従来</h2><div class="stage"><iframe title="従来の影縫い" src="../../index.html?shadowfx=legacy&v=shadow-2x-light"></iframe></div></section><section class="panel"><h2>試作 — 青紫の影が収束</h2><div class="stage"><iframe title="影縫いの青紫試作" src="../../index.html?shadowfx=godot&v=shadow-2x-light"></iframe></div></section></main>
+<p>使用0.16秒後の命中・15ダメージ・4.5秒の鈍足・装填8秒は従来どおりです。絵は0.9秒で消えます。鈍足は当たった敵に残る効果で、残った絵に追加判定はありません。比較用の戦場は固定しています。最大範囲では画面の外へ広がります。</p>
+<p><a href="../../index.html?shadowfx=godot&v=shadow-2x-light">ゲームで試作を使う</a></p>
 <script>
 const $=s=>document.querySelector(s),frames=[...document.querySelectorAll('iframe')];let engines=[],playing=true,elapsed=0,previous=0;
 function fit(){frames.forEach(f=>{const z=f.parentElement.clientWidth/393;f.style.transform=`scale(${z})`;f.parentElement.style.height=`${659*z}px`})}addEventListener('resize',fit);fit();
@@ -20,7 +20,7 @@ function setup(){
  });elapsed=0;display();
 }
 function advance(dt){if(dt<=0)return;engines.forEach(N=>{N.sim(dt);N.vfx.tick(dt);N.FX.shake=0});elapsed+=dt}
-function display(){$('#time').textContent=Math.min(elapsed,1.8).toFixed(2)+'秒';$('#scrub').value=Math.min(elapsed,1.8)}
+function display(){$('#time').textContent=Math.min(elapsed,.9).toFixed(2)+'秒';$('#scrub').value=Math.min(elapsed,.9)}
 const ready=setInterval(()=>{try{if(frames.every(f=>f.contentWindow.NARAKU_READY&&f.contentWindow.NARAKU.vfx.shadowReady())){engines=frames.map(f=>f.contentWindow.NARAKU);clearInterval(ready);setup();$('#status').textContent='再生できます'}}catch(e){$('#status').textContent='同じサイト上で開いてください'}},100);
 $('#replay').onclick=()=>{if(engines.length!==2)return;setup();playing=true;$('#pause').textContent='停止'};
 $('#pause').onclick=()=>{playing=!playing;$('#pause').textContent=playing?'停止':'再生'};
@@ -29,5 +29,5 @@ for(const id of ['floor','air'])$('#'+id).onchange=()=>{engines.forEach(N=>N.SHA
 $('#scrub').oninput=()=>{if(engines.length!==2)return;const target=Number($('#scrub').value);setup();playing=false;$('#pause').textContent='再生';for(let t=0;t<target-1e-6;t+=1/60)advance(Math.min(1/60,target-t));display()};
 let accumulator=0;
 function loop(ts){const dt=Math.min(.05,(ts-(previous||ts))/1000)*Number($('#speed').value);previous=ts;
- if(playing&&engines.length===2){accumulator+=dt;while(accumulator>=1/60){advance(1/60);accumulator-=1/60}display();if(elapsed>2.6)setup()}requestAnimationFrame(loop)}requestAnimationFrame(loop);
+ if(playing&&engines.length===2){accumulator+=dt;while(accumulator>=1/60){advance(1/60);accumulator-=1/60}display();if(elapsed>1.5)setup()}requestAnimationFrame(loop)}requestAnimationFrame(loop);
 </script></html>

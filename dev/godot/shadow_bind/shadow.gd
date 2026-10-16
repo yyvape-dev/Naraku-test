@@ -9,6 +9,7 @@ var roots := {}
 var sprites: Array = []
 var grounds: Array = []
 var particles: Array = []
+var accents: Array = []
 var env: Environment
 var backdrop: ColorRect
 var clock := 0.0
@@ -44,10 +45,22 @@ func _ready():
      im.centered=false;im.position=C;im.offset=Vector2(-627,-1020);im.scale=Vector2.ONE*.30
      var sm=ShaderMaterial.new();sm.shader=load("res://flow_add.gdshader" if p=="light" else "res://flow.gdshader");sm.set_shader_parameter("noise_tex",noise);sm.set_shader_parameter("light_pass",p=="light");im.material=sm
      root.add_child(im);sprites.append([im,k])
+ build_accents()
  build_particles()
  baking="--bake" in OS.get_cmdline_user_args()
  if baking:
   set_process(false);call_deferred("bake")
+func build_accents():
+ # Two brief blue-violet breaths at the hit and the tightening; no screen-wide flash.
+ var g=Gradient.new();g.offsets=PackedFloat32Array([0.,.22,.58,1.])
+ g.colors=PackedColorArray([Color(1,1,1,.8),Color(1,1,1,.48),Color(1,1,1,.08),Color(1,1,1,0)])
+ var tex=GradientTexture2D.new();tex.width=128;tex.height=128;tex.gradient=g
+ tex.fill=GradientTexture2D.FILL_RADIAL;tex.fill_from=Vector2(.5,.5);tex.fill_to=Vector2(1.,.5)
+ for l in ["floor","air"]:
+  var sp=Sprite2D.new();sp.texture=tex;sp.position=C if l=="floor" else C+Vector2(0,-80)
+  sp.scale=Vector2(2.5,.9) if l=="floor" else Vector2(1.25,1.05)
+  var blend=CanvasItemMaterial.new();blend.blend_mode=CanvasItemMaterial.BLEND_MODE_ADD;sp.material=blend
+  roots[l+"_light"].add_child(sp);accents.append([sp,l])
 func build_particles():
  var gradient=Gradient.new();gradient.colors=PackedColorArray([Color(1,1,1,1),Color(1,1,1,.25),Color(1,1,1,0)]);gradient.offsets=PackedFloat32Array([0.,.3,1.])
  var tex=GradientTexture2D.new();tex.width=16;tex.height=16;tex.gradient=gradient;tex.fill=GradientTexture2D.FILL_RADIAL;tex.fill_from=Vector2(.5,.5);tex.fill_to=Vector2(1.,.5)
@@ -80,6 +93,11 @@ func animate(t: float):
  for ground in grounds:
   ground.material.set_shader_parameter("clock",t)
   ground.material.set_shader_parameter("strength",ramp(t,0.,.16)*(1.-ramp(t,1.05,1.8)))
+ # Authored at 30fps; game plays at 60fps, so source .32 is the .16s hit.
+ var pulse=exp(-pow((t-.32)/.10,2.))+.65*exp(-pow((t-.78)/.14,2.))
+ for item in accents:
+  var sp: Sprite2D=item[0]
+  sp.modulate=Color(.25,.32,1.0,pulse*(.22 if item[1]=="floor" else .12))
  for gp in particles:
   if t>=.18 and t<.22 and not gp.emitting:gp.emitting=true
 func _process(dt):

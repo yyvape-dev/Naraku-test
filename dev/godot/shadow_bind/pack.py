@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image
 root=Path(__file__).resolve().parent
 assets=root.parents[1]/'assets'
-report={'frames':54,'fps':30,'life':1.8,'cols':9,'rows':6,'anchor':[.5,365/512],'widthPerRadius':3.4,'sourceSize':[1254,1254]}
+report={'frames':54,'fps':60,'bakeFps':30,'playbackRate':2,'life':.9,'cols':9,'rows':6,'anchor':[.5,365/512],'widthPerRadius':3.4,'sourceSize':[1254,1254]}
 for layer,tile in [('floor',192),('air',512)]:
  atlas=Image.new('RGBA',(tile*9,tile*6))
  edge=0
@@ -35,5 +35,5 @@ for j,i in enumerate([2,6,14,23,31,41,51]):
  cell.thumbnail((256,256));contact.paste(cell,(j*256,24),cell)
 from PIL import ImageDraw
 d=ImageDraw.Draw(contact)
-for j,i in enumerate([2,6,14,23,31,41,51]):d.text((j*256+10,5),f'{i/30:.2f}s',fill='white')
+for j,i in enumerate([2,6,14,23,31,41,51]):d.text((j*256+10,5),f'{i/60:.2f}s',fill='white')
 contact.save('/tmp/shadow-baked-contact.png')

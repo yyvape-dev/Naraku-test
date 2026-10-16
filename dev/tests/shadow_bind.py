@@ -33,13 +33,15 @@ with sync_playwright() as p:
   N.B.slots[0].card=N.CARDS.find(c=>c.id==='fox_bind');N.useCard(0,180,240);
   const hp=e.hp;N.sim(.15);if(e.hp!==hp||e.slowT!==0)throw Error('early hit');
   N.sim(1/60);if(e.hp>=hp||Math.abs(e.slowT-4.5)>.001)throw Error('hit/slow timing');
-  N.vfx.tick(1.81);if(N.FX.sh.some(s=>s.k==='shadow'))throw Error('visual leaked');
+  if(N.SHADOW_VFX.fps!==60||N.SHADOW_VFX.life!==.9)throw Error('2x playback config');
+  N.vfx.tick(.89);if(!N.FX.sh.some(s=>s.k==='shadow'))throw Error('visual ended early');
+  N.vfx.tick(.02);if(N.FX.sh.some(s=>s.k==='shadow'))throw Error('visual leaked');
   if(e.slowT<4.4)throw Error('visual cleanup altered slow');
   N.start(['sword','fox','mage'],42);N.B.M.echo=2;N.B.slots[0].card=N.CARDS.find(c=>c.id==='fox_bind');N.useCard(0,180,240);N.sim(1);
   if(N.FX.sh.filter(s=>s.k==='shadow').length!==6)throw Error('echo missing');
   N.start(['sword','fox','mage'],42);const img=VT.shadow_air;delete VT.shadow_air;N.B.slots[0].card=N.CARDS.find(c=>c.id==='fox_bind');N.useCard(0,180,240);N.sim(.2);VT.shadow_air=img;
   if(N.FX.sh.some(s=>s.k==='shadow')||!N.FX.sh.some(s=>s.k==='ring'||s.k==='tex'))throw Error('fallback');
-  return {slow:4.5,reload:8,visualLife:1.8,echoLayers:6,fallback:true,cleanup:true};
+  return {slow:4.5,reload:8,visualLife:.9,playbackFps:60,echoLayers:6,fallback:true,cleanup:true};
  }''')
  assert not errors,errors
  result={'sameCombatState':True,'seeds':3,'rangeLevels':[0,4],'preHitCharge':True,'impactDelay':.16,'details':details,'errors':errors}

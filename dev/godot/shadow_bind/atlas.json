@@ -1,7 +1,9 @@
 {
   "frames": 54,
-  "fps": 30,
-  "life": 1.8,
+  "fps": 60,
+  "bakeFps": 30,
+  "playbackRate": 2,
+  "life": 0.9,
   "cols": 9,
   "rows": 6,
   "anchor": [
@@ -15,13 +17,13 @@
   ],
   "floor": {
     "tile": 192,
-    "bytes": 195688,
+    "bytes": 197146,
     "decodedBytes": 7962624,
     "maxEdgeAlpha": 0
   },
   "air": {
     "tile": 512,
-    "bytes": 3904358,
+    "bytes": 3907616,
     "decodedBytes": 56623104,
     "maxEdgeAlpha": 0
   }

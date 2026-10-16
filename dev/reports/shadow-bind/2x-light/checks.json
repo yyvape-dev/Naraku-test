@@ -1,0 +1,20 @@
+{
+  "sameCombatState": true,
+  "seeds": 3,
+  "rangeLevels": [
+    0,
+    4
+  ],
+  "preHitCharge": true,
+  "impactDelay": 0.16,
+  "details": {
+    "slow": 4.5,
+    "reload": 8,
+    "visualLife": 0.9,
+    "playbackFps": 60,
+    "echoLayers": 6,
+    "fallback": true,
+    "cleanup": true
+  },
+  "errors": []
+}

@@ -1,0 +1,86 @@
+{
+  "air": [
+    {
+      "frame": 9,
+      "realTime": 0.15,
+      "visibleWhiteBefore": 859,
+      "visibleWhiteAfter": 1309,
+      "addedVisibleBlue": 254.61494809688583,
+      "addedVisibleRed": 374.2152402921953
+    },
+    {
+      "frame": 10,
+      "realTime": 0.16666666666666666,
+      "visibleWhiteBefore": 910,
+      "visibleWhiteAfter": 1305,
+      "addedVisibleBlue": 261.1349327181853,
+      "addedVisibleRed": 395.75169550173007
+    },
+    {
+      "frame": 23,
+      "realTime": 0.38333333333333336,
+      "visibleWhiteBefore": 1546,
+      "visibleWhiteAfter": 1923,
+      "addedVisibleBlue": 116.3926182237601,
+      "addedVisibleRed": 257.60267589388695
+    },
+    {
+      "frame": 27,
+      "realTime": 0.45,
+      "visibleWhiteBefore": 3886,
+      "visibleWhiteAfter": 4244,
+      "addedVisibleBlue": 169.37520953479435,
+      "addedVisibleRed": 231.6161937716263
+    },
+    {
+      "frame": 31,
+      "realTime": 0.5166666666666667,
+      "visibleWhiteBefore": 2504,
+      "visibleWhiteAfter": 2517,
+      "addedVisibleBlue": 12.686197616301406,
+      "addedVisibleRed": 10.121630142252982
+    }
+  ],
+  "floor": [
+    {
+      "frame": 9,
+      "realTime": 0.15,
+      "visibleWhiteBefore": 0,
+      "visibleWhiteAfter": 0,
+      "addedVisibleBlue": 69.37910034602076,
+      "addedVisibleRed": 3.5096193771626294
+    },
+    {
+      "frame": 10,
+      "realTime": 0.16666666666666666,
+      "visibleWhiteBefore": 0,
+      "visibleWhiteAfter": 0,
+      "addedVisibleBlue": 71.63398692810458,
+      "addedVisibleRed": 3.3172933487120337
+    },
+    {
+      "frame": 23,
+      "realTime": 0.38333333333333336,
+      "visibleWhiteBefore": 0,
+      "visibleWhiteAfter": 0,
+      "addedVisibleBlue": 36.068081507112645,
+      "addedVisibleRed": 1.0651749327181852
+    },
+    {
+      "frame": 27,
+      "realTime": 0.45,
+      "visibleWhiteBefore": 0,
+      "visibleWhiteAfter": 0,
+      "addedVisibleBlue": 6.950265282583621,
+      "addedVisibleRed": 0.5605997693194925
+    },
+    {
+      "frame": 31,
+      "realTime": 0.5166666666666667,
+      "visibleWhiteBefore": 0,
+      "visibleWhiteAfter": 0,
+      "addedVisibleBlue": 0.025159554017685812,
+      "addedVisibleRed": -0.12338331410995776
+    }
+  ]
+}

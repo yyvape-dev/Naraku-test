@@ -21,7 +21,8 @@ void fragment(){
  if(light_pass){
   float hot=smoothstep(.55,.95,max(tex.r,max(tex.g,tex.b)));
   float stream=smoothstep(.58,.78,texture(noise_tex,vec2(UV.x*5.+clock*.3,UV.y*2.-clock*.8)).r);
-  COLOR=vec4(tex.rgb*8.0,a*hot*(.12+.04*stream));
+  float pulse=exp(-pow((clock-.32)/.10,2.))+.65*exp(-pow((clock-.78)/.14,2.));
+  COLOR=vec4(tex.rgb*8.0,a*hot*(.12+.04*stream)*(1.+.16*pulse));
  }else{
   // Preserve blue, violet and the nearly black material of the supplied art.
   COLOR=vec4(tex.rgb,a);

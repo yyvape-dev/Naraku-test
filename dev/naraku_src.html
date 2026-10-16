@@ -1509,8 +1509,8 @@ function drawQuake(g,s){
   g.drawImage(im,(frame%QUAKE_VFX.cols)*tile,Math.floor(frame/QUAKE_VFX.cols)*tile,tile,tile,s.x-s.w*.5,s.y-s.w*.5625,s.w,s.w);
   g.restore();
 }
-// Shadow bind candidate: 0.16s pre-hit charge, immutable shared atlases, no gameplay RNG.
-const SHADOW_VFX={enabled:new URLSearchParams(location.search).get('shadowfx')==='godot',frames:54,cols:9,fps:30,life:1.8,layerFlags:{floor:true,air:true}};
+// Shadow bind candidate: 2x visual playback; the gameplay hit stays at 0.16s.
+const SHADOW_VFX={enabled:new URLSearchParams(location.search).get('shadowfx')==='godot',frames:54,cols:9,fps:60,life:.9,layerFlags:{floor:true,air:true}};
 function shadowReady(){return !!(vtex('shadow_floor')&&vtex('shadow_air'))}
 function fxShadow(x,y,r,t=0){
   if(!SHADOW_VFX.enabled||!shadowReady())return false;
