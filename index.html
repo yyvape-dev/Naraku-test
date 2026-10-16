@@ -1371,7 +1371,7 @@ const UI=/*__UI_START__*/{"battle_back_skill":"dev/assets/ui_battle_back_skill.w
 const EVENT_ART=/*__EVENTS_START__*/{"altar":"dev/assets/event_altar.webp?v=6d39085f","bones":"dev/assets/event_bones.webp?v=e9d55e77","camp":"dev/assets/event_camp.webp?v=07cd7fd4","chest":"dev/assets/event_chest.webp?v=04403d90","chest_open":"dev/assets/event_chest_open.webp?v=a8b14fd0","collapse":"dev/assets/event_collapse.webp?v=1763218f","spring":"dev/assets/event_spring.webp?v=915c08ac","wounded":"dev/assets/event_wounded.webp?v=48325713"}/*__EVENTS_END__*/;
 /* 攻撃とスキルのVFX（assets/vfx_<名前>.webp）。黒背景の光もの＝加算合成で重ねる（黒は消える）。氷と地割れだけ透過の絵を普通に重ねる。
    動きはコードで付ける（拡大・回転・薄れ）。見た目だけで、戦闘の結果には一切関わらない。素材が無ければ従来のコード描画のまま */
-const VFX=/*__VFX_START__*/{"blackhole_air":"dev/assets/vfx_blackhole_air.webp?v=b66b87e8","blackhole_air_mid":"dev/assets/vfx_blackhole_air_mid.webp?v=df96f6c0","blackhole_floor":"dev/assets/vfx_blackhole_floor.webp?v=497a6dbe","blackhole_floor_mid":"dev/assets/vfx_blackhole_floor_mid.webp?v=9430ada1","blue_aura":"dev/assets/vfx_blue_aura.webp?v=011a521c","blue_bolt":"dev/assets/vfx_blue_bolt.webp?v=8f0dba2f","blue_hit":"dev/assets/vfx_blue_hit.webp?v=a826ad75","blue_moon":"dev/assets/vfx_blue_moon.webp?v=b8446a51","blue_orb":"dev/assets/vfx_blue_orb.webp?v=5e1f8b40","blue_slash":"dev/assets/vfx_blue_slash.webp?v=ecccd4ef","blue_spark":"dev/assets/vfx_blue_spark.webp?v=2c30e2df","burst":"dev/assets/vfx_burst.webp?v=f279f5b8","circle":"dev/assets/vfx_circle.webp?v=b156fe3d","crack":"dev/assets/vfx_crack.webp?v=0f53f5eb","firebolt":"dev/assets/vfx_firebolt.webp?v=5245cbfd","fox_arc":"dev/assets/vfx_fox_arc.webp?v=4165e186","fox_back":"dev/assets/vfx_fox_back.webp?v=539bd1a9","fox_burst":"dev/assets/vfx_fox_burst.webp?v=9ea05b7a","fox_flash":"dev/assets/vfx_fox_flash.webp?v=f9e346ad","fox_head":"dev/assets/vfx_fox_head.webp?v=8e39c14d","fox_tail":"dev/assets/vfx_fox_tail.webp?v=9c5f47fc","ice":"dev/assets/vfx_ice.webp?v=2f0a04fd","lana_hit":"dev/assets/vfx_lana_hit.webp?v=5467bbe4","lana_slash":"dev/assets/vfx_lana_slash.webp?v=5624f9d4","lana_smoke":"dev/assets/vfx_lana_smoke.webp?v=97f29912","lana_trail":"dev/assets/vfx_lana_trail.webp?v=241e2de4","mage_beam":"dev/assets/vfx_mage_beam.webp?v=0f9bedb2","mage_circle":"dev/assets/vfx_mage_circle.webp?v=6215ba58","mage_flash":"dev/assets/vfx_mage_flash.webp?v=35831816","mage_glow":"dev/assets/vfx_mage_glow.webp?v=54d97e42","mage_hit":"dev/assets/vfx_mage_hit.webp?v=e331f492","mage_mist":"dev/assets/vfx_mage_mist.webp?v=224f0aa7","mage_orb":"dev/assets/vfx_mage_orb.webp?v=0281d592","mage_shard0":"dev/assets/vfx_mage_shard0.webp?v=3da38f9c","mage_shard1":"dev/assets/vfx_mage_shard1.webp?v=82bea537","mage_shard2":"dev/assets/vfx_mage_shard2.webp?v=69b8a83a","mage_shard3":"dev/assets/vfx_mage_shard3.webp?v=d9205ffb","ninja_fb":"dev/assets/vfx_ninja_fb.webp?v=5c219f17","orb":"dev/assets/vfx_orb.webp?v=db5148e7","pillar":"dev/assets/vfx_pillar.webp?v=5403cc12","quakeC_air":"dev/assets/vfx_quakeC_air.webp?v=84afea3c","quakeC_floor":"dev/assets/vfx_quakeC_floor.webp?v=ccf277ee","quake_air":"dev/assets/vfx_quake_air.webp?v=33390ad3","quake_floor":"dev/assets/vfx_quake_floor.webp?v=b168015b","rift_air":"dev/assets/vfx_rift_air.webp?v=8e24bee8","rift_floor":"dev/assets/vfx_rift_floor.webp?v=362f5dcb","samurai_fb":"dev/assets/vfx_samurai_fb.webp?v=2d856bd2","shadow_air":"dev/assets/vfx_shadow_air.webp?v=f5061c8b","shadow_floor":"dev/assets/vfx_shadow_floor.webp?v=baa4d60c","sister_bolt":"dev/assets/vfx_sister_bolt.webp?v=403c67c7","sister_feather_a":"dev/assets/vfx_sister_feather_a.webp?v=074d7374","sister_feather_b":"dev/assets/vfx_sister_feather_b.webp?v=2e3b1e83","sister_orb":"dev/assets/vfx_sister_orb.webp?v=6db0bd1c","sister_pillar":"dev/assets/vfx_sister_pillar.webp?v=2fc5ef8e","sister_rays":"dev/assets/vfx_sister_rays.webp?v=3e28bacc","sister_thread":"dev/assets/vfx_sister_thread.webp?v=51071aeb","sister_wind":"dev/assets/vfx_sister_wind.webp?v=3e1cb802","slash_a":"dev/assets/vfx_slash_a.webp?v=a1af4a22","slash_b":"dev/assets/vfx_slash_b.webp?v=c813bd10","spark":"dev/assets/vfx_spark.webp?v=67110c92"}/*__VFX_END__*/;
+const VFX=/*__VFX_START__*/{"blackhole_air":"dev/assets/vfx_blackhole_air.webp?v=b66b87e8","blackhole_air_mid":"dev/assets/vfx_blackhole_air_mid.webp?v=df96f6c0","blackhole_floor":"dev/assets/vfx_blackhole_floor.webp?v=497a6dbe","blackhole_floor_mid":"dev/assets/vfx_blackhole_floor_mid.webp?v=9430ada1","blue_aura":"dev/assets/vfx_blue_aura.webp?v=011a521c","blue_bolt":"dev/assets/vfx_blue_bolt.webp?v=8f0dba2f","blue_hit":"dev/assets/vfx_blue_hit.webp?v=a826ad75","blue_moon":"dev/assets/vfx_blue_moon.webp?v=b8446a51","blue_orb":"dev/assets/vfx_blue_orb.webp?v=5e1f8b40","blue_slash":"dev/assets/vfx_blue_slash.webp?v=ecccd4ef","blue_spark":"dev/assets/vfx_blue_spark.webp?v=2c30e2df","burst":"dev/assets/vfx_burst.webp?v=f279f5b8","circle":"dev/assets/vfx_circle.webp?v=b156fe3d","crack":"dev/assets/vfx_crack.webp?v=0f53f5eb","firebolt":"dev/assets/vfx_firebolt.webp?v=5245cbfd","fox_arc":"dev/assets/vfx_fox_arc.webp?v=4165e186","fox_back":"dev/assets/vfx_fox_back.webp?v=539bd1a9","fox_burst":"dev/assets/vfx_fox_burst.webp?v=9ea05b7a","fox_flash":"dev/assets/vfx_fox_flash.webp?v=f9e346ad","fox_head":"dev/assets/vfx_fox_head.webp?v=8e39c14d","fox_tail":"dev/assets/vfx_fox_tail.webp?v=9c5f47fc","ice":"dev/assets/vfx_ice.webp?v=2f0a04fd","lana_hit":"dev/assets/vfx_lana_hit.webp?v=5467bbe4","lana_slash":"dev/assets/vfx_lana_slash.webp?v=5624f9d4","lana_smoke":"dev/assets/vfx_lana_smoke.webp?v=97f29912","lana_trail":"dev/assets/vfx_lana_trail.webp?v=241e2de4","mage_beam":"dev/assets/vfx_mage_beam.webp?v=0f9bedb2","mage_circle":"dev/assets/vfx_mage_circle.webp?v=6215ba58","mage_flash":"dev/assets/vfx_mage_flash.webp?v=35831816","mage_glow":"dev/assets/vfx_mage_glow.webp?v=54d97e42","mage_hit":"dev/assets/vfx_mage_hit.webp?v=e331f492","mage_mist":"dev/assets/vfx_mage_mist.webp?v=224f0aa7","mage_orb":"dev/assets/vfx_mage_orb.webp?v=0281d592","mage_shard0":"dev/assets/vfx_mage_shard0.webp?v=3da38f9c","mage_shard1":"dev/assets/vfx_mage_shard1.webp?v=82bea537","mage_shard2":"dev/assets/vfx_mage_shard2.webp?v=69b8a83a","mage_shard3":"dev/assets/vfx_mage_shard3.webp?v=d9205ffb","ninja_fb":"dev/assets/vfx_ninja_fb.webp?v=5c219f17","orb":"dev/assets/vfx_orb.webp?v=db5148e7","pillar":"dev/assets/vfx_pillar.webp?v=5403cc12","quakeC_air":"dev/assets/vfx_quakeC_air.webp?v=84afea3c","quakeC_floor":"dev/assets/vfx_quakeC_floor.webp?v=ccf277ee","quake_air":"dev/assets/vfx_quake_air.webp?v=33390ad3","quake_floor":"dev/assets/vfx_quake_floor.webp?v=b168015b","rift_air":"dev/assets/vfx_rift_air.webp?v=8e24bee8","rift_em":"dev/assets/vfx_rift_em.webp?v=63dbdb54","rift_fb":"dev/assets/vfx_rift_fb.webp?v=ffa8f145","rift_floor":"dev/assets/vfx_rift_floor.webp?v=362f5dcb","rift_slash":"dev/assets/vfx_rift_slash.webp?v=804a47e1","samurai_fb":"dev/assets/vfx_samurai_fb.webp?v=2d856bd2","shadow_air":"dev/assets/vfx_shadow_air.webp?v=f5061c8b","shadow_floor":"dev/assets/vfx_shadow_floor.webp?v=baa4d60c","sister_bolt":"dev/assets/vfx_sister_bolt.webp?v=403c67c7","sister_feather_a":"dev/assets/vfx_sister_feather_a.webp?v=074d7374","sister_feather_b":"dev/assets/vfx_sister_feather_b.webp?v=2e3b1e83","sister_orb":"dev/assets/vfx_sister_orb.webp?v=6db0bd1c","sister_pillar":"dev/assets/vfx_sister_pillar.webp?v=2fc5ef8e","sister_rays":"dev/assets/vfx_sister_rays.webp?v=3e28bacc","sister_thread":"dev/assets/vfx_sister_thread.webp?v=51071aeb","sister_wind":"dev/assets/vfx_sister_wind.webp?v=3e1cb802","slash_a":"dev/assets/vfx_slash_a.webp?v=a1af4a22","slash_b":"dev/assets/vfx_slash_b.webp?v=c813bd10","spark":"dev/assets/vfx_spark.webp?v=67110c92"}/*__VFX_END__*/;
 /* 防衛線の結界（assets/bf_<名前>.webp）。debris_l / debris_r＝防衛線の上に建つ左右の残骸の山（透過。明るさは68%に落とし、炎だけ元の明るさ）、
    line＝結界線、rose＝床の魔法陣（薔薇窓の下半分）。line と rose は黒地＝加算合成で重ねる。
    光（線の脈打ち・にじみ・流れる光・床の光の波・炎のゆらぎ・火の粉）はコードで付ける。見た目だけ（Math.random のみ）で、戦闘の結果には関わらない。
@@ -1637,6 +1637,46 @@ function drawRift(g,s){
   const frame=Math.min(92,s.t<3?Math.floor(s.t*25):75+Math.floor((s.t-3)*15)),tile=im.width/8;
   g.save();g.globalAlpha=1;g.globalCompositeOperation='source-over';
   g.drawImage(im,(frame%8)*tile,Math.floor(frame/8)*tile,tile,tile,s.x-s.w*.5,-12,s.w,s.h);g.restore();
+}
+/* 乾坤一擲・原画版（2026-10-17。ユーザー原画16枚から6枚を採用、tools/dev/riftfb.py で焼く。原画は vfx/src_rift）。
+   assets/vfx_rift_fb.webp＝縦長 192×576 のマス×10（5列）：0〜1 地面から伸びる隆起→2〜5 列いっぱいの最大→6〜8 収まる→9 残る裂け目。
+   assets/vfx_rift_em.webp＝赤く光る所だけ（黒地・半分の大きさ。加算で脈打たせる）。assets/vfx_rift_slash.webp＝最初の一閃。マスの下端＝防衛線、上端＝戦場の上端。
+   時間（秒、着弾から）：0〜0.34 一閃が防衛線から上へ伸びる（加算）／0.03〜0.63 隆起→最大→収まる（敵の上・味方の下）／
+   0.45〜 裂け目が床に残り熱が脈打つ（敵の下）→2.6〜3.2 薄れる（ダメージの割れ目3秒と同じ長さ）。
+   既定で入。?riftfx=legacy で旧いコード描画、?riftfx=godot はCodex版（Godot）。見た目だけ（命中・ダメージ・範囲は不変） */
+const RIFTK={frames:10,cols:5,cw:192,ch:576,life:3.2,on:!/^(godot|legacy)$/.test(new URLSearchParams(location.search).get('riftfx')||'')};
+const riftKOn=()=>RIFTK.on&&!!vtex('rift_fb')&&!!vtex('rift_slash');
+function fxRiftK(x,hw){
+  if(!riftKOn())return false;
+  FX.sh.push({k:'riftk',x,t:0,life:RIFTK.life});
+  const y1=B.lineY,K=VFXK.sword;
+  for(let i=0;i<7;i++){const yy=y1*(0.12+i*0.13); // 割れ目に沿って、黒い欠片と赤い火の筋が外へ飛ぶ
+    dustBurst('shard',x,yy,3,{ang:-Math.PI/2,spread:2.6,v0:60,v1:170,jit:hw*0.8,l0:0.4,l1:0.35,spin:18,p:{grav:320,drag:1.3,w:1.8+Math.random()*2,c0:K.shard,c1:K.streak[0]}});
+    dustBurst('streak',x,yy,3,{ang:-Math.PI/2,spread:2.2,v0:150,v1:320,jit:hw*0.6,l0:0.12,l1:0.14,p:{drag:4,w:1.4,len:10,c0:K.streak[0],c1:K.streak[1]}})}
+  FX.shake=Math.min(16,FX.shake+12);return true;
+}
+function drawRiftK(g,s,ly){
+  const im=vtex('rift_fb');if(!im||s.t<0)return;
+  const y1=B.lineY+6,h=y1+14,w=h*RIFTK.cw/RIFTK.ch,x0=s.x-w/2,y0=y1-h,t=s.t;
+  const cell=(f,a,add)=>{const sx=(f%RIFTK.cols)*RIFTK.cw,sy=Math.floor(f/RIFTK.cols)*RIFTK.ch;
+    g.globalCompositeOperation='source-over';g.globalAlpha=a;g.drawImage(im,sx,sy,RIFTK.cw,RIFTK.ch,x0,y0,w,h);
+    const em=vtex('rift_em');if(add>0&&em){g.globalCompositeOperation='lighter';g.globalAlpha=Math.min(1,a*add);g.drawImage(em,sx/2,sy/2,RIFTK.cw/2,RIFTK.ch/2,x0,y0,w,h)}};
+  g.save();
+  if(ly==='floor'){ // 残る裂け目：0.45秒から現れ、熱が脈打ち、2.6秒から薄れる
+    const a=clamp((t-0.45)/0.2,0,1)*(t>2.6?Math.max(0,1-(t-2.6)/0.6):1);
+    if(a>0.01)cell(RIFTK.frames-1,a,0.55+0.45*Math.sin(VFXT*5.5+s.x)*(1-clamp((t-2)/1,0,1)));
+  }else{
+    const sl=vtex('rift_slash');
+    if(sl&&t<0.34){ // 一閃：防衛線から上へ0.09秒で伸び、0.2秒から消える
+      const r=Math.min(1,t/0.09),a=t<0.2?1:1-(t-0.2)/0.14,sw=w*0.62;
+      const hh=h*(0.25+0.75*(1-Math.pow(1-r,2)));
+      g.globalCompositeOperation='lighter';g.globalAlpha=a;g.drawImage(sl,s.x-sw/2,y1-hh,sw,hh);
+      g.globalCompositeOperation='source-over';g.globalAlpha=a*0.5;g.drawImage(sl,s.x-sw/2,y1-hh,sw,hh)}
+    const u=(t-0.03)/0.6;
+    if(u>=0&&t<0.8){const fr=Math.min(RIFTK.frames-2,Math.floor(u*(RIFTK.frames-1)));
+      cell(fr,t<0.6?1:Math.max(0,1-(t-0.6)/0.2),fr>=2&&fr<=5?1:0.7)}
+  }
+  g.restore();
 }
 const dv=(v,d)=>v==null?d:v;
 // 弾のように数が多く小さい絵は、表示の大きさ（3倍の解像度）に縮めた写しを使う（スマホの負荷を下げる）
@@ -3143,7 +3183,7 @@ function impact(c,x,y,k,shadow=false){
   if(c.ult==='fox'&&ultSeqOn('fox')){FX.shake=Math.min(16,FX.shake+3);return} // 百鬼狐火の連番：絵は連番に任せ、着弾の爆発は描かない（揺れだけ） // 斬月三日月の連番：絵は連番に任せ、横一列の光の帯は描かない（揺れだけ）
   if(c.id==='fox_bind'&&!c.ult&&(shadow||fxShadow(x,y,r,.16)))return;
   if(c.id==='sw_quake'&&!c.ult&&fxQuake(x,y,r))return;
-  if(c.id==='sw_rift'&&!c.ult&&fxRift(x,hw))return;
+  if(c.id==='sw_rift'&&!c.ult&&(fxRift(x,hw)||fxRiftK(x,hw)))return;
   if(c.fx==='full')fxFull(c.pal);else if(c.shape==='row')fxRow(y,hh,c.pal);else if(c.shape==='col')(c.ult==='sword'?ultLanaCol:fxCol)(x,hw,c.pal);else fxExplosion(x,y,r,c.pal);
   if(c.fx==='full')return;
   if(c.freeze){const hits=[];for(const e of B.enemies)if(!e.dead&&e.frzT>0&&Math.hypot(e.x-x,e.y-16-y)<=r+e.d.r*e.sc)hits.push(e);fxSkillTex(c,x,y,r,hh,hits)}
@@ -3569,12 +3609,13 @@ function updZones(dt){
     if(z.tick<=0){z.tick+=0.5;
       for(const e of B.enemies){if(e.dead||e.y>B.lineY+8||Math.abs(e.x-z.x)>z.hw+e.d.r*e.sc)continue;
         e.slowT=Math.max(e.slowT,0.6);hurt(e,z.dps*0.5,z.c.pal[1],false,true,z.c.owner,'skill')}
-      if(!(z.c.ult==='sword'&&ultSeqOn('sword'))&&!(z.c.id==='sw_rift'&&!z.c.ult&&RIFT_VFX.enabled&&vtex('rift_floor')&&vtex('rift_air')))for(let k=0;k<6;k++)addPart({x:z.x+(Math.random()-0.5)*z.hw*1.4,y:Math.random()*B.lineY,vx:0,vy:-40-Math.random()*60,t:0,life:0.5+Math.random()*0.4,size:2+Math.random()*2,col:z.c.pal[1],drag:0.5,grav:0})}
+      if(z.c.id==='sw_rift'&&!z.c.ult&&!RIFT_VFX.enabled&&riftKOn()){const K=VFXK.sword;for(let k=0;k<3;k++)dustBurst('streak',z.x+(Math.random()-0.5)*z.hw*1.2,B.lineY*(0.1+Math.random()*0.85),1,{ang:-Math.PI/2,spread:0.5,v0:40,v1:110,l0:0.3,l1:0.4,p:{drag:1,w:1.2,len:6,c0:K.streak[0],c1:K.streak[1]}})}
+      else if(!(z.c.ult==='sword'&&ultSeqOn('sword'))&&!(z.c.id==='sw_rift'&&!z.c.ult&&RIFT_VFX.enabled&&vtex('rift_floor')&&vtex('rift_air')))for(let k=0;k<6;k++)addPart({x:z.x+(Math.random()-0.5)*z.hw*1.4,y:Math.random()*B.lineY,vx:0,vy:-40-Math.random()*60,t:0,life:0.5+Math.random()*0.4,size:2+Math.random()*2,col:z.c.pal[1],drag:0.5,grav:0})}
     if(z.t<=0)B.zones.splice(i,1);
   }
 }
 function drawZone(g,z,T){
-  if(z.c.id==='sw_rift'&&!z.c.ult&&RIFT_VFX.enabled&&vtex('rift_floor')&&vtex('rift_air'))return;
+  if(z.c.id==='sw_rift'&&!z.c.ult&&(RIFT_VFX.enabled&&vtex('rift_floor')&&vtex('rift_air')||riftKOn()))return;
   if(z.c.ult==='sword'&&ultSeqOn('sword'))return; // 天地開闢の連番のときは、地割れの帯（ダメージの場所）をコードでは描かない
   const a=Math.min(1,z.t/0.4,(z.life-z.t)/0.12+0.3),y1=B.lineY;
   g.save();g.globalAlpha=a*0.32;
@@ -3839,7 +3880,7 @@ function render(T){
   g.save();
   if(FX.shake>0.3)g.translate((Math.random()-0.5)*FX.shake,(Math.random()-0.5)*FX.shake);
   jcZoom(g);shinZoom(g);
-  for(const s of FX.sh)if(s.k==='blackhole'&&s.layer==='floor')drawBlackhole(g,s);else if(s.k==='shadow'&&s.layer==='floor')drawShadow(g,s);else if(s.k==='rift'&&s.layer==='floor')drawRift(g,s);else if(s.k==='quake'&&s.layer==='floor')drawQuake(g,s);else if(s.k==='decal'){g.globalAlpha=(1-s.t/s.life)*0.5;g.fillStyle=s.col;g.beginPath();g.ellipse(s.x,s.y,s.r*0.9,s.r*(s.flat||0.6),0,0,TAU);g.fill()}else if(s.k==='tex'&&s.ly==='floor')drawTex(g,s);
+  for(const s of FX.sh)if(s.k==='blackhole'&&s.layer==='floor')drawBlackhole(g,s);else if(s.k==='shadow'&&s.layer==='floor')drawShadow(g,s);else if(s.k==='rift'&&s.layer==='floor')drawRift(g,s);else if(s.k==='riftk')drawRiftK(g,s,'floor');else if(s.k==='quake'&&s.layer==='floor')drawQuake(g,s);else if(s.k==='decal'){g.globalAlpha=(1-s.t/s.life)*0.5;g.fillStyle=s.col;g.beginPath();g.ellipse(s.x,s.y,s.r*0.9,s.r*(s.flat||0.6),0,0,TAU);g.fill()}else if(s.k==='tex'&&s.ly==='floor')drawTex(g,s);
   for(const z of B.zones)drawZone(g,z,T);
   g.globalAlpha=1;
   const list=B.enemies.slice().sort((a,b)=>a.y-b.y);
@@ -3849,7 +3890,7 @@ function render(T){
     g.save();g.globalAlpha=1-u;g.translate(o.x,o.y+u*10);blit(g,set,f,o.h);g.globalCompositeOperation='lighter';g.globalAlpha=(1-u)*0.45;blit(g,set,f,o.h);g.restore();
   }
   jcDrawPops(g);
-  for(const s of FX.sh)if(s.k==='tex'&&s.ly==='top')drawTex(g,s);
+  for(const s of FX.sh)if(s.k==='tex'&&s.ly==='top')drawTex(g,s);else if(s.k==='riftk')drawRiftK(g,s,'top');
   for(const s of FX.sh)if(s.k==='blackhole'&&s.layer==='air')drawBlackhole(g,s);else if(s.k==='shadow'&&s.layer==='air')drawShadow(g,s);
   ULTLIT=null;for(const id in ULT_SEQ)if(FX[ULT_SEQ[id].fx])drawUltSeq(g,id); // 超必殺の連番（味方の後ろに1枚。味方は光の色を受ける）
   for(const a of B.allies)drawAlly(g,a,T);
