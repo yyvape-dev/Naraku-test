@@ -1,0 +1,15 @@
+{
+  "screens": {
+    "375x667": {
+      "medianMs": 16.699999999254942,
+      "p95Ms": 17.900000002235174
+    },
+    "393x852": {
+      "medianMs": 16.600000001490116,
+      "p95Ms": 17.699999999254942
+    }
+  },
+  "controls": true,
+  "errors": [],
+  "note": "Headless desktop Chromium, not physical-phone performance"
+}

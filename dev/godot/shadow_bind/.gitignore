@@ -1,0 +1,5 @@
+.godot/
+frames/
+*.tmp
+
+*.import

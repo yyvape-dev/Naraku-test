@@ -27,3 +27,9 @@
 ## GitHub反映
 
 ユーザーの「いや、GitHubにだよ」により公開push承認済み。戦略カード操作・反転演出・20秒装填を本追記と同一コミットでNaraku-test/mainへ反映。上記の未承認・未実施の記述は作業途中の履歴。
+
+## 2026-10-16 影しばり（影縫い）リベンジ試作
+
+ユーザー添付blue_purple_vfx_keyframes_transparent_png.zipの青紫5枚で制作。原画はdev/godot/shadow_bind/artに無変更保存。Godot 4.6.3のUV移流・ねじれ・ノイズ消失、限定したGlow、GPU粒子32個、床/空中2層。1.8秒・54コマ。通常/最大範囲・3シードの戦闘一致と命中0.16秒・鈍足4.5秒・装填8秒・追撃・フォールバック・片付けを検証済み。
+
+確認入口はdev/mock/shadow_bind_demo.html（スロー・停止・時点・最大拡大・レイヤ）、ゲームは?shadowfx=godot。通常採用は未決定、無指定は従来。比較用の候補としてGitHubへ反映する。レポートdev/reports/shadow-bind/REPORT.md。最大で粗さ・遮蔽が出たため1024px実描画/空中512pxと拡大時の透明度を調整。復号約61.6MiB追加、実機Safari未確認。VFX Crafter調査は未実施のまま、ユーザー指示で本試作を先行。

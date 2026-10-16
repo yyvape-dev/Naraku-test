@@ -1,0 +1,28 @@
+{
+  "frames": 54,
+  "fps": 30,
+  "life": 1.8,
+  "cols": 9,
+  "rows": 6,
+  "anchor": [
+    0.5,
+    0.712890625
+  ],
+  "widthPerRadius": 3.4,
+  "sourceSize": [
+    1254,
+    1254
+  ],
+  "floor": {
+    "tile": 192,
+    "bytes": 195688,
+    "decodedBytes": 7962624,
+    "maxEdgeAlpha": 0
+  },
+  "air": {
+    "tile": 512,
+    "bytes": 3904358,
+    "decodedBytes": 56623104,
+    "maxEdgeAlpha": 0
+  }
+}

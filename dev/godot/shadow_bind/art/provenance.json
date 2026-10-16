@@ -1,0 +1,11 @@
+{
+  "source": "User attachment: blue_purple_vfx_keyframes_transparent_png.zip",
+  "unchangedOriginals": true,
+  "sha256": {
+    "01_start.png": "6af0d41e2da18cb4e56fbb106dadb567b299e88c6af63dd82a6eb57a686c3c35",
+    "05_dissipate.png": "38b33865e625024feb5c66bd84a366a35b326b60a5650cfd4d9185ca8d0ab975",
+    "02_build.png": "df4a56cf8e88dbb643877ba12c109a14a90e9e8640ae616e7d234e847723421b",
+    "03_converge.png": "8ebeccd2129f15e7ad2cb66f7c806005b4b9752a6b95fc9b7ecc28c1c3cb37c5",
+    "04_peak.png": "19d99caf8892ff271fa42141cc88db35d4ce4f4127da495e48c2b05874ee4785"
+  }
+}

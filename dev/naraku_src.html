@@ -1509,6 +1509,20 @@ function drawQuake(g,s){
   g.drawImage(im,(frame%QUAKE_VFX.cols)*tile,Math.floor(frame/QUAKE_VFX.cols)*tile,tile,tile,s.x-s.w*.5,s.y-s.w*.5625,s.w,s.w);
   g.restore();
 }
+// Shadow bind candidate: 0.16s pre-hit charge, immutable shared atlases, no gameplay RNG.
+const SHADOW_VFX={enabled:new URLSearchParams(location.search).get('shadowfx')==='godot',frames:54,cols:9,fps:30,life:1.8,layerFlags:{floor:true,air:true}};
+function shadowReady(){return !!(vtex('shadow_floor')&&vtex('shadow_air'))}
+function fxShadow(x,y,r,t=0){
+  if(!SHADOW_VFX.enabled||!shadowReady())return false;
+  for(const layer of ['floor','air'])FX.sh.push({k:'shadow',layer,x,y,w:r*3.4,t,life:SHADOW_VFX.life});
+  return true;
+}
+function drawShadow(g,s){
+  const im=vtex('shadow_'+s.layer);if(!im||!SHADOW_VFX.layerFlags[s.layer]||s.t<0||s.t>=s.life)return;
+  const frame=Math.min(SHADOW_VFX.frames-1,Math.floor(s.t*SHADOW_VFX.fps)),tile=im.width/SHADOW_VFX.cols;
+  g.save();g.globalAlpha=s.layer==='air'?clamp(440/s.w,.65,1):1;g.globalCompositeOperation='source-over';
+  g.drawImage(im,frame%SHADOW_VFX.cols*tile,Math.floor(frame/SHADOW_VFX.cols)*tile,tile,tile,s.x-s.w*.5,s.y-s.w*365/512,s.w,s.w);g.restore();
+}
 const RIFT_VFX={enabled:new URLSearchParams(location.search).get('riftfx')==='godot',frames:93,cols:8,life:4.2,layerFlags:{floor:true,air:true}};
 function fxRift(x,hw){
   if(!RIFT_VFX.enabled||!vtex('rift_floor')||!vtex('rift_air'))return false;
@@ -2846,8 +2860,9 @@ function useCard(si,x,y){
   if(c.kind==='target'){
     x=clamp(x,0,W);y=clamp(y,0,H);
     const ox=a.x,oy=B.lineY-40,L=Math.hypot(x-ox,y-oy)||1;
-    FX.sh.push({k:'beam',x:ox,y:oy,dx:(x-ox)/L,dy:(y-oy)/L,len:L,t:0,life:0.2,col:c.pal[1],w:5});
-    B.impacts.push({t:0.16,c,x,y,k:1});
+    const shadow=c.id==='fox_bind'&&fxShadow(x,y,c.r*B.M.skR);
+    if(!shadow)FX.sh.push({k:'beam',x:ox,y:oy,dx:(x-ox)/L,dy:(y-oy)/L,len:L,t:0,life:0.2,col:c.pal[1],w:5});
+    B.impacts.push({t:0.16,c,x,y,k:1,shadow});
     for(let j=1;j<=B.M.echo;j++)B.impacts.push({t:0.16+0.38*j,c,x,y,k:0.6}); // 二重詠唱
   }else castInstant(c,a);
   s.card=null;s.refill=s.max=c.reload*B.M.skReload*(1-a.g.reload/100);B.queue.push(c);B.sel=null;aim.on=false;
@@ -2973,7 +2988,7 @@ function fxFull(pal){
   for(let i=0;i<220;i++)addPart({x:Math.random()*W,y:Math.random()*B.lineY,vx:(Math.random()-0.5)*80,vy:-40-Math.random()*120,t:0,life:0.5+Math.random()*0.9,size:2+Math.random()*3,col:pal[i%3],drag:0.8,grav:0});
   FX.shake=Math.min(16,FX.shake+10);
 }
-function impact(c,x,y,k){
+function impact(c,x,y,k,shadow=false){
   const ow=B.allies.find(o=>o.d.id===c.owner),r=(c.r||0)*B.M.skR,hh=(c.hh||0)*B.M.skR,hw=(c.hw||0)*B.M.skR,dmg=c.dmg*B.M.skDmg*k*(ow?ow.sk:1),k0=B.kills;
   for(const e of B.enemies){
     if(e.dead)continue;
@@ -2991,6 +3006,7 @@ function impact(c,x,y,k){
   if(c.zone)B.zones.push({x,hw,t:c.zone,life:c.zone,tick:0.5,dps:c.zdps*B.M.skDmg*k*(ow?ow.sk:1),c});
   if(c.ult==='blue'&&ultSeqOn('blue')){FX.shake=Math.min(16,FX.shake+7);return}
   if(c.ult==='fox'&&ultSeqOn('fox')){FX.shake=Math.min(16,FX.shake+3);return} // 百鬼狐火の連番：絵は連番に任せ、着弾の爆発は描かない（揺れだけ） // 斬月三日月の連番：絵は連番に任せ、横一列の光の帯は描かない（揺れだけ）
+  if(c.id==='fox_bind'&&!c.ult&&(shadow||fxShadow(x,y,r,.16)))return;
   if(c.id==='sw_quake'&&!c.ult&&fxQuake(x,y,r))return;
   if(c.id==='sw_rift'&&!c.ult&&fxRift(x,hw))return;
   if(c.fx==='full')fxFull(c.pal);else if(c.shape==='row')fxRow(y,hh,c.pal);else if(c.shape==='col')(c.ult==='sword'?ultLanaCol:fxCol)(x,hw,c.pal);else fxExplosion(x,y,r,c.pal);
@@ -3053,7 +3069,7 @@ function step(dt){
   if(B.M.judge){B.judgeT-=dt;if(B.judgeT<=0){B.judgeT=UPCFG.judgeEvery;judgment()}}
   updEnemies(dt);if(mode!=='battle')return;
   updShots(dt);if(mode!=='battle')return;
-  for(let i=B.impacts.length-1;i>=0;i--){const m=B.impacts[i];m.t-=dt;if(m.t<=0){B.impacts.splice(i,1);impact(m.c,m.x,m.y,m.k)}}
+  for(let i=B.impacts.length-1;i>=0;i--){const m=B.impacts[i];m.t-=dt;if(m.t<=0){B.impacts.splice(i,1);impact(m.c,m.x,m.y,m.k,m.shadow)}}
   updZones(dt);if(mode!=='battle')return;
   B.slots.forEach((s,i)=>{if(s.card)return;if(s.refill>0)s.refill=Math.max(0,s.refill-dt);if(s.refill<=0)s.card=i===STRATEGY_SLOT?drawStrategyCard():drawHandCard()});
   let w=0;for(const e of B.enemies)if(!e.dead)B.enemies[w++]=e;B.enemies.length=w;
@@ -3686,7 +3702,7 @@ function render(T){
   g.save();
   if(FX.shake>0.3)g.translate((Math.random()-0.5)*FX.shake,(Math.random()-0.5)*FX.shake);
   jcZoom(g);
-  for(const s of FX.sh)if(s.k==='rift'&&s.layer==='floor')drawRift(g,s);else if(s.k==='quake'&&s.layer==='floor')drawQuake(g,s);else if(s.k==='decal'){g.globalAlpha=(1-s.t/s.life)*0.5;g.fillStyle=s.col;g.beginPath();g.ellipse(s.x,s.y,s.r*0.9,s.r*(s.flat||0.6),0,0,TAU);g.fill()}else if(s.k==='tex'&&s.ly==='floor')drawTex(g,s);
+  for(const s of FX.sh)if(s.k==='shadow'&&s.layer==='floor')drawShadow(g,s);else if(s.k==='rift'&&s.layer==='floor')drawRift(g,s);else if(s.k==='quake'&&s.layer==='floor')drawQuake(g,s);else if(s.k==='decal'){g.globalAlpha=(1-s.t/s.life)*0.5;g.fillStyle=s.col;g.beginPath();g.ellipse(s.x,s.y,s.r*0.9,s.r*(s.flat||0.6),0,0,TAU);g.fill()}else if(s.k==='tex'&&s.ly==='floor')drawTex(g,s);
   for(const z of B.zones)drawZone(g,z,T);
   g.globalAlpha=1;
   const list=B.enemies.slice().sort((a,b)=>a.y-b.y);
@@ -3697,6 +3713,7 @@ function render(T){
   }
   jcDrawPops(g);
   for(const s of FX.sh)if(s.k==='tex'&&s.ly==='top')drawTex(g,s);
+  for(const s of FX.sh)if(s.k==='shadow'&&s.layer==='air')drawShadow(g,s);
   ULTLIT=null;for(const id in ULT_SEQ)if(FX[ULT_SEQ[id].fx])drawUltSeq(g,id); // 超必殺の連番（味方の後ろに1枚。味方は光の色を受ける）
   for(const a of B.allies)drawAlly(g,a,T);
   for(const s of FX.sh)if(s.k==='rift'&&s.layer==='air')drawRift(g,s);else if(s.k==='quake'&&s.layer==='air')drawQuake(g,s);else if(s.k==='lv')drawLV(g,s);else if(s.k==='sisw')drawSisWind(g,s);else if(s.k==='magc')drawMagCircle(g,s);else if(s.k==='magb')drawMagBeam(g,s);
@@ -5437,7 +5454,7 @@ window.NARAKU={
   go(id){if(!stepTo(id))return false;arrive();return mode},
   info:id=>nodeInfo(id),light:()=>lightState(),nodeXY:id=>{R.camY=null;const q=mapXY(R.map.nodes[id]);return{x:q.x/W,y:q.y/H}},choose:chooseNode,buy:buyItem,leave:leaveNode,next:afterVictory,giveUp,
   retreat(){if(mode!=='map'||R.walk)return false;endRun('return');return true},
-  vfx:{tick:updFX,ready:()=>!!(vtex('quake_floor')&&vtex('quake_air')),riftReady:()=>!!(vtex('rift_floor')&&vtex('rift_air'))},QUAKE_VFX,RIFT_VFX,useCard,startRewind,updRewind,dropSig,dropFor,get ULT(){return ULT},ULT_DEF,startUlt,SEQ,ULT_SEQ,
+  vfx:{tick:updFX,shadowReady,ready:()=>!!(vtex('quake_floor')&&vtex('quake_air')),riftReady:()=>!!(vtex('rift_floor')&&vtex('rift_air'))},QUAKE_VFX,RIFT_VFX,SHADOW_VFX,useCard,startRewind,updRewind,dropSig,dropFor,get ULT(){return ULT},ULT_DEF,startUlt,SEQ,ULT_SEQ,
   pick:chooseUp,
   grant(id){const u=UPS.find(x=>x.id===id);if(!u||!B)return false;applyUp(u);return true},
   // bot=スキルを撃つ自動操縦 / pick=強化を選ぶ関数（提示3枚と B を受け取り番号を返す。省略すると何も取らない）

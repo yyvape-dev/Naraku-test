@@ -716,3 +716,11 @@ rift_jagged.png追加。平たい岩盤の縁を減らし巨大な大小の尖�
 ## 2026-10-16 GitHub反映の承認
 
 ユーザーが「いや、GitHubにだよ」と明示し、上記戦略カード改修と20秒クールタイムのGitHub反映を承認。本追記を含むコミットをNaraku-test/mainへpushする。以前の「未承認・未実施」は作業途中の記録。GitHub Pagesの完了状態はデプロイ結果を別途確認する。
+
+## 2026-10-16 影縫い（影しばり）青紫のリベンジ候補
+
+ユーザー添付の透過PNG5枚をGodot 4.6.3で動かし、UV移流・ねじれ・ノイズ消失・明るい芯の限定Glow・補助GPU粒子で試作。dev/godot/shadow_bind/に原本/出典・GDScript・shader・bake.sh・pack.py。dev/assets/vfx_shadow_{floor,air}.webpに54コマ30fps/1.8秒の共有アトラス。最大範囲での粗さと遮蔽を直すため1024px実描画/空中512px、拡大時は空中最大65%へ薄める。追加配布約4.1MB・復号約61.6MiB。
+
+?shadowfx=godotで候補、無指定/legacyは従来。dev/mock/shadow_bind_demo.htmlで従来と比較・停止・スロー・時間指定・通常/最大・床/空中を確認。通常採用は未決定。GitHubには比較可能な候補として反映する。fox_bindの15ダメージ・使用0.16秒後命中・半径95（最大231.93359375）・鈍足4.5秒・装填8秒は維持。予兆は使用時、二重詠唱は各命中から途中時点を再生。床は敵の後ろ・空中は敵の前/味方の後ろ。
+
+dev/tests/shadow_bind.pyで3シード×通常/最大範囲の戦闘一致・命中・鈍足・追撃・素材欠損フォールバック・寿命/削除を確認、JSエラーなし。dev/reports/shadow-bind/に主要時点・通常/最大・2端末サイズの画像と結果。実機Safari未確認。VFX Crafter調査は本試作の後へ保留。
