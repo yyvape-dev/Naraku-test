@@ -101,6 +101,9 @@ img.frm{display:block;width:100%;height:100%}
 @keyframes comboBar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 #ult{position:absolute;inset:0;z-index:200;display:none;overflow:hidden;pointer-events:auto}
 #ult.on{display:block}
+#ult.shin::before,#ult.shin::after{content:'';position:absolute;left:0;right:0;height:7.5%;background:#000;z-index:50;pointer-events:none;animation:shinBar .35s ease-out both}
+#ult.shin::before{top:0;transform-origin:top}#ult.shin::after{bottom:0;transform-origin:bottom}
+@keyframes shinBar{from{transform:scaleY(0)}to{transform:scaleY(1)}}
 #ult.pz,#ult.pz *{animation-play-state:paused!important}
 /* 超必殺のカットイン（1.3秒。戦場の枠の中だけ）：暗転 → 透過の立ち絵が左下から滑り込む → 顔へ寄ってキャラ色に光る → 0.9秒で揺れと斜めの斬撃 → 1.1秒の白い明けと同時に右上へ抜ける。
    立ち絵は assets/ult_<id>.webp（背景を抜いた9:16）。顔の位置と大きさは ULT_ART の表で揃える。集中線は使わない（ユーザー：ダサい） */
@@ -1544,17 +1547,26 @@ function drawFB(g,s){const F=FB[s.id],im=vtex(F.n);if(!im||s.t<0)return;
    0.8 一閃：戦場の全員へ大打撃・白い閃光・揺れ／0.8〜1.9 通常攻撃の斬撃（samurai_fb）を戦場いっぱいで流す（世界0.35倍）
    1.9〜2.6 色と速さが戻る。色は 'saturation' 合成で抜き、斬撃だけは後から色つきで重ねる */
 const SHIN={dur:2.6,hit:0.8,slash:1.1,dmg:380};
-function shinStart(){FX.shin={t:0,hit:false}}
-function shinScale(){const S0=FX.shin;if(!S0)return 1;const t=S0.t;return t<0.3?1-t/0.3*0.88:t<0.8?0.12:t<1.9?0.35:Math.min(1,0.35+(t-1.9)/0.7*0.65)}
-function shinTick(dt){const S0=FX.shin;if(!S0)return;S0.t+=dt;
+const shinOk=a=>!!a&&a.d.id==='samurai'&&a.hp<=a.max*0.8;
+function shinStart(a){if(FX.shin&&FX.shin.pre&&FX.shin.a===a){FX.shin.pre=false;FX.shin.t=0}else FX.shin={t:0,hit:false,a}}
+// カットインの間から上下の黒帯を出しておく（t は fire まで進めない）
+function shinPre(a){FX.shin={t:0,hit:false,a,pre:true}}
+// シオウの攻撃モーションを、一閃の瞬間にヒットのコマが来るようスローで再生（0〜1.9秒で1回）
+const shinAnimU=()=>Math.min(0.999,FX.shin.t/1.9),SHIN_HITU=0.8/1.9;
+// 画面を少し寄せる（シオウと戦場の中ほどの間へ）
+function shinZoom(g){const S0=FX.shin;if(!S0||S0.pre||!S0.a)return;const t=S0.t;
+  const e=t<0.8?t/0.8:t<1.9?1:Math.max(0,1-(t-1.9)/0.7),u=e*e*(3-2*e),z=1+0.09*u,zx=(S0.a.x+W/2)/2,zy=B.lineY*0.72;
+  g.translate(zx,zy);g.scale(z,z);g.translate(-zx,-zy)}
+function shinScale(){const S0=FX.shin;if(!S0||S0.pre)return 1;const t=S0.t;return t<0.3?1-t/0.3*0.88:t<0.8?0.12:t<1.9?0.35:Math.min(1,0.35+(t-1.9)/0.7*0.65)}
+function shinTick(dt){const S0=FX.shin;if(!S0||S0.pre)return;S0.t+=dt;
   if(!S0.hit&&S0.t>=SHIN.hit){S0.hit=true;const b=CARDS.find(o=>o.id==='sm_iai');
     impact(Object.assign({},b,{shape:'row',hh:B.lineY*0.5/B.M.skR,dmg:SHIN.dmg,ult:'samurai',shin:1}),W/2,B.lineY*0.5,1);FX.shake=Math.min(16,FX.shake+14);jcStop(0.12)}
   if(S0.t>=SHIN.dur)FX.shin=null}
-function drawShin(g){const S0=FX.shin;if(!S0)return;const t=S0.t;
+function drawShin(g){const S0=FX.shin;if(!S0)return;if(S0.pre){const bar=H*0.075;g.fillStyle='#000';g.fillRect(0,0,W,bar);g.fillRect(0,H-bar,W,bar);return}const t=S0.t;
   const gray=t<0.3?t/0.3:t<1.9?1:Math.max(0,1-(t-1.9)/0.7);
   g.save();g.globalCompositeOperation='saturation';g.globalAlpha=gray;g.fillStyle='#808080';g.fillRect(0,0,W,H);
   g.globalCompositeOperation='source-over';g.globalAlpha=gray*0.25;g.fillStyle='#000';g.fillRect(0,0,W,H);g.restore();
-  const bar=H*0.075*gray;g.fillStyle='#000';g.fillRect(0,0,W,bar);g.fillRect(0,H-bar,W,bar);
+  const bar=H*0.075*(t<1.9?1:gray);g.fillStyle='#000';g.fillRect(0,0,W,bar);g.fillRect(0,H-bar,W,bar);
   const F=FB.samurai,im=vtex(F.n);if(!im)return;const tile=im.width/4,cx=W/2,cy=B.lineY*0.46,w=Math.max(W,B.lineY)*1.25;
   const put=(fr,a,sc)=>{g.save();g.translate(cx,cy);g.rotate(-0.12);g.scale(sc,sc);g.globalAlpha=a;
     g.drawImage(im,(fr%4)*tile,Math.floor(fr/4)*tile,tile,tile,-w/2,-w/2,w,w);g.globalCompositeOperation='lighter';g.globalAlpha=a*0.6;
@@ -3050,7 +3062,8 @@ const ULT_DEF={
     for(let i=0;pts.length<8;i++)pts.push({x:40+(i*97)%280,y:B.lineY*(0.2+((i*37)%60)/100)});
     pts.forEach((p,i)=>B.impacts.push({t:0.1+i*0.09,c,x:p.x,y:p.y,k:1}))}},
   samurai:{name:'花鳥風月',  col:'#5fe0a0',fire(a){ // 戦場を縦に4本、端から順に居合で斬り抜く。シオウの体力が8割以下なら「真・花鳥風月」
-    if(a&&a.hp<=a.max*0.8){shinStart();return}
+    if(a&&a.hp<=a.max*0.8){shinStart(a);return}
+    if(FX.shin&&FX.shin.pre)FX.shin=null;
     const b=CARDS.find(o=>o.id==='sm_iai'),c=Object.assign({},b,{hw:46,dmg:150,ult:'samurai'});
     for(let i=0;i<4;i++)B.impacts.push({t:0.06+i*0.16,c,x:45+i*90,y:B.lineY*0.5,k:1})}},
   blue:  {name:'斬月三日月',col:'#4fc3f7',fire(a){const b=CARDS.find(o=>o.id==='bl_moon'),hh=B.lineY/6/B.M.skR,c=Object.assign({},b,{hh,dmg:120,ult:'blue'});if(ultSeqOn('blue'))FX.blueU={t:0};for(let i=0;i<3;i++)B.impacts.push({t:0.05+i*0.22,c,x:W/2,y:B.lineY*(5-2*i)/6,k:1})}}
@@ -3071,6 +3084,7 @@ const ULT_ART={ninja:{fx:.70,fy:.29,fw:.15},samurai:{fx:.66,fy:.19,fw:.13},sword
 const ULT_POS={x:.55,y:.36,face:.27};
 function startUlt(a,consume=true){
   const id=a.d.id,def=ULT_DEF[id];if(!def)return;
+  const sh=shinOk(a);if(sh)shinPre(a);$('#ult').classList.toggle('shin',sh);
   if(consume)B.ultUsed[id]=true;aim.on=false;B.sel=null;FX.cut=null;
   if(ultSeqOn(id))seqLoad(ULT_SEQ[id].n); // 連番はカットインの1.3秒の間に展開しておく
   const el=$('#ult'),AW=el.parentNode.clientWidth||W,AH=el.parentNode.clientHeight||H;
@@ -3757,6 +3771,7 @@ function drawAlly(g,a,T){
   }
   let f=0,sx=1,sy=1,rot=0;const oy=-a.lunge*12;
   if(picked&&tuneAnim)f=frameLoop(lk.m,nf,T);
+  else if(FX.shin&&!FX.shin.pre&&FX.shin.a===a&&FX.shin.t<1.9)f=frameAt(lk.m,nf,shinAnimU(),SHIN_HITU);
   else if(a.animT>=0)f=frameAt(lk.m,nf,Math.min(0.999,a.animT/a.animDur),a.animHit);
   else{const b=Math.sin(T*2.1+a.ph);sy=1+b*0.018;sx=1-b*0.009;rot=Math.sin(T*1.05+a.ph)*0.012} // 待機は1コマ目＋呼吸
   if(B.M.aura)drawAura(g,a,T);
@@ -3823,7 +3838,7 @@ function render(T){
   drawBarrier(g,T);
   g.save();
   if(FX.shake>0.3)g.translate((Math.random()-0.5)*FX.shake,(Math.random()-0.5)*FX.shake);
-  jcZoom(g);
+  jcZoom(g);shinZoom(g);
   for(const s of FX.sh)if(s.k==='blackhole'&&s.layer==='floor')drawBlackhole(g,s);else if(s.k==='shadow'&&s.layer==='floor')drawShadow(g,s);else if(s.k==='rift'&&s.layer==='floor')drawRift(g,s);else if(s.k==='quake'&&s.layer==='floor')drawQuake(g,s);else if(s.k==='decal'){g.globalAlpha=(1-s.t/s.life)*0.5;g.fillStyle=s.col;g.beginPath();g.ellipse(s.x,s.y,s.r*0.9,s.r*(s.flat||0.6),0,0,TAU);g.fill()}else if(s.k==='tex'&&s.ly==='floor')drawTex(g,s);
   for(const z of B.zones)drawZone(g,z,T);
   g.globalAlpha=1;
