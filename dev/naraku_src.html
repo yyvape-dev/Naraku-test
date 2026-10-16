@@ -1055,7 +1055,7 @@ img.frm{display:block;width:100%;height:100%}
     </div>
     <div id="mapOps"><button id="btnGo">進む</button><button id="btnBag">荷物</button><button id="btnBack">街へ帰還</button></div>
     <div id="tune">
-      <div class="trow"><select id="tuneSel" aria-label="調整する対象"></select><label class="ck"><input type="checkbox" id="tuneAnim" checked>攻撃を再生</label><label class="ck"><input type="checkbox" id="tuneMark">基準点</label><label class="ck"><input type="checkbox" id="tuneJuice">手応え</label></div>
+      <div class="trow"><select id="tuneSel" aria-label="調整する対象"></select><label class="ck"><input type="checkbox" id="tuneAnim" checked>攻撃を再生</label><label class="ck"><input type="checkbox" id="tuneMark">基準点</label><label class="ck"><input type="checkbox" id="tuneJuice">手応え</label><label class="ck"><input type="checkbox" id="tune24">ラナ24fps</label></div>
       <div class="trow" id="tuneLook"></div>
       <div class="trow" data-k="s"><span class="tl">大きさ</span><button class="step" data-d="-1" aria-label="小さく">−</button><input type="range" min="50" max="200" step="1" aria-label="大きさ"><button class="step" data-d="1" aria-label="大きく">＋</button><span class="tv"></span></div>
       <div class="trow" data-k="x"><span class="tl">左右</span><button class="step" data-d="-1" aria-label="左へ">−</button><input type="range" min="-60" max="60" step="1" aria-label="左右"><button class="step" data-d="1" aria-label="右へ">＋</button><span class="tv"></span></div>
@@ -1382,6 +1382,10 @@ const ULT_SEQ={ // n＝素材の名前 / fx＝FX の時計の名前 / fps / fin�
   sword:{n:'lanaU',fx:'lanaU',fps:12,fin:0.08,out:[3.55,4.1],end:4.4,mat:1,add:1,mix:0,fadeY:[-34,0],cx:0.5,cy:0.48,wide:1.12,lit:{c:'#ff2a1a',d:'#1e0203'}},
   blue: {n:'blueU',fx:'blueU',fps:8, fin:0.08,out:[5.3,6.0], end:6.05,mat:1,add:1,mix:1,fadeY:[-34,0],cx:0.5,cy:0.5,wide:1.12,lit:{c:'#4cc4ff'}},
   fox:  {n:'foxU', fx:'foxU', fps:16,fin:0.08,out:[2.7,3.0], end:3.05,mat:1,add:1,mix:0,fadeY:[-34,0],cx:0.5,cy:0.5,wide:1.12,lit:{c:'#ff3048'}}};
+/* ラナの超必殺の24fps版（RIFEで48→95コマに補間。2026-10-16 試験）。調整パネルの「ラナ24fps」で切り替え（localStorage） */
+const SEQ24_KEY='naraku_lana24';let SEQ24=true;try{if(localStorage.getItem(SEQ24_KEY)==='0')SEQ24=false}catch(e){}
+function seq24Apply(){const L=ULT_SEQ.sword,on=SEQ24&&!!SEQS['lanaU24_01'];if(L.n!==(on?'lanaU24':'lanaU'))seqFree(L.n);L.n=on?'lanaU24':'lanaU';L.fps=on?24:12}
+seq24Apply();
 function ultSeqOn(id){const L=ULT_SEQ[id];return !!L&&!!SEQS[L.n+'_01']}
 const BFS=/*__BFS_START__*/{}/*__BFS_END__*/;
 const BF={};for(const k in BFS){const im=new Image();im.src=BFS[k];BF[k]=im}
@@ -5325,7 +5329,7 @@ function openTune(){
   const keys=B.allies.map(a=>a.d.id).concat(Object.keys(ENEMIES));
   if(keys.indexOf(tuneKey)<0)tuneKey=keys[0];
   $('#tuneSel').innerHTML=keys.map(k=>'<option value="'+k+'"'+(k===tuneKey?' selected':'')+'>'+tuneLabel(k)+'</option>').join('');
-  $('#tuneMark').checked=CFG.showAnchor;$('#tuneJuice').checked=JC.on;$('#tuneAnim').checked=tuneAnim;
+  $('#tuneMark').checked=CFG.showAnchor;$('#tuneJuice').checked=JC.on;$('#tune24').checked=SEQ24;$('#tuneAnim').checked=tuneAnim;
   pausedBefore=paused;paused=true;tuning=true;aim.on=false;B.sel=null;
   $('#cmd').classList.add('tuning');syncTune();
 }
@@ -5343,6 +5347,7 @@ $('#tune').addEventListener('click',ev=>{
 $('#tuneSel').addEventListener('change',ev=>{tuneKey=ev.target.value;syncTune()});
 $('#tuneAnim').addEventListener('change',ev=>{tuneAnim=ev.target.checked});
 $('#tuneMark').addEventListener('change',ev=>{CFG.showAnchor=ev.target.checked});
+$('#tune24').addEventListener('change',ev=>{SEQ24=ev.target.checked;seq24Apply();try{localStorage.setItem(SEQ24_KEY,SEQ24?'1':'0')}catch(e){}});
 $('#tuneJuice').addEventListener('change',ev=>{JC.on=ev.target.checked;if(!JC.on)jcReset();try{localStorage.setItem(JC_KEY,JC.on?'1':'0')}catch(e){}});
 $('#tuneClose').addEventListener('click',closeTune);
 $('#tuneReset').addEventListener('click',()=>{Object.assign(TUNE[tuneKey],TUNE_BASE[tuneKey]);saveTune();syncTune()});
