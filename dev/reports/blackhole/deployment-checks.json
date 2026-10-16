@@ -1,0 +1,22 @@
+{
+  "url": "http://127.0.0.1:8765/index.html",
+  "defaults": {
+    "enabled": true,
+    "smooth": false,
+    "midLoaded": false,
+    "linked": true
+  },
+  "noDefaultMidpointRequests": true,
+  "claudeFixes": {
+    "reviveCopy": true,
+    "rewindPreservesOriginal": true,
+    "victoryCommits": true,
+    "defeatPreservesOriginal": true,
+    "enhancementDisplay": true
+  },
+  "viewports": [
+    "375x667",
+    "393x852"
+  ],
+  "errors": []
+}

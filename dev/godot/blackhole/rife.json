@@ -1,0 +1,30 @@
+{
+  "sourceFrames": 96,
+  "originalFps": 30,
+  "playbackFrames": 192,
+  "playbackFps": 60,
+  "life": 3.2,
+  "midpoints": 95,
+  "lastFrame": "hold",
+  "cols": 12,
+  "rows": 8,
+  "model": "rife-v4.6 (20221029)",
+  "layers": {
+    "floor": {
+      "tile": 192,
+      "bytes": 839128,
+      "decodedBytes": 14155776,
+      "seconds": 82.04,
+      "sourceSha256": "130945c867e315af622a0681ad0a754239bfb32c0e6479eee0f480fced9459ce",
+      "maxEdgeAlpha": 0
+    },
+    "air": {
+      "tile": 384,
+      "bytes": 4517658,
+      "decodedBytes": 56623104,
+      "seconds": 204.12,
+      "sourceSha256": "1def8a5a4a9c30f4709d0bf7df9ab8678bab400a60988521305851ebd591fcd2",
+      "maxEdgeAlpha": 0
+    }
+  }
+}

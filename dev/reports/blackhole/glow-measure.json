@@ -1,0 +1,38 @@
+{
+  "before": [
+    {
+      "time": 1.2,
+      "changedPixels": 33726,
+      "maxChannelDifference": 7,
+      "totalChannelDifference": 192565,
+      "haloPixelsBeyondUnlitCore": 0,
+      "whitePixels": 0
+    },
+    {
+      "time": 2.433333,
+      "changedPixels": 48409,
+      "maxChannelDifference": 7,
+      "totalChannelDifference": 314212,
+      "haloPixelsBeyondUnlitCore": 0,
+      "whitePixels": 0
+    }
+  ],
+  "after": [
+    {
+      "time": 1.2,
+      "changedPixels": 49629,
+      "maxChannelDifference": 7,
+      "totalChannelDifference": 327111,
+      "haloPixelsBeyondUnlitCore": 0,
+      "whitePixels": 0
+    },
+    {
+      "time": 2.433333,
+      "changedPixels": 61823,
+      "maxChannelDifference": 22,
+      "totalChannelDifference": 527267,
+      "haloPixelsBeyondUnlitCore": 278,
+      "whitePixels": 1650
+    }
+  ]
+}

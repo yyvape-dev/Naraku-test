@@ -1,0 +1,49 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>シェリ超必殺・青紫の影しばり試作</title>
+<style>*{box-sizing:border-box}body{margin:0;padding:20px;background:#100f16;color:#ebe7ff;font:14px/1.6 system-ui,sans-serif}h1{font-size:23px;margin:0 0 6px}p{color:#b1acc4;max-width:850px}.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0}button,select{padding:9px 14px;background:#232034;color:#ece7ff;border:1px solid #706197;border-radius:6px;font:inherit}main{display:flex;gap:20px;flex-wrap:wrap}.panel{width:min(393px,100%)}h2{font-size:15px}.stage{position:relative;width:100%;height:659px;overflow:hidden;border:1px solid #50455e;border-radius:6px}iframe{width:393px;height:659px;border:0;transform-origin:top left;pointer-events:none}input[type=range]{width:min(45vw,300px)}a{color:#a3c9ff}#loading{position:absolute;inset:0;display:grid;place-items:center;background:#100f16ed;color:#d8c9ff;text-align:center;padding:20px;z-index:3}#loading[hidden]{display:none}.stage.failed iframe{visibility:hidden}select{-webkit-appearance:none;appearance:none;color-scheme:dark;background-color:#232034;color:#ece7ff;padding-right:30px;background-image:linear-gradient(45deg,transparent 50%,#cfc4e7 50%),linear-gradient(135deg,#cfc4e7 50%,transparent 50%);background-position:calc(100% - 16px) 50%,calc(100% - 11px) 50%;background-size:5px 5px;background-repeat:no-repeat}</style>
+<h1>シェリ超必殺 — 紫黒のブラックホール</h1><p>渦の形成 → 凝縮 → 2.4秒で破裂 → 消失。添付6枚の原画をGodotで動かし、RIFEで30→60fpsへ中割りを加えた候補です。標準は30fps。チェックを入れると中割り60fps版。時刻はカットイン終了後。</p>
+<div class="controls"><button id="replay">もう一度</button><button id="pause">停止</button><label>速度 <select id="speed"><option value="1">標準</option><option value="0.5">1/2</option><option value="0.25">1/4</option></select></label><span id="status">読み込み中…</span></div>
+<div class="controls"><label><input id="smooth" type="checkbox"> RIFE中割り・60fps</label><label><input id="floor" type="checkbox" checked> 床の影・紫の光</label><label><input id="air" type="checkbox" checked> 渦・凝縮・破裂</label><label>時点 <input id="scrub" type="range" min="0" max="3.2" step="0.01" value="0"></label><output id="time">0.00秒</output></div>
+<div class="controls"><label>表示 <select id="variant"><option value="godot">試作：紫黒のブラックホール</option><option value="legacy">従来の演出</option></select></label></div>
+<main><section class="panel"><h2 id="variantTitle">試作 — 渦から凝縮・破裂</h2><div class="stage"><iframe title="シェリ超必殺の軽量比較" src="blackhole_player.html?blackholefx=godot&v=5203a884a8ad"></iframe><div id="loading" role="status">読み込み中…</div></div></section></main>
+<p>従来と同じく全域へ、0.05秒で40ダメージ＋3秒凍結、2.4秒で230ダメージ。技名・範囲・効果は維持しています。敵を引き寄せる処理や追加ダメージはありません。比較は固定戦場で、セーブへ書き込みません。</p>
+<p><a href="../../index.html?blackholefx=godot&v=blackhole-candidate">ゲームで試作を使う</a></p>
+<script>
+const $=s=>document.querySelector(s),frames=[...document.querySelectorAll('iframe')];let engines=[],playing=true,elapsed=0,previous=0;
+function fit(){frames.forEach(f=>{const z=f.parentElement.clientWidth/393;f.style.transform=`scale(${z})`;f.parentElement.style.height=`${659*z}px`})}addEventListener('resize',fit);fit();
+function setup(){
+ engines.forEach((N,i)=>{
+  N.BLACKHOLE_VFX.enabled=$('#variant').value==='godot';N.BLACKHOLE_VFX.smooth=$('#smooth').checked;N.setBg('camp');N.start(['sword','fox','mage'],4242);N.sim(12);const sample=N.B.enemies.find(e=>!e.dead);
+  N.start(['sword','fox','mage'],4242);frames[i].contentDocument.querySelector('#btnPause').click();N.QUAKE_VFX.preview=true;N.B.enemies=[[135,245],[180,278],[225,240],[175,320]].map(([x,y],j)=>({...sample,idx:900+j,x,y,hp:1000,max:1000,spd:0,st:'walk',dead:false,pend:0,tg:null,atkT:999,cd:999,flash:0,slowT:0,ph:0}));
+  N.B.allies.forEach(a=>{a.cdT=999;a.animT=-1});N.B.dur=999;N.B.shots.length=0;N.B.impacts.length=0;
+  for(const k of ['sh','parts','dust','floats','ghosts'])N.FX[k].length=0;N.FX.cut=null;N.FX.banner=null;N.FX.shake=0;
+  N.ULT_DEF.mage.fire(N.B.allies.find(a=>a.d.id==='mage'));N.FX.cut=null;
+  N.BLACKHOLE_VFX.layerFlags.floor=$('#floor').checked;N.BLACKHOLE_VFX.layerFlags.air=$('#air').checked;
+ });elapsed=0;display();
+}
+function advance(dt){if(dt<=0)return;engines.forEach(N=>{N.sim(dt);N.vfx.tick(dt);N.FX.shake=0});elapsed+=dt}
+function display(){$('#time').textContent=Math.min(elapsed,3.2).toFixed(2)+'秒';$('#scrub').value=Math.min(elapsed,3.2)}
+const loadStarted=performance.now();let preparing=false;
+function fail(message){clearInterval(ready);$('#status').textContent='読み込みに失敗しました';$('#loading').hidden=false;$('#loading').textContent=message+'。「再読み込み」を押してください。';$('#replay').textContent='再読み込み';$('.stage').classList.add('failed');}
+const ready=setInterval(()=>{
+ try{
+  const w=frames[0].contentWindow,progress=w.PREVIEW_LOAD;
+  if(progress?.error){fail('演出素材を読み込めませんでした');return}
+  const label=progress?'素材を読み込み中 '+progress.done+'/'+progress.total:'プレイヤーを読み込み中…';
+  $('#status').textContent=label;$('#loading').textContent=label;
+  if(w.NARAKU_READY&&w.NARAKU.vfx.blackholeReady()&&!preparing){
+   preparing=true;engines=[w.NARAKU];clearInterval(ready);setup();
+   requestAnimationFrame(()=>requestAnimationFrame(()=>{$('#loading').hidden=true;$('#status').textContent='再生できます'}));
+  }else if(performance.now()-loadStarted>90000)fail('素材の読み込みが完了しませんでした');
+ }catch(e){fail('プレイヤーを読み込めませんでした')}
+},100);
+$('#variant').onchange=()=>{if(engines.length!==frames.length)return;setup();$('#variantTitle').textContent=$('#variant').value==='godot'?'試作 — 渦から凝縮・破裂':'従来のシェリ超必殺'};
+$('#replay').onclick=()=>{if($('.stage').classList.contains('failed')){location.reload();return}if(engines.length!==frames.length)return;setup();playing=true;$('#pause').textContent='停止'};
+$('#pause').onclick=()=>{playing=!playing;$('#pause').textContent=playing?'停止':'再生'};
+
+$('#smooth').onchange=()=>{engines.forEach(N=>N.BLACKHOLE_VFX.smooth=$('#smooth').checked)};
+for(const id of ['floor','air'])$('#'+id).onchange=()=>{engines.forEach(N=>N.BLACKHOLE_VFX.layerFlags[id]=$('#'+id).checked)};
+$('#scrub').oninput=()=>{if(engines.length!==frames.length)return;const target=Number($('#scrub').value);setup();playing=false;$('#pause').textContent='再生';for(let t=0;t<target-1e-6;t+=1/60)advance(Math.min(1/60,target-t));display()};
+let accumulator=0;
+function loop(ts){const dt=Math.min(.05,(ts-(previous||ts))/1000)*Number($('#speed').value);previous=ts;
+ if(playing&&engines.length===frames.length){accumulator+=dt;while(accumulator>=1/60){advance(1/60);accumulator-=1/60}display();if(elapsed>4.1)setup()}requestAnimationFrame(loop)}requestAnimationFrame(loop);
+</script></html>

@@ -56,3 +56,27 @@
 
 ## 2026-10-16 ラナ通常攻撃への対象訂正
 ユーザー指定は必殺技VFXではなくラナの通常攻撃モーション。前のrife-proofは対象取り違えの技術試験。今回はsword.webpの12コマをRIFE v4.6＋lavapipeで24コマ化（35.48秒）。元コマ画素一致、premultiplied RGBとalphaを分離補間、6列4行。比較dev/mock/lana_attack_rife.html、速度0.45秒・命中0.2475秒維持。剣とマントの高速変形には歪みが残るため候補公開のみ、通常ゲーム未採用。詳細dev/motion/lana_rife/README.md。
+
+## 2026-10-16 ラナ通常攻撃RIFEは不採用
+ユーザーが効果の小ささと歪みを理由に不採用と決定。元の12コマを維持。比較ページは公開済み。前記の「候補・未採用」より本決定を優先する。
+
+## 2026-10-16 シェリ超必殺・紫黒ブラックホール候補（ローカル）
+ユーザー添付の透過PNG6枚を使用し、対象はシェリの超必殺と確認済み。原本1536×1536を無変更保存。Godot4.6.3で内部の差動回転・歪み・凝縮・破裂・ノイズ消失、限定Glowと固定seed GPU粒子を制作。96コマ30fps・3.2秒、床/空中2層。dev/godot/blackhole/に制作工程・素材出典・再生成手順。dev/mock/blackhole_demo.htmlが軽量比較、?blackholefx=godotでゲーム内候補、無指定は従来。通常採用・GitHub公開は未実施。
+名前「永劫凍獄」・カットイン・0.05秒40ダメージ＋3秒凍結・2.4秒230ダメージ・全域範囲と各倍率は維持。吸引や追加判定なし。通常のシェリ札は従来。床は敵の後ろ、空中は敵の前/味方の後ろ・透明度68%。追加配布約5.4MiB・復号約67.5MiB。両層の四辺alpha=0。実機Safari未確認。検証記録dev/reports/blackhole/。
+検証：軽量比較と配布index両方で3シード×範囲強化0/4の戦闘一致。初撃/最終撃/凍結/寿命/再開始/欠損時切替/通常札不変・カットイン・比較操作が成功、ChromiumのJSエラーなし。総合smokeは保存・探索再開まで成功、その次の探索終了で進まなくなり未完走。変更前HEADでも同じ箇所で停止するため既存問題の可能性があるが、原因は未確定。dev/reports/blackhole/REPORT.mdに制限を記録。
+
+## 2026-10-16 シェリ超必殺候補へRIFE中割り
+ユーザー「Froweflame？中割り増やすのも忘れずに」をFlowframesの意図として受け、同系統のRIFE v4.6でGodot30fps→60fps相当へ。96元コマ＋95中間＋末尾保持で192時点、3.2秒。元30fpsアトラスは維持し、中割りのみ共有アトラス2枚へ。比較の「RIFE中割り・60fps」で切替。欠損時は30fpsへ戻る。追加5,352,472bytes・復号約67.5MiB、元と合わせ約135MiB。通常採用・GitHub公開は未実施。
+軽量比較と配布indexの両方で元コマ描画像素一致・中間変化・末尾保持・素材欠損切替が成功。戦闘一致・命中/凍結/寿命/再開始/フォールバック/通常札不変も再成功、切替UI・カットイン確認、JSエラーなし。急な凝縮→破裂の細部はやや柔らかくなる。dev/godot/blackhole/interpolate.py、rife.json、dev/reports/blackhole/rife-checks.json、rife-contact.png、preview60.mp4参照。実機Safari未確認。ラナ通常攻撃のRIFE不採用・元12コマ維持は変更なし。
+
+## 2026-10-16 シェリ超必殺：GodotのGlow工程を再確認・調整
+ユーザーが「ひかる、ぼやかすのGodotのスキルも」と指定。naraku-vfxのGlow/HDR/GPU粒子工程とquake_bloomを読み直し、実Godotの同時点Glowオン/オフ差分で確認。変更前も効いていたが控えめだったため、空中の明るい芯とにじみを強めた。光だけHDR・WorldEnvironment/BG_CANVAS＋Glow・黒背景の光/透明の抜きの別焼きを維持し、光専用blend_addとGPU粒子のCOLORを保つHDRシェーダーを明示。空中intensity .45→.65。通常合成の主形状と床は維持。
+空中の光を再描画し、RIFE中割りも再生成。寿命3.2秒・命中/効果は維持。軽量比較と配布indexでRIFE原コマ一致・中間変化・末尾保持・欠損切替、通常/最大×3シードの戦闘一致と片付け等が再成功、JSエラーなし。新しい動画dev/reports/blackhole/preview-glow60.mp4。glow-measure.jsonとglow-before/afterに実測、glow-contact.pngに合成比較。通常採用・GitHub公開は未実施、実機Safari未確認。全工程dev/godot/blackhole/build.sh。
+
+## 2026-10-16 GitHubテスト採用：シェリ超必殺（標準30fps）
+ユーザーの「一旦テストのGitHubに実装していいよ」を受け、origin/main 6536fabのClaude修正を先に取得し統合。「起」の持ち越し状態コピー・勝利時反映、巻き戻し/敗北時の元状態保持、装備の元値(+強化分)表示、リンク方式の起動表示・先読みを維持。本番yyvape-dev/Narakuへの反映は今回行わない。
+シェリ「永劫凍獄」は無指定でGodotの紫黒ブラックホール30fpsを使用。?blackholefx=legacyで従来へ戻せる。RIFEは改善が小さいため標準オフ、?blackholesmooth=1で60fps。通常起動時に中割り2枚を読まず、標準の追加復号は約67.5MiB。比較dev/mock/blackhole_demo.htmlでも標準30fps・中割りチェックで60fps。光のHDR/Glow・GPU粒子調整は両方に含む。命中/凍結/ダメージは従来。
+公開ビルドは最新AGENTS.mdに従い --link dev/assets/、index.htmlは553285bytes前後（画像入り版はコミットしない）。比較プレイヤーは新しい起動ローディングを別の軽量読込へ差し替え、重なった起動幕が残らないようにした。blackhole_deploy.pyでデフォルト採用・中割りの未読込・2画面の描画、「起」の巻き戻し/勝利/敗北と装備表示の維持を検証済み。
+総合smokeはClaude最新版のリンク方式へ統合後に完走、RESULT OK・エラーなし、操縦9/12・火力優先11/12。以前の「未完走」は途中経過。本検証ではChromium実行パスを指定し、既存のfavicon.ico欠損だけ204で代用。VFX素材やゲームの通信エラーは除外していない。ログdev/reports/blackhole/smoke-synced.log。
+
+HTTPのboot操作検証も起動→出撃→戦闘→勝利→帰還→街の各施設→保存/再開まで成功、errs なし。実行パスとfavicon代用に加え、テストで勝利時刻へ飛ばす箇所を固定0.9秒待ちからsim(.5)で進め、レベルアップ/停止のタイミング差を避けた一時ハーネスを使用。製品コードの時間処理は変更なし。boot-synced.log参照。

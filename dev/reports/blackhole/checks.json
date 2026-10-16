@@ -1,0 +1,23 @@
+{
+  "sameCombat": true,
+  "seeds": [
+    1,
+    77,
+    4242
+  ],
+  "rangeLevels": [
+    0,
+    4
+  ],
+  "details": {
+    "firstHit": 0.05,
+    "freeze": 3,
+    "finalHit": 2.4,
+    "visualLife": 3.2,
+    "cleanup": true,
+    "reset": true,
+    "fallback": true,
+    "ordinaryUnchanged": true
+  },
+  "errors": []
+}

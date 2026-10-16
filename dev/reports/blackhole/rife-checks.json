@@ -1,0 +1,75 @@
+{
+  "layers": {
+    "floor": {
+      "originalFramesExact": [
+        0,
+        3,
+        20,
+        36,
+        65,
+        72,
+        95
+      ],
+      "midpoints": [
+        {
+          "sourceFrame": 20,
+          "n": 148884,
+          "mean": 0.342726
+        },
+        {
+          "sourceFrame": 36,
+          "n": 146828,
+          "mean": 0.335302
+        },
+        {
+          "sourceFrame": 65,
+          "n": 143743,
+          "mean": 0.329218
+        },
+        {
+          "sourceFrame": 72,
+          "n": 197149,
+          "mean": 0.563259
+        }
+      ],
+      "endHolds": true,
+      "missingMidFallsBack": true
+    },
+    "air": {
+      "originalFramesExact": [
+        0,
+        3,
+        20,
+        36,
+        65,
+        72,
+        95
+      ],
+      "midpoints": [
+        {
+          "sourceFrame": 20,
+          "n": 174892,
+          "mean": 2.270693
+        },
+        {
+          "sourceFrame": 36,
+          "n": 221383,
+          "mean": 2.886525
+        },
+        {
+          "sourceFrame": 65,
+          "n": 128695,
+          "mean": 3.058714
+        },
+        {
+          "sourceFrame": 72,
+          "n": 129566,
+          "mean": 2.533023
+        }
+      ],
+      "endHolds": true,
+      "missingMidFallsBack": true
+    }
+  },
+  "errors": []
+}

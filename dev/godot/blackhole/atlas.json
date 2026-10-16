@@ -1,0 +1,27 @@
+{
+  "frames": 96,
+  "fps": 30,
+  "life": 3.2,
+  "cols": 12,
+  "rows": 8,
+  "anchor": [
+    0.5,
+    0.5
+  ],
+  "sourceSize": [
+    1536,
+    1536
+  ],
+  "floor": {
+    "tile": 192,
+    "bytes": 809000,
+    "decodedBytes": 14155776,
+    "maxEdgeAlpha": 0
+  },
+  "air": {
+    "tile": 384,
+    "bytes": 4899686,
+    "decodedBytes": 56623104,
+    "maxEdgeAlpha": 0
+  }
+}
