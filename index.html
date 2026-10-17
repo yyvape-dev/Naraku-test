@@ -1118,15 +1118,15 @@ const CHAR_TAG={fox:'phys',sword:'phys',blue:'phys',sister:'mag',mage:'mag',ninj
 const LINE_OFF=124,FOOT_OFF=22,ALLY_H=100; // 防衛線と味方の足元（アリーナ下端からの距離）、味方の表示身長
 
 const CARDS=[
-  {id:'fox_fire',  owner:'fox',   name:'狐火乱舞',  kind:'target', r:72, dmg:75, reload:4.5, desc:'狐火で範囲を焼く',        pal:['#fff3c4','#ff9a2e','#b3340c']},
-  {id:'fox_bind',  owner:'fox',   name:'影縫い',    kind:'target', r:95, dmg:35, slow:4.5,reload:8, desc:'広範囲の敵を鈍足にする',pal:['#d8fff4','#2fb89a','#0c3b3a']},
+  {id:'fox_fire',  owner:'fox',   name:'狐火乱舞',  kind:'target', r:72, dmg:100, reload:4.5, desc:'狐火で範囲を焼く',        pal:['#fff3c4','#ff9a2e','#b3340c']},
+  {id:'fox_bind',  owner:'fox',   name:'影縫い',    kind:'target', r:95, dmg:45, slow:4.5,reload:8, desc:'広範囲の敵を鈍足にする',pal:['#d8fff4','#2fb89a','#0c3b3a']},
   {id:'sw_quake',  owner:'sword', name:'大地割り',  kind:'target', r:88, dmg:130,knock:44,reload:9, desc:'大打撃を与え吹き飛ばす',pal:['#ffffff','#e6c36a','#6e5220']},
   {id:'sw_rift',   owner:'sword', name:'乾坤一擲',  kind:'target', shape:'col',hw:30,dmg:90,zone:3,zdps:40,reload:11,desc:'縦一列を割り、3秒間その道を阻む',pal:['#ffffff','#ffb347','#5a2a0a']},
   {id:'si_pillar', owner:'sister',name:'聖光の柱',  kind:'target', r:76, dmg:85, healFlat:12,reload:8,desc:'浄化し、味方を少し癒す',pal:['#ffffff','#ffe9a0','#b88a2a']},
   {id:'si_pray',   owner:'sister',name:'癒しの祈り',kind:'instant',healPct:0.35,reload:11,desc:'全員の体力を35%回復する',pal:['#ffffff','#bff0c0','#3a8a5a']},
   {id:'mg_inferno',owner:'mage',  name:'奈落の業火',kind:'target', r:112,dmg:170,reload:13,desc:'最大範囲を爆炎で薙ぐ',    pal:['#ffe0f0','#e0365f','#4a0f5a']},
-  {id:'bl_moon',   owner:'blue',  name:'蒼月一閃',  kind:'target', shape:'row',hh:36,dmg:65,reload:9, desc:'横一列をまとめて斬り払う',pal:['#ffffff','#4fc3f7','#123a66']},
-  {id:'bl_wave',   owner:'blue',  name:'一閃斬月',  kind:'instant',band:150,push:90,dmg:50,reload:12,desc:'防衛線の前を薙ぎ、敵を押し返す',pal:['#ffffff','#7fe0ff','#1a5a8a']},
+  {id:'bl_moon',   owner:'blue',  name:'蒼月一閃',  kind:'target', shape:'row',hh:36,dmg:115,reload:9, desc:'横一列をまとめて斬り払う',pal:['#ffffff','#4fc3f7','#123a66']},
+  {id:'bl_wave',   owner:'blue',  name:'一閃斬月',  kind:'instant',band:150,push:90,dmg:85,reload:12,desc:'防衛線の前を薙ぎ、敵を押し返す',pal:['#ffffff','#7fe0ff','#1a5a8a']},
   {id:'nj_mark',   owner:'ninja', name:'影討ち',    kind:'target', r:46, dmg:150,boss:2,reload:7, desc:'狭い範囲に致命の一撃。強敵には2倍',pal:['#ffffff','#ff3a3a','#3a0508']},
   {id:'nj_kunai',  owner:'ninja', name:'千本苦無',  kind:'target', r:118,dmg:36, slow:1.5,reload:9, desc:'苦無の雨で広く刻み、足を止める',pal:['#ffe6e6','#ff5a5a','#4a0a0a']},
   {id:'sm_iai',    owner:'samurai',name:'居合・一文字',kind:'target',shape:'col',hw:24,dmg:115,reload:9,desc:'縦一列を、居合でまとめて斬り抜く',pal:['#ffffff','#5fe0a0','#0f3a2a']},
