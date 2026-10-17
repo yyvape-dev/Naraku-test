@@ -3424,7 +3424,7 @@ function step(dt){
       }
     }
     else if(a.cdT<=0){let tg=pickTarget(a),far=false;if(!tg&&a.d.far){tg=pickFar(a);far=!!tg}
-      if(tg){const cd=a.d.cd/m.spd*(far?a.d.far.cd:1);a.cdT=cd;a.animT=0;a.animDur=Math.min(cd,0.45);a.animHit=HIT_AT;a.pend={t:a.animDur*HIT_AT,tg,far}}}
+      if(tg){const cd=a.d.cd/m.spd*(far?a.d.far.cd:1);a.cdT=cd;a.animT=0;a.animDur=Math.min(cd,a.d.id==='sword'&&lanaCostume==='princess'?0.9:0.45);a.animHit=HIT_AT;a.pend={t:a.animDur*HIT_AT,tg,far}}}
   }
   // 多重撃：斬撃や光線の「もう一振り」
   for(let i=B.echoes.length-1;i>=0;i--){

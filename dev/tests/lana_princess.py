@@ -1,4 +1,4 @@
-"""Verify outfit persistence, visual timing, source-frame preservation and battle parity.
+"""Verify outfit persistence, half-speed timing, source frames and raw/smooth parity.
 Run against the linked HTTP build, with Playwright Chromium installed.
 """
 import sys
@@ -33,7 +33,9 @@ with sync_playwright() as p:
         N.costume.set(costume,smooth);N.start(['sword','fox','mage'],4242);N.sim(40);
         const B=N.B;return JSON.stringify([B.t,B.idx,B.kills,B.gold,B.life,B.lv,B.allies.map(a=>[a.hp,a.cdT,a.animT]),B.enemies.map(e=>[e.idx,e.hp,e.x,e.y])]);
       };
-      const normal=run('normal',false),raw=run('princess',false),smooth=run('princess',true);
+      const raw=run('princess',false),smooth=run('princess',true);
+      const timing=(costume)=>{N.costume.set(costume,false);N.start(['sword'],42);N.B.allies[0].cdT=0;N.spawn('skel');const e=N.B.enemies[0];e.x=N.B.allies[0].x;e.y=N.B.allies[0].y-45;N.sim(1/60);const a=N.B.allies[0];return [a.animDur,a.pend&&a.pend.t,a.cdT]};
+      const old=timing('normal'),slow=timing('princess');
       const ms=[10,8,8,8,6,4,2,2,4,6,6,8,8,8,8,8],ms2=ms.flatMap((n,i)=>i<15?[n/2,n/2]:[n]);
       let timeline=true;for(let i=0;i<1000;i++){
         const u=i/1000,a=N.frameAt({ms,hit:7},16,u,.55),c=N.frameAt({ms:ms2,hit:14},31,u,.55);
@@ -41,9 +43,9 @@ with sync_playwright() as p:
       }
       N.costume.set('princess',true);const atlas=N.SPR.ally.sword_princess_smooth;delete N.SPR.ally.sword_princess_smooth;
       const fallback=N.look.frames('sword')===16;N.SPR.ally.sword_princess_smooth=atlas;
-      return {parity:normal===raw&&normal===smooth,timeline,fallback,hit:N.frameAt({ms,hit:7},16,.55,.55)===7&&N.frameAt({ms:ms2,hit:14},31,.55,.55)===14};
+      return {halfSpeed:Math.abs(slow[0]-.9)<1e-8&&Math.abs(old[0]-.45)<1e-8&&Math.abs(slow[1]-.9*.55)<1e-8&&old[2]===slow[2],parity:raw===smooth,timeline,fallback,hit:N.frameAt({ms,hit:7},16,.55,.55)===7&&N.frameAt({ms:ms2,hit:14},31,.55,.55)===14};
     }""")
     assert all(result.values()),result
     assert not errors,errors
     b.close()
-print('OK: original pixels retained; selection persists; timing, hit, fallback and seeded battle state match')
+print('OK: original pixels retained; selection persists; half-speed duration, cadence, hit sync, fallback and raw/smooth battle parity')
