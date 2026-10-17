@@ -1562,10 +1562,12 @@ function fxQuake(x,y,r){
 }
 // 連番の斬撃（リンネ赤黒・シオウ緑と墨。assets/vfx_<名前>_fb.webp、4列。tools/dev/slashfb.py で焼く）
 const FB={ninja:{n:'ninja_fb',frames:13,life:0.34},samurai:{n:'samurai_fb',frames:13,life:0.42},princess:{n:'princess_fb',frames:13,life:0.42}};
-function fxFB(id,x,y,w,rot,fl){const F=FB[id];if(!F||!vtex(F.n))return false;FX.sh.push({k:'fb',id,x,y,w,rot,fl:fl?-1:1,t:0,life:F.life});return true}
+// 通常攻撃の直線の斬撃の大きさ：sc＝長さの倍率、th＝太さ（線と直角の向きだけ縮める）。風断ち・真・花鳥風月は元の大きさのまま
+const FB_LINE={samurai:{sc:1,th:1},princess:{sc:1,th:1}};
+function fxFB(id,x,y,w,rot,fl,th){const F=FB[id];if(!F||!vtex(F.n))return false;FX.sh.push({k:'fb',id,x,y,w,rot,fl:fl?-1:1,th:th||1,ax:!!th,t:0,life:F.life});return true}
 function drawFB(g,s){const F=FB[s.id],im=vtex(F.n);if(!im||s.t<0)return;
   const fr=Math.min(F.frames-1,Math.floor(s.t/s.life*F.frames)),tile=im.width/4,sx=(fr%4)*tile,sy=Math.floor(fr/4)*tile;
-  g.save();g.translate(s.x,s.y);g.rotate(s.rot);g.scale(s.fl,1);
+  g.save();g.translate(s.x,s.y);if(s.ax){g.rotate(s.rot-Math.PI/4);g.scale(1,s.th*s.fl);g.rotate(Math.PI/4)}else{g.rotate(s.rot);g.scale(s.fl,1)} // ax（直線の通常攻撃）：線の向きの座標で、直角の向きだけ縮める（th）。裏返しも線を軸にする（以前は絵の縦軸で裏返していて、半分の攻撃で斬撃が線と直角＝横いっぱいに出ていた）
   g.drawImage(im,sx,sy,tile,tile,-s.w/2,-s.w/2,s.w,s.w);
   g.globalCompositeOperation='lighter';g.globalAlpha=0.45;g.drawImage(im,sx,sy,tile,tile,-s.w/2,-s.w/2,s.w,s.w);g.restore()}
 /* 真・花鳥風月（シオウの体力8割以下で超必殺が変わる。2026-10-17）。実時間の進行（秒）：
@@ -3095,7 +3097,8 @@ function allyHit(a,tg,rep,singleOnly=false){
     const len=rg+40,lw=d.lineW*(1+0.5*m.pierce);
     const mv=d.id==='mage'&&vtex('mage_beam'),hs=[];
     if(d.id==='samurai'||d.fb){FX.sh.push({k:'beam',x:ox,y:oy,dx,dy,len,t:0,life:0.18,col:d.color,w:lw*0.55});
-      if(!fxFB(d.fb||'samurai',ox+dx*len*0.5,oy+dy*len*0.5,len*1.05,Math.atan2(dy,dx)+Math.PI/4,Math.random()<0.5))
+      const FL=FB_LINE[d.fb||'samurai']||{sc:1,th:1};
+      if(!fxFB(d.fb||'samurai',ox+dx*len*0.5,oy+dy*len*0.5,len*1.05*FL.sc,Math.atan2(dy,dx)+Math.PI/4,Math.random()<0.5,FL.th))
         fxTex({n:'slash_a',col:d.color,x:ox+dx*len*0.45,y:oy+dy*len*0.45,w:Math.min(160,len*0.5),rot:Math.atan2(dy,dx)-Math.PI/4,life:0.22,s0:0.8,s1:1.05,fi:0.06,fo:1.5,a:rep?0.7:1})}
     else if(!mv){FX.sh.push({k:'beam',x:ox,y:oy,dx,dy,len,t:0,life:0.24,col:d.color,w:lw*(VT.orb?0.6:1)});
       fxTex({n:'orb',col:'#d9c2ff',x:ox,y:oy,mx:dx*len,my:dy*len,w:34,rot:0,rot1:5,life:0.26,s0:0.7,s1:1,fi:0.05,fo:1.2})}
@@ -5922,7 +5925,7 @@ window.NARAKU={
   go(id){if(!stepTo(id))return false;arrive();return mode},
   info:id=>nodeInfo(id),light:()=>lightState(),nodeXY:id=>{R.camY=null;const q=mapXY(R.map.nodes[id]);return{x:q.x/W,y:q.y/H}},choose:chooseNode,buy:buyItem,leave:leaveNode,next:afterVictory,giveUp,
   retreat(){if(mode!=='map'||R.walk)return false;endRun('return');return true},
-  vfx:{tick:updFX,blackholeReady,blackholeSmoothReady,shadowReady,ready:()=>!!(vtex('quake_floor')&&vtex('quake_air')),quakeCReady,riftReady:()=>!!(vtex('rift_floor')&&vtex('rift_air'))},QUAKE_VFX,QUAKE_C,RIFT_VFX,SHADOW_VFX,BLACKHOLE_VFX,SHIN,shinStart,useCard,startRewind,updRewind,dropSig,dropFor,get ULT(){return ULT},ULT_DEF,startUlt,SEQ,ULT_SEQ,
+  vfx:{fbLine:FB_LINE,tick:updFX,blackholeReady,blackholeSmoothReady,shadowReady,ready:()=>!!(vtex('quake_floor')&&vtex('quake_air')),quakeCReady,riftReady:()=>!!(vtex('rift_floor')&&vtex('rift_air'))},QUAKE_VFX,QUAKE_C,RIFT_VFX,SHADOW_VFX,BLACKHOLE_VFX,SHIN,shinStart,useCard,startRewind,updRewind,dropSig,dropFor,get ULT(){return ULT},ULT_DEF,startUlt,SEQ,ULT_SEQ,
   pick:chooseUp,
   grant(id){const u=UPS.find(x=>x.id===id);if(!u||!B)return false;applyUp(u);return true},
   // bot=スキルを撃つ自動操縦 / pick=強化を選ぶ関数（提示3枚と B を受け取り番号を返す。省略すると何も取らない）
