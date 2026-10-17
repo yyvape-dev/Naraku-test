@@ -1778,6 +1778,24 @@ function drawMagicHit(g,s){
   if(gl){g.globalAlpha=a*0.55;g.drawImage(gl,-z*0.65,-z*0.65,z*1.3,z*1.3)}
   g.globalAlpha=a*0.75;g.drawImage(im,-z/2,-z/2,z,z);g.restore();
 }
+/* 物理の技の着弾：砂煙の輪（2026-10-17。ユーザー原画5枚・黒背景 vfx/src_dust_ring、tools/dev/keyfb.py dust_ring で RIFE 21コマ。assets/vfx_dust_ring.webp）。
+   ユーザーの方針：魔法以外は魔法陣を使わない（fxMagicHit は魔法だけ）。縦・横一列の技は同じ絵を並べると安っぽいので使わない（別の方法で作る）。
+   輪：0.45→1.15倍に一気に広がりながら（衝撃波）、濃い砂煙→薄い砂煙へコマが進み、0.95秒で消える。光ではないので普通に重ねる。敵の下（床）。
+   放射の代わり：中心から外へ低く飛ぶ温かい白の筋と、重力で落ちる石の欠片（光の魔法陣の spark は使わない）。
+   PHYS＝技ごとの大きさ（s）・濃さ（a）・欠片の量（n）。派手なので小技は控えめ */
+const PHYS={sw_quake:{s:1.1,a:0.95,n:1},sm_wind:{s:1,a:0.85,n:0.8},nj_kunai:{s:0.95,a:0.55,n:0.5},nj_mark:{s:0.95,a:0.7,n:0.6}};
+const DRING={n:'dust_ring',frames:21,cols:6,life:0.95};
+function fxDustRing(x,y,r,o){if(!vtex(DRING.n))return false;o=o||{s:1,a:0.9,n:1};
+  FX.sh.push({k:'dring',x,y,r:r*o.s,a:o.a,t:0,life:DRING.life});
+  dustBurst('streak',x,y-4,Math.round(12*o.n),{spread:TAU,v0:200,v1:380,jit:r*0.25,l0:0.12,l1:0.12,p:{drag:5,w:1.4,len:11,c0:'#fff4e0',c1:'#e6c36a'}});
+  dustBurst('shard',x,y-6,Math.round(14*o.n),{ang:-Math.PI/2,spread:2.8,v0:90,v1:240,jit:r*0.4,l0:0.45,l1:0.35,spin:18,p:{grav:420,drag:1.2,w:1.8+Math.random()*2.2,c0:'#2e261e',c1:'#b89a70'}});
+  return true}
+function drawDustRing(g,s){
+  const im=vtex(DRING.n);if(!im||s.t<0)return;const u=s.t/s.life,T=im.width/DRING.cols;
+  const fr=Math.min(DRING.frames-1,Math.floor(Math.pow(u,0.85)*DRING.frames)),sx=(fr%DRING.cols)*T,sy=Math.floor(fr/DRING.cols)*T;
+  const z=s.r*2.5*(0.45+0.7*(1-Math.pow(1-Math.min(1,u*1.6),3))),a=s.a*Math.min(1,s.t/0.04)*(u>0.7?Math.max(0,1-(u-0.7)/0.3):1);
+  g.save();g.globalCompositeOperation='source-over';g.globalAlpha=a;g.drawImage(im,sx,sy,T,T,s.x-z/2,s.y-z/2,z,z);g.restore();
+}
 const dv=(v,d)=>v==null?d:v;
 // 弾のように数が多く小さい絵は、表示の大きさ（3倍の解像度）に縮めた写しを使う（スマホの負荷を下げる）
 function vsmall(n,col,w,h){const key='s'+n+(col||'')+w+'x'+h;let c=VC[key];if(c)return c;const t=vtex(n,col);if(!t)return null;
@@ -2249,7 +2267,9 @@ function fxSkillTex(c,x,y,r,hh,hits){
     let n=0;for(const e of hits||[]){if(n++>=14)break;const hh2=e.d.h*e.sc*TUNE[e.type].s/100,d=c.freeze*(e.elite?0.5:1);
       fxTex({n:'ice',ly:'top',x:e.x,y:e.y+4,w:Math.max(30,hh2*0.72),ay:0.95,life:Math.max(0.6,d),s0:0.3,s1:1,fi:0.03,fo:4})}
     return}
-  fxTex({n:'circle',col:c.pal[1],x,y,w:r*2.3,sq:0.55,life:0.85,s0:0.55,s1:1,rot:0,rot1:0.7,a:0.75,fi:0.1,fo:1.3});
+  const ph=!c.ult&&PHYS[c.id]&&fxDustRing(x,y,r,PHYS[c.id]); // 物理の技：魔法陣の代わりに砂煙の輪
+  const mg=!c.ult&&!ph&&(c.id==='mg_inferno'||c.id==='si_pillar')&&(fxMagicHit(x,y,r,c.id==='si_pillar'?'#ffe6a0':'#ff9cc0',c.id==='si_pillar'?'#ffb43a':'#e0365f',0),true); // 魔法：魔法陣＋放射の光
+  if(!ph&&!mg)fxTex({n:'circle',col:c.pal[1],x,y,w:r*2.3,sq:0.55,life:0.85,s0:0.55,s1:1,rot:0,rot1:0.7,a:0.75,fi:0.1,fo:1.3});
   if(c.id==='fox_fire')fxTex({n:'burst',x,y,w:r*2.2,life:0.5,s0:0.35,s1:1.05,rot:Math.random()*TAU,fi:0.06,fo:1.6});
   else if(c.id==='mg_inferno')fxTex({n:'burst',col:c.pal[1],x,y,w:r*2.3,life:0.6,s0:0.3,s1:1.08,rot:Math.random()*TAU,fi:0.05,fo:1.5});
   else if(c.id==='sw_quake'){fxTex({n:'crack',ly:'floor',x,y:y+14,w:r*2.2,sq:0.6,life:2.2,s0:0.7,s1:1,rot:Math.random()*TAU,fi:0.03,fo:3});
@@ -3287,9 +3307,9 @@ function impact(c,x,y,k,shadow=false){
   if(c.ult==='blue'&&ultSeqOn('blue')){FX.shake=Math.min(16,FX.shake+7);return}
   if(c.ult==='fox'&&ultSeqOn('fox')){FX.shake=Math.min(16,FX.shake+3);return} // 百鬼狐火の連番：絵は連番に任せ、着弾の爆発は描かない（揺れだけ） // 斬月三日月の連番：絵は連番に任せ、横一列の光の帯は描かない（揺れだけ）
   if(c.id==='fox_bind'&&!c.ult&&(shadow||fxShadow(x,y,r,.16)))return;
-  if(c.id==='sw_quake'&&!c.ult&&fxQuake(x,y,r))return;
+  if(c.id==='sw_quake'&&!c.ult&&fxQuake(x,y,r)){fxDustRing(x,y,r,PHYS.sw_quake);return}
   if(c.id==='sw_rift'&&!c.ult&&(fxRift(x,hw)||fxRiftK(x,hw)))return;
-  if(c.id==='mg_void'&&!c.ult&&voidKOn()||c.id==='fox_fire'&&!c.ult&&foxKOn()){}else if(c.fx==='full')fxFull(c.pal);else if(c.shape==='row')fxRow(y,hh,c.pal);else if(c.shape==='col')(c.ult==='sword'?ultLanaCol:fxCol)(x,hw,c.pal);else fxExplosion(x,y,r,c.pal);
+  if(c.id==='mg_void'&&!c.ult&&voidKOn()||c.id==='fox_fire'&&!c.ult&&foxKOn()){}else if(c.fx==='full')fxFull(c.pal);else if(c.shape==='row')fxRow(y,hh,c.pal);else if(c.shape==='col')(c.ult==='sword'?ultLanaCol:fxCol)(x,hw,c.pal);else fxExplosion(x,y,r,c.pal,!c.ult&&!!PHYS[c.id]&&!!vtex('dust_ring'));
   if(c.fx==='full')return;
   if(c.freeze){const hits=[];for(const e of B.enemies)if(!e.dead&&e.frzT>0&&Math.hypot(e.x-x,e.y-16-y)<=r+e.d.r*e.sc)hits.push(e);fxSkillTex(c,x,y,r,hh,hits)}
   else fxSkillTex(c,x,y,r,hh,null);
@@ -3698,12 +3718,13 @@ function fxDeath(e){
   for(let i=0;i<n;i++){const a=Math.random()*TAU,s=30+Math.random()*(e.elite?260:110);addPart({x:e.x,y:e.y-e.d.h*0.35,vx:Math.cos(a)*s,vy:Math.sin(a)*s-30,t:0,life:0.3+Math.random()*0.4,size:2+Math.random()*2.5,col:i%3?col:'#ffffff',drag:3,grav:0})}
   if(e.elite){FX.sh.push({k:'ring',x:e.x,y:e.y-e.d.h*0.35,r0:10,r1:e.d.boss?220:120,t:0,life:0.5,col,w:5});FX.shake=Math.min(16,FX.shake+10)}
 }
-function fxExplosion(x,y,r,pal){
+function fxExplosion(x,y,r,pal,phys){ // phys＝物理の技（砂煙の輪の版）：色の円盤・細い円の輪（魔法陣に見える）を出さない
   const lite=!!vtex('circle'); // VFXの絵があるときは、閃光・光線・粒を控えめにして絵を主役にする
-  FX.sh.push({k:'decal',x,y,r,t:0,life:2.4,col:pal[2]});
+  if(!phys){FX.sh.push({k:'decal',x,y,r,t:0,life:2.4,col:pal[2]});
   FX.sh.push({k:'flash',x,y,r:r*1.2,t:0,life:lite?0.16:0.3,col:pal[0]});
   FX.sh.push({k:'ring',x,y,r0:r*0.2,r1:r*1.05,t:0,life:0.36,col:pal[1],w:lite?3:6});
-  FX.sh.push({k:'ring',x,y,r0:r*0.1,r1:r*1.45,t:0,life:0.6,col:pal[0],w:2});
+  FX.sh.push({k:'ring',x,y,r0:r*0.1,r1:r*1.45,t:0,life:0.6,col:pal[0],w:2})}
+  else FX.sh.push({k:'flash',x,y,r:r*0.7,t:0,life:0.12,col:'#fff4e0'});
   if(!lite)for(let i=0;i<12;i++)FX.sh.push({k:'ray',x,y,ang:Math.random()*TAU,len:r*(0.8+Math.random()*0.7),t:0,life:0.18+Math.random()*0.12,col:pal[0]});
   for(let i=0;i<(lite?40:80);i++){const a=Math.random()*TAU,s=r*(1.2+Math.random()*3.6);addPart({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,t:0,life:0.35+Math.random()*0.55,size:2+Math.random()*3.5,col:pal[i%4===0?0:1],drag:3.4,grav:0})}
   for(let i=0;i<26;i++){const a=Math.random()*TAU,d=Math.random()*r*0.9;addPart({x:x+Math.cos(a)*d,y:y+Math.sin(a)*d*0.7,vx:(Math.random()-0.5)*20,vy:-25-Math.random()*55,t:0,life:0.9+Math.random()*1.3,size:1.5+Math.random()*2,col:pal[1],drag:0.5,grav:0})}
@@ -3999,7 +4020,7 @@ function render(T){
   g.save();
   if(FX.shake>0.3)g.translate((Math.random()-0.5)*FX.shake,(Math.random()-0.5)*FX.shake);
   jcZoom(g);shinZoom(g);
-  for(const s of FX.sh)if(s.k==='blackhole'&&s.layer==='floor')drawBlackhole(g,s);else if(s.k==='shadow'&&s.layer==='floor')drawShadow(g,s);else if(s.k==='rift'&&s.layer==='floor')drawRift(g,s);else if(s.k==='riftk')drawRiftK(g,s,'floor');else if(s.k==='mring')drawMagicHit(g,s);else if(s.k==='quake'&&s.layer==='floor')drawQuake(g,s);else if(s.k==='decal'){g.globalAlpha=(1-s.t/s.life)*0.5;g.fillStyle=s.col;g.beginPath();g.ellipse(s.x,s.y,s.r*0.9,s.r*(s.flat||0.6),0,0,TAU);g.fill()}else if(s.k==='tex'&&s.ly==='floor')drawTex(g,s);
+  for(const s of FX.sh)if(s.k==='blackhole'&&s.layer==='floor')drawBlackhole(g,s);else if(s.k==='shadow'&&s.layer==='floor')drawShadow(g,s);else if(s.k==='rift'&&s.layer==='floor')drawRift(g,s);else if(s.k==='riftk')drawRiftK(g,s,'floor');else if(s.k==='mring')drawMagicHit(g,s);else if(s.k==='dring')drawDustRing(g,s);else if(s.k==='quake'&&s.layer==='floor')drawQuake(g,s);else if(s.k==='decal'){g.globalAlpha=(1-s.t/s.life)*0.5;g.fillStyle=s.col;g.beginPath();g.ellipse(s.x,s.y,s.r*0.9,s.r*(s.flat||0.6),0,0,TAU);g.fill()}else if(s.k==='tex'&&s.ly==='floor')drawTex(g,s);
   for(const z of B.zones)drawZone(g,z,T);
   g.globalAlpha=1;
   const list=B.enemies.slice().sort((a,b)=>a.y-b.y);
