@@ -1103,7 +1103,7 @@ const CHARS={
   fox:   {id:'fox',   name:'ユズナミキ',      short:'ユズナミキ',role:'狐耳・速射単体',     hp:95, range:235,cd:0.42,dmg:8, atk:'single',shotSpd:640,color:'#e0913a'},
   sword: {id:'sword', name:'ラナ',            short:'ラナ',    role:'女騎士・近接円形',     hp:180,range:135,cd:1.15,dmg:34,atk:'circle',aoe:62,    color:'#b9c2cc',far:{range:240,k:0.6,cd:1.3,spd:520,tex:'slash_b',col:'#ff4a3a'}},
   sister:{id:'sister',name:'マリアンヌ',      short:'マリアンヌ',role:'シスター・単体と治癒',hp:110,range:205,cd:1.25,dmg:14,atk:'single',shotSpd:430,heal:4,color:'#e9dca8'},
-  blue:  {id:'blue',  name:'アベニウス',      short:'アベニウス',role:'蒼剣士・中距離扇状',   hp:130,range:170,cd:0.95,dmg:18,atk:'fan',   fan:0.9,   color:'#4fc3f7',far:{range:240,k:0.6,cd:1.3,spd:520,tex:'slash_a',col:'#4fc3f7'}},
+  blue:  {id:'blue',  name:'アベニウス',      short:'アベニウス',role:'蒼剣士・中距離扇状',   hp:130,range:170,cd:0.95,dmg:22,atk:'fan',   fan:0.9,   color:'#4fc3f7',far:{range:240,k:0.6,cd:1.3,spd:520,tex:'slash_a',col:'#4fc3f7'}},
   ninja: {id:'ninja', name:'リンネ',          short:'リンネ',  role:'忍・暗殺単体',       hp:90, range:205,cd:0.38,dmg:9, atk:'single',shotSpd:760,crit:0.12,vsBig:1.6,color:'#ff3a3a'},
   samurai:{id:'samurai',name:'シオウ',        short:'シオウ',  role:'侍・居合の貫通',     hp:125,range:265,cd:1.0, dmg:21,atk:'line',  lineW:22,  color:'#5fe0a0'},
   mage:  {id:'mage',  name:'シェリ',          short:'シェリ',  role:'魔術師・長射程貫通',hp:80, range:330,cd:1.6, dmg:24,atk:'line',  lineW:30,  color:'#a57be0'}
@@ -1125,7 +1125,7 @@ const CARDS=[
   {id:'si_pillar', owner:'sister',name:'聖光の柱',  kind:'target', r:76, dmg:85, healFlat:12,reload:8,desc:'浄化し、味方を少し癒す',pal:['#ffffff','#ffe9a0','#b88a2a']},
   {id:'si_pray',   owner:'sister',name:'癒しの祈り',kind:'instant',healPct:0.35,reload:11,desc:'全員の体力を35%回復する',pal:['#ffffff','#bff0c0','#3a8a5a']},
   {id:'mg_inferno',owner:'mage',  name:'奈落の業火',kind:'target', r:112,dmg:170,reload:13,desc:'最大範囲を爆炎で薙ぐ',    pal:['#ffe0f0','#e0365f','#4a0f5a']},
-  {id:'bl_moon',   owner:'blue',  name:'蒼月一閃',  kind:'target', shape:'row',hh:36,dmg:115,reload:9, desc:'横一列をまとめて斬り払う',pal:['#ffffff','#4fc3f7','#123a66']},
+  {id:'bl_moon',   owner:'blue',  name:'蒼月一閃',  kind:'target', shape:'row',hh:36,dmg:140,reload:9, desc:'横一列をまとめて斬り払う',pal:['#ffffff','#4fc3f7','#123a66']},
   {id:'bl_wave',   owner:'blue',  name:'一閃斬月',  kind:'instant',band:150,push:90,dmg:85,reload:12,desc:'防衛線の前を薙ぎ、敵を押し返す',pal:['#ffffff','#7fe0ff','#1a5a8a']},
   {id:'nj_mark',   owner:'ninja', name:'影討ち',    kind:'target', r:46, dmg:150,boss:2,reload:7, desc:'狭い範囲に致命の一撃。強敵には2倍',pal:['#ffffff','#ff3a3a','#3a0508']},
   {id:'nj_kunai',  owner:'ninja', name:'千本苦無',  kind:'target', r:118,dmg:36, slow:1.5,reload:9, desc:'苦無の雨で広く刻み、足を止める',pal:['#ffe6e6','#ff5a5a','#4a0a0a']},
