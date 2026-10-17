@@ -2807,14 +2807,14 @@ const OMENS={
 };
 const omenKey=k=>Object.prototype.hasOwnProperty.call(OMENS,k)?k:'none';
 function rollOmen(seed,runs,previous){const keys=Object.keys(OMENS).filter(k=>k!==previous);return keys[hash32(seed^Math.imul(runs+1,0x9e3779b1)^0x4f4d454e)%keys.length]}
-const skillTag=c=>c.damageTag||(['fox_fire','fox_bind'].includes(c.id)?'mag':CHAR_TAG[c.owner]);
-function omenDamage(dmg,who,tag){
+function omenDamage(dmg,who){
+  const tag=CHAR_TAG[who];
   const key=B.anomaly;if((key==='steel'&&tag==='phys')||(key==='seal'&&tag==='mag'))dmg*=.7;
   if(key==='whispers'&&who){const a=B.allies.find(a=>a.d.id===who);if(a)dmg*=1+clamp(a.m.madness||0,0,99)*.005}
   return dmg;
 }
 function omenHTML(key,label='次の探索'){
-  const o=OMENS[omenKey(key)];return '<details class="omen-notice"><summary><small>酒場の噂 · '+label+'</small><b>奈落の異変：'+o.name+'</b><span>'+o.effect+'</span></summary><p>「'+o.rumor+'」</p><p>この異変は探索終了まで固定。編成・階層変更や再読み込みでは変わりません。</p><p>通常攻撃はキャラ固有の属性、スキルは技の属性で判定。狐火・影縫い・延焼は魔法です。</p><button data-go="party">酒場で編成を整える ›</button></details>';
+  const o=OMENS[omenKey(key)];return '<details class="omen-notice"><summary><small>酒場の噂 · '+label+'</small><b>奈落の異変：'+o.name+'</b><span>'+o.effect+'</span></summary><p>「'+o.rumor+'」</p><p>この異変は探索終了まで固定。編成・階層変更や再読み込みでは変わりません。</p><p>通常攻撃・スキル・超必殺・延焼は、すべて使い手の固有属性（物理／魔法）で判定します。</p><button data-go="party">酒場で編成を整える ›</button></details>';
 }
 const SAVE_KEY='naraku_save_v1';
 function newSave(){
@@ -3133,9 +3133,9 @@ function allyHit(a,tg,rep,singleOnly=false){
   }
 }
 // who=与えた味方のid / kind='atk'（通常攻撃・延焼）か 'skill'。集計は実際に削った体力ぶん（倒しすぎは数えない）
-function hurt(e,dmg,col,crit,quiet,who,kind,tag=CHAR_TAG[who]){
+function hurt(e,dmg,col,crit,quiet,who,kind){
   if(e.dead)return;
-  dmg=omenDamage(dmg,who,tag);
+  dmg=omenDamage(dmg,who);
   const real=Math.min(dmg,Math.max(0,e.hp));if(who&&B.stat[who])B.stat[who][kind]+=real;else B.statX+=real;
   e.hp-=dmg;e.flash=0.12;
   if(JC.on&&!quiet){e.kbT=0.13;if(crit){e.flash=0.18;jcStop(0.035)}}
@@ -3185,7 +3185,7 @@ function updEnemies(dt){
     if(e.knT>0)e.knT-=dt;
     if(e.burnT>0){ // 延焼：0.5秒ごとにまとめて焼く
       e.burnT-=dt;e.burnTick-=dt;
-      if(e.burnTick<=0){e.burnTick+=0.5;hurt(e,e.burnDps*0.5,'#ff8a3a',false,true,e.burnBy,'atk','mag');if(e.dead)continue}
+      if(e.burnTick<=0){e.burnTick+=0.5;hurt(e,e.burnDps*0.5,'#ff8a3a',false,true,e.burnBy,'atk');if(e.dead)continue}
       if(e.burnT<=0)e.burnDps=0;
     }
     if(e.frzT>0){e.frzT-=dt;continue}
@@ -3442,7 +3442,7 @@ function impact(c,x,y,k,shadow=false){
     if(c.slow)e.slowT=Math.max(e.slowT,c.slow);
     if(c.freeze)e.frzT=Math.max(e.frzT,c.freeze*(e.elite?0.5:1));
     if(c.knock)e.y-=c.knock*k*(e.elite?0.3:1);
-    hurt(e,dmg*((c.boss&&(e.elite||e.d.boss))?c.boss:1),c.pal[1],false,false,c.owner,'skill',skillTag(c));
+    hurt(e,dmg*((c.boss&&(e.elite||e.d.boss))?c.boss:1),c.pal[1],false,false,c.owner,'skill');
   }
   if(c.shape!=='full'&&c.fx!=='full'&&(c.dmg||0)>0)jcImpact(x,y,B.kills-k0);
   if(c.healFlat)for(const a of B.allies)if(a.alive){a.hp=Math.min(a.max,a.hp+c.healFlat*k);fxSpark(a.x,a.y-64,'#bff0c0',6)}
@@ -3466,7 +3466,7 @@ function castInstant(c,a){
     for(const e of B.enemies){
       if(e.dead||e.y<top)continue;
       e.y-=c.push*(e.d.boss?0.1:e.elite?0.3:1);e.knT=Math.max(e.knT,0.5);
-      hurt(e,dmg*((c.boss&&(e.elite||e.d.boss))?c.boss:1),c.pal[1],false,false,c.owner,'skill',skillTag(c));
+      hurt(e,dmg*((c.boss&&(e.elite||e.d.boss))?c.boss:1),c.pal[1],false,false,c.owner,'skill');
     }
     fxRow(B.lineY-c.band*0.5,c.band*0.5,c.pal);
     fxTex({n:'slash_a',col:c.pal[1],x:W/2,y:B.lineY-c.band*0.5,w:W*1.3,rot:1.0,sq:0.6,life:0.45,s0:0.85,s1:1.1,fi:0.05,fo:1.4});
@@ -3892,7 +3892,7 @@ function updZones(dt){
     const z=B.zones[i];z.t-=dt;z.tick-=dt;
     if(z.tick<=0){z.tick+=0.5;
       for(const e of B.enemies){if(e.dead||e.y>B.lineY+8||Math.abs(e.x-z.x)>z.hw+e.d.r*e.sc)continue;
-        e.slowT=Math.max(e.slowT,0.6);hurt(e,z.dps*0.5,z.c.pal[1],false,true,z.c.owner,'skill',skillTag(z.c))}
+        e.slowT=Math.max(e.slowT,0.6);hurt(e,z.dps*0.5,z.c.pal[1],false,true,z.c.owner,'skill')}
       if(z.c.id==='sw_rift'&&!z.c.ult&&!RIFT_VFX.enabled&&riftKOn()){const K=VFXK.sword;for(let k=0;k<3;k++)dustBurst('streak',z.x+(Math.random()-0.5)*z.hw*1.2,B.lineY*(0.1+Math.random()*0.85),1,{ang:-Math.PI/2,spread:0.5,v0:40,v1:110,l0:0.3,l1:0.4,p:{drag:1,w:1.2,len:6,c0:K.streak[0],c1:K.streak[1]}})}
       else if(!(z.c.ult==='sword'&&ultSeqOn('sword'))&&!(z.c.id==='sw_rift'&&!z.c.ult&&RIFT_VFX.enabled&&vtex('rift_floor')&&vtex('rift_air')))for(let k=0;k<6;k++)addPart({x:z.x+(Math.random()-0.5)*z.hw*1.4,y:Math.random()*B.lineY,vx:0,vy:-40-Math.random()*60,t:0,life:0.5+Math.random()*0.4,size:2+Math.random()*2,col:z.c.pal[1],drag:0.5,grav:0})}
     if(z.t<=0)B.zones.splice(i,1);
@@ -5947,7 +5947,7 @@ window.NARAKU={
   startRun(ids,seed,floor,anomaly='none'){SAVE_ON=false;S=newSave();S.omen=omenKey(anomaly);S.picks=ids.slice();if(floor){S.floorMax=Math.max(S.floorMax,floor);S.floor=floor}beginRun(seed)},
   // 街の操作と装備・セーブ
   town:{show:showTown,view:showView,pick:togglePick,hire:hireChar,equip:equipItem,unequip,enhance,breakItem,breakAll,inn:innStay,revive,buy:shopBuy,floor:setFloor,bank:bankLoot},
-  omens:{table:OMENS,roll:rollOmen,damage:omenDamage,hurt,skillTag,hitFrom,impact},
+  omens:{table:OMENS,roll:rollOmen,damage:omenDamage,hurt,hitFrom,impact},
   costume:{get:lanaOutfit,set:setLanaCostume,d:id=>charD(id),ultSeq:()=>ULT_SEQ.sword.n,col:()=>ULT_DEF.sword.col,holy:()=>lanaHolyOn},
   look:{set:setLook,get:id=>allyLook(id).key,frames:id=>allyLook(id).seq.length,list:id=>lookList(id).map(o=>o.key)},
   hub:{HUB,select:hubSelect,enter:hubEnter,tick:hubTick,get sel(){return HSEL},get on(){return!!HUBS}},

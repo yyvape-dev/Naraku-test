@@ -31,12 +31,12 @@ with sync_playwright() as p:
       const skill=(a,id,ult=false)=>{const e=ready(a),c={...N.CARDS.find(c=>c.id===id)};delete c.zone;
         if(ult){c.ult=c.owner;c.dmg=140}const hp=e.hp;O.impact(c,e.x,e.y-16,1);return hp-e.hp};
       check('physical_skills_and_ult',Math.abs(skill('steel','sw_quake')/skill('none','sw_quake')-.7)<1e-8&&Math.abs(skill('steel','sw_rift',true)/skill('none','sw_rift',true)-.7)<1e-8);
-      check('magic_skills_and_fox_fire',Math.abs(skill('seal','mg_inferno')/skill('none','mg_inferno')-.7)<1e-8&&Math.abs(skill('seal','fox_fire')/skill('none','fox_fire')-.7)<1e-8&&skill('steel','fox_fire')===skill('none','fox_fire'));
+      check('skills_use_caster_attribute',Math.abs(skill('seal','mg_inferno')/skill('none','mg_inferno')-.7)<1e-8&&Math.abs(skill('steel','fox_fire')/skill('none','fox_fire')-.7)<1e-8&&skill('seal','fox_fire')===skill('none','fox_fire')&&Math.abs(skill('steel','fox_bind')/skill('none','fox_bind')-.7)<1e-8&&Math.abs(skill('steel','fox_fire',true)/skill('none','fox_fire',true)-.7)<1e-8);
       const ticks=(anomaly,zone)=>{const e=ready(anomaly);N.B.allies.forEach(a=>a.cdT=999);e.spd=0;
         if(zone)N.B.zones.push({x:e.x,hw:100,t:3,life:3,tick:.001,dps:40,c:N.CARDS.find(c=>c.id==='sw_rift')});
         else{e.burnT=3;e.burnTick=.001;e.burnDps=40;e.burnBy='sword'}
         const hp=e.hp;N.sim(1/60);return hp-e.hp};
-      check('burn_magic_once',Math.abs(ticks('seal',false)/ticks('none',false)-.7)<1e-8&&ticks('steel',false)===ticks('none',false));
+      check('burn_uses_caster_attribute_once',Math.abs(ticks('steel',false)/ticks('none',false)-.7)<1e-8&&ticks('seal',false)===ticks('none',false));
       check('zone_physical_once',Math.abs(ticks('steel',true)/ticks('none',true)-.7)<1e-8);
       let e=ready('whispers');N.B.allies[0].m.madness=80;const hp=e.hp;O.hurt(e,100,'#fff',false,true,'sword','atk');
       check('madness_bonus',Math.abs(hp-e.hp-140)<1e-8);
