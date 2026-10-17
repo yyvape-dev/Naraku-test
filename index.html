@@ -1261,6 +1261,7 @@ const BKINDS={
   elite: {name:'強敵',    dur:90,ts:1.9,soul:1.1,elite:0.5,boss:false,hp:1.15,dmg:1.05},
   ambush:{name:'奇襲',    dur:60,ts:1.9,soul:1.1,elite:1,  boss:false,hp:1,   dmg:1},
   boss:  {name:'奈落の主',dur:0, ts:1,  soul:1,  elite:1,  boss:true, hp:0.85,dmg:0.9},
+  cata:  {name:'大異変',  dur:540,ts:1/3,soul:1,elite:1/3,boss:false,hp:0.85,dmg:0.9,cata:true}, // 9分・敵の伸びは3分ぶん（ts）・主は実時間3分ごと（CATA）
   trial: {name:'試練',    dur:0, ts:1,  soul:1,  elite:1,  boss:true, hp:1,   dmg:1}   // 検証用。Step 2までの単発戦と同じ条件
 };
 // マスの種類。g=メダルに彫る一文字 / col=札や名札の色 / en=メダルの七宝の色 / desc=行き先の札に出す短い説明
@@ -2350,9 +2351,9 @@ function pickBg(seed){return!BG_KEYS.length?null:BGS[bgPick]?bgPick:BG_KEYS[hash
 const BG_DEPTH=['camp','totem','corridor','plaza','chapel','crypt','roots','ash','cavern','magma'];
 function bgFor(depth,kind){
   if(!BG_KEYS.length)return null;
-  if(kind==='boss'&&BGS.ritual)return'ritual';
+  if((kind==='boss'||kind==='cata')&&BGS.ritual)return'ritual';
   const have=BG_DEPTH.filter(k=>BGS[k]);if(!have.length)return BG_KEYS[0];
-  return kind==='boss'?have[have.length-1]:have[Math.min(have.length-1,Math.floor(depth*have.length))];
+  return kind==='boss'||kind==='cata'?have[have.length-1]:have[Math.min(have.length-1,Math.floor(depth*have.length))];
 }
 (function(){
   let css='';
@@ -2740,7 +2741,7 @@ function newBattle(seed){
      // ソウル強化（戦闘1回分。逆転の右手で消える）。ru=強化の抽選用。逆転の右手を使うたびに引き直しになる / rk=会心の判定用
      stat:{},statX:0, // 与ダメージの集計（味方ごと。statX=禁忌など持ち主のいないもの）
      sp:0,need:UPCFG.first,lv:0,up:{},M:null,offer:null,echoes:[],judgeT:0,ru:mulberry32(hash32(seed^0x3C6EF372^Math.imul(P.rewinds+1,0x9E3779B1))),rk:mulberry32(hash32(seed^0x1B873593)),
-     loot:[],kills:0,idx:0,acc:0,rs,rc,rd:mulberry32(hash32(seed^0x6A09E667)),nextWave:30,nextElite:CFG.eliteEvery*K.elite,bossOut:false,lineY:0,zones:[],combo:null,ultUsed:{},
+     loot:[],kills:0,idx:0,acc:0,rs,rc,rd:mulberry32(hash32(seed^0x6A09E667)),nextWave:30,nextElite:CFG.eliteEvery*K.elite,bossOut:false,cata:K.cata?{next:CATA.bossEvery,n:0,last:null,ult:CATA.ultEvery}:null,lineY:0,zones:[],combo:null,ultUsed:{},
      enemies:[],shots:[],impacts:[],sel:null,slots:[],queue:[],chaseUntil:0,
      allies:P.members.map((m,i)=>{const d=charD(m.id),g=gearStats(m),max=d.hp*(1+g.hp/100);return{m,d,g,tags:g.tags,M:null,rg:1,sk:1,slot:i,x:0,y:0,animHit:HIT_AT,hp:m.collapsed?0:max*m.hpR,max,alive:!m.collapsed,deadBy:m.collapsed?'mad':null,cdT:0.3+i*0.1,animT:-1,animDur:0.4,pend:null,lunge:0,hitT:0,ph:i*1.7}})};
   recalc();
@@ -2804,10 +2805,15 @@ const OMENS={
  undead:{name:'不死者の行進',rumor:'倒れたはずの影が、再び立ち上がったらしい……。',effect:'通常敵が一度だけHP35%でその場で復活。報酬は最終撃破時の1回のみ。'},
  treasure:{name:'宝物の匂い',rumor:'宝の噂が絶えない。だが、それを守る影も多いようだ。',effect:'宝箱と強敵の道が出やすくなる。敵の撃破で得る金20%増。'},
  steel:{name:'鋼の瘴気',rumor:'奈落に、刃を弾く瘴気が漂っているらしい……。',effect:'敵が受ける物理ダメージ30%減。魔法中心の編成が有利。'},
- seal:{name:'魔封じの霧',rumor:'奈落の霧が、魔力を吸い込んでいるらしい……。',effect:'敵が受ける魔法ダメージ30%減。物理中心の編成が有利。'}
+ seal:{name:'魔封じの霧',rumor:'奈落の霧が、魔力を吸い込んでいるらしい……。',effect:'敵が受ける魔法ダメージ30%減。物理中心の編成が有利。'},
+ cata:{name:'大異変',rumor:'奈落の底が、裂けたらしい。主が、何体も這い出してくる――。',effect:'道はなく、奈落の主の間だけ。9分の長期戦で3分ごとに主が現れ、強敵は2体ずつ。最後の主を倒すまで終わらない。超必殺は1分半ごとに再び使える。踏破で伝説の装備が確定。'}
 };
+/* 大異変（2026-10-17 ユーザー決定）。出やすさ CATA_P は仮置き（他の異変より出にくくする）。他の異変の抽選結果は変えない（大異変が当たらなかったときは従来の式） */
+const CATA={p:0.08,dur:540,bossEvery:180,ultEvery:90,eliteN:2};
 const omenKey=k=>Object.prototype.hasOwnProperty.call(OMENS,k)?k:'none';
-function rollOmen(seed,runs,previous){const keys=Object.keys(OMENS).filter(k=>k!==previous);return keys[hash32(seed^Math.imul(runs+1,0x9e3779b1)^0x4f4d454e)%keys.length]}
+function rollOmen(seed,runs,previous){
+  if(previous!=='cata'&&hash32(seed^Math.imul(runs+1,0x85ebca6b)^0x43415441)/4294967296<CATA.p)return 'cata';
+  const keys=Object.keys(OMENS).filter(k=>k!==previous&&k!=='cata');return keys[hash32(seed^Math.imul(runs+1,0x9e3779b1)^0x4f4d454e)%keys.length]}
 function omenDamage(dmg,who){
   const tag=CHAR_TAG[who];
   const key=B.anomaly;if((key==='steel'&&tag==='phys')||(key==='seal'&&tag==='mag'))dmg*=.7;
@@ -3037,7 +3043,9 @@ function spawner(dt){
   const iv=Math.max(CFG.spawnMin,CFG.spawnStart*Math.exp(-t/CFG.spawnDecay));
   while(B.acc>=iv){B.acc-=iv;spawn(pickType(t))}
   if(t>=B.nextWave){const n=Math.max(1,Math.round((CFG.waveBase+Math.floor(B.nextWave/30)*CFG.waveGrow)*(B.anomaly==='swarm'?1.25:B.anomaly==='giants'?.75:1)));for(let i=0;i<n;i++)spawn(pickType(t));banner('大群襲来');B.nextWave+=30}
-  if(t>=B.nextElite){const type=encounterType('elite',Math.round(B.nextElite/B.eliteGap)-1);spawn(type);banner(ENEMIES[type].name);B.nextElite+=B.eliteGap}
+  if(t>=B.nextElite){const k=Math.round(B.nextElite/B.eliteGap)-1,type=encounterType('elite',k);spawn(type);if(B.cata)for(let i=1;i<CATA.eliteN;i++)spawn(encounterType('elite',k+i*97));banner(ENEMIES[type].name+(B.cata?' ×'+CATA.eliteN:''));B.nextElite+=B.eliteGap}
+  if(B.cata&&B.t>=B.cata.next&&B.cata.n<B.dur/CATA.bossEvery){const C=B.cata,type=encounterType('boss',C.n);spawn(type);C.last=B.enemies[B.enemies.length-1];C.n++;C.next+=CATA.bossEvery;
+    banner((C.n>=B.dur/CATA.bossEvery?'最後の主 · ':'第'+C.n+'の主 · ')+ENEMIES[type].name);FX.shake=14}
   if(B.hasBoss&&!B.bossOut&&t>=CFG.bossAt){B.bossOut=true;const type=encounterType('boss');spawn(type);banner(ENEMIES[type].name);FX.shake=14}
 }
 const dmgMul=()=>(1+B.t*B.ts/CFG.dmgRamp)*B.dmgK;
@@ -3547,7 +3555,8 @@ function step(dt){
   updZones(dt);if(mode!=='battle')return;
   B.slots.forEach((s,i)=>{if(s.card)return;if(s.refill>0)s.refill=Math.max(0,s.refill-dt);if(s.refill<=0)s.card=i===STRATEGY_SLOT?drawStrategyCard():drawHandCard()});
   let w=0;for(const e of B.enemies)if(!e.dead)B.enemies[w++]=e;B.enemies.length=w;
-  if(B.t>=B.dur){win();return}
+  if(B.cata&&B.t>=B.cata.ult){B.cata.ult+=CATA.ultEvery;if(Object.keys(B.ultUsed).length){B.ultUsed={};banner('超必殺 再臨');handSig=''}}
+  if(B.t>=B.dur&&(!B.cata||(B.cata.n>=B.dur/CATA.bossEvery&&B.cata.last&&B.cata.last.dead))){win();return}
   if(B.sp>=B.need)openUp(); // ソウルが満ちたら、この一歩の終わりで完全停止して強化を選ぶ
 }
 
@@ -3672,6 +3681,10 @@ function commitBattle(){
   R.gold+=B.gold;for(const it of B.loot)R.loot.push(it);R.wins++;R.done[R.at]=true;R.amb=null;
   if(B.kind==='boss'){ // 奈落の主を退けた報酬：英雄以上の装備1つと金（中身は戦闘シードで決まる）
     R.cleared=true;B.reward=mkItem(mulberry32(hash32(B.seed^0x51ED270B)),B.ilv,2);B.rewardGold=TCFG.clearGold*R.floor;R.loot.push(B.reward);R.gold+=B.rewardGold;
+  }else if(B.kind==='cata'){ // 大異変の踏破：伝説の装備を確定で1つ（ほかに主3体のドロップ）と、主の報酬の3倍の金
+    R.cleared=true;const it=mkItem(mulberry32(hash32(B.seed^0x51ED270B)),B.ilv,2),r0=it.r;it.r=3;it.pw=Math.round(it.pw/RAR[r0].mul*RAR[3].mul*10)/10;
+    if(!it.p){const keys=AFFIX_KEYS[it.s];it.p=keys[hash32(B.seed^0x1E6E4D)%keys.length]}
+    B.reward=it;B.rewardGold=TCFG.clearGold*R.floor*3;R.loot.push(B.reward);R.gold+=B.rewardGold;
   }
   saveRun();
 }
@@ -3680,6 +3693,8 @@ function lose(why){if(mode==='defeat')return;mode='defeat';aim.on=false;showResu
 
 /* ---- モジュールB：探索（網の目マップと灯火）。マップの形も各マスの結果も、探索のシードだけで決まる ---- */
 function genMap(seed,anomaly='none'){
+  if(anomaly==='cata')return{steps:1,nodes:[{id:0,L:0,i:0,n:1,type:'start',next:[1],prev:[],seed:hash32(seed^0x9E3779B1),jx:0,jy:0,hint:'',ev:-1},
+    {id:1,L:1,i:0,n:1,type:'boss',next:[],prev:[0],seed:hash32(seed^Math.imul(2,0x9E3779B1)),jx:0,jy:0,hint:'',ev:-1}]};
   const r=mulberry32(hash32(seed^0x7A3D11C5));
   const steps=XCFG.stepsMin+Math.floor(r()*(XCFG.stepsMax-XCFG.stepsMin+1));
   // 数歩ごとに1マスへ収束する：中継キャンプ（道のりが長ければ2か所）と、最後のボス部屋
@@ -3749,7 +3764,7 @@ function reach2(){
 /* マスがどこまで見えるか。灯りの残量で、2歩先までの情報量が3段階に変わる。
    full=正体が見える / hint=予兆の文だけ / none=何も見えない / far=2歩より先（形だけ） */
 function nodeInfo(id,near){
-  const n=R.map.nodes[id],d=NODES[n.type],ls=lightState();
+  const n=R.map.nodes[id],d=n.type==='boss'&&R.anomaly==='cata'?Object.assign({},NODES.boss,{name:'大異変の主の間',desc:'9分の長期戦。3分ごとに主が現れ、最後の主を倒すまで終わらない。踏破で伝説の装備が確定'}):NODES[n.type],ls=lightState();
   if(R.seen[id])return{lv:'full',g:d.g,name:d.name,text:d.desc,col:d.col,ix:MEDAL_IX[n.type]};
   if(!(near||reach2())[id])return{lv:'far',g:'',name:'未踏',text:'まだ見通せない',col:'#5a5040',ix:-1};
   if(ls==='clear')return{lv:'full',g:d.g,name:d.name,text:d.desc,col:d.col,ix:MEDAL_IX[n.type]};
@@ -3795,7 +3810,7 @@ function arrive(){
   openNode(R.map.nodes[R.at]);
 }
 function startNodeBattle(n,kind){
-  const dep=R.map.steps>1?(n.L-1)/(R.map.steps-1):0;
+  const dep=kind==='cata'?1:R.map.steps>1?(n.L-1)/(R.map.steps-1):0; // 大異変の主の間は、通常の主の間と同じ深さ
   R.node=null;beginBattle(kind==='ambush'?hash32(n.seed^0x0A3B5C7D):n.seed,{kind,depth:dep,bg:bgFor(dep,kind),floor:R.floor,anomaly:R.anomaly});
 }
 // 焚き火ごとに固定抽選。通常各45%、民家各5%。再開しても引き直さない。
@@ -3805,7 +3820,7 @@ function restArt(n){
 }
 function openNode(n){
   const t=n.type;
-  if(t==='battle'||t==='elite'||t==='boss'){startNodeBattle(n,t);return}
+  if(t==='battle'||t==='elite'||t==='boss'){startNodeBattle(n,t==='boss'&&R.anomaly==='cata'?'cata':t);return}
   mode='node';
   if(t==='chest'){
     const r=mulberry32(hash32(n.seed^0x4C1D2E3F)),fx={gold:XCFG.chestGold+Math.floor(r()*XCFG.chestGold)+n.L*10};
@@ -5655,7 +5670,7 @@ function beginBattle(seed,opt){
   setControlLabel($('#btnPause'),'Ⅱ');setControlLabel($('#btnSpeed'),speed===1?'×1':'×2');
   elScreen.classList.remove('on');mode='battle';
   if(R){elRail.classList.remove('enter');void elRail.offsetWidth;elRail.classList.add('enter')} // 探索から戦闘へ：サイドエリアが右から入ってくる
-  banner(({battle:'敵襲',elite:'強敵の気配',boss:'奈落の主',ambush:'奇襲'}[B.kind]||'防衛開始')+(B.anomaly!=='none'?' · '+OMENS[B.anomaly].name:''));
+  banner(({battle:'敵襲',elite:'強敵の気配',boss:'奈落の主',ambush:'奇襲',cata:'大異変'}[B.kind]||'防衛開始')+(B.anomaly!=='none'&&B.kind!=='cata'?' · '+OMENS[B.anomaly].name:''));
 }
 // マップ上の移動（画面からの操作）。駒が滑って着いてから、そのマスが開く
 function travel(id){if(!stepTo(id))return false;R.walk={from:R.from,t:0};return true}
@@ -5805,7 +5820,7 @@ function showResult(ok,why){
   let h;
   if(ok){
     const back=R&&B.back.length?B.back.join('・')+'は戦闘不能から、体力'+Math.round(XCFG.reviveHp*100)+'%で戦列に戻りました。':'';
-    h='<h1>'+(B.kind==='boss'?'奈落の主を退けた':'防衛成功')+'</h1><p>'+fmt(B.dur)+'を耐え抜きました。ソウル'+Math.floor(B.soul)+'は霧散し、戦利品だけが手元に残ります。'+back+'</p>'+st+'<div class="acts">'
+    h='<h1>'+(B.kind==='boss'?'奈落の主を退けた':B.kind==='cata'?'大異変を鎮めた':'防衛成功')+'</h1><p>'+fmt(B.dur)+'を耐え抜きました。ソウル'+Math.floor(B.soul)+'は霧散し、戦利品だけが手元に残ります。'+back+'</p>'+st+'<div class="acts">'
       +(R?'<button data-act="next">'+(R.cleared?'戦利品を持ち帰る':'探索を続ける')+'</button>':'<button data-act="next">次の戦闘へ進む</button><button class="sub" data-act="town">街に戻る</button>')+'</div>';
   }else{
     const can=canRewind();
