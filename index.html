@@ -1689,7 +1689,7 @@ const voidKOn=()=>VOIDK.on&&!!vtex(VOIDK.n); // 2026-10-17：楕円のふちで�
 const ICEC={c0:'#eaf8ff',c1:'#8fd8ff',sh:'#cfeeff'};
 function fxVoidK(x,y,r){
   if(!voidKOn())return false;
-  FX.sh.push({k:'voidk',x,y,w:r*2.5,t:0,life:VOIDK.life});
+  FX.sh.push({k:'voidk',x,y,w:r*2.5,t:0,life:VOIDK.life});fxMagicHit(x,y,r,'#9cdcff','#2a7cff',0);
   FX.sh.push({k:'flash',x,y:y-r*0.3,r:r*1.3,t:0,life:0.2,col:'#bfe9ff'});
   dustBurst('streak',x,y,14,{ang:-Math.PI/2,spread:2.4,v0:120,v1:300,jit:r*0.6,l0:0.14,l1:0.16,p:{drag:4,w:1.3,len:10,c0:ICEC.c0,c1:ICEC.c1}});
   FX.shake=Math.min(16,FX.shake+5);return true;
@@ -1738,7 +1738,7 @@ function foxUltDust(U,dt){
 const FOXK={n:'fox_fire',frames:21,cols:6,cy:0.6,life:1.3,on:new URLSearchParams(location.search).get('foxfx')!=='legacy',
   key:[[0,0],[0.1,5],[0.26,10],[0.5,13],[0.75,15],[1.05,20],[1.3,20]]};
 const foxKOn=()=>FOXK.on&&!!vtex(FOXK.n);
-function fxFoxK(x,y,r){if(!foxKOn())return false;FX.sh.push({k:'foxk',x,y,w:r*3,r,t:0,life:FOXK.life});return true}
+function fxFoxK(x,y,r){if(!foxKOn())return false;FX.sh.push({k:'foxk',x,y,w:r*3,r,t:0,life:FOXK.life});fxMagicHit(x,y,r,'#ff8cc4','#ff2a7a',0.1);return true}
 function drawFoxK(g,s){
   const im=vtex(FOXK.n);if(!im||s.t<0)return;const t=s.t,K=FOXK.key;let f=K[K.length-1][1];
   for(let i=0;i<K.length-1;i++)if(t<K[i+1][0]){f=K[i][1]+(K[i+1][1]-K[i][1])*(t-K[i][0])/(K[i+1][0]-K[i][0]);break}
@@ -1751,6 +1751,32 @@ function drawFoxK(g,s){
     dustBurst('petal',s.x,s.y-6,16,{spread:TAU,v0:60,v1:170,jit:s.r*0.3,l0:0.5,l1:0.5,spin:8,p:{drag:2.2,w:1.6+Math.random()*2,wob:6,c0:'#fff0f4',c1:K2.petal[1],c2:K2.petal[2]}});
     dustBurst('streak',s.x,s.y-6,10,{spread:TAU,v0:160,v1:320,l0:0.12,l1:0.14,p:{drag:4,w:1.3,len:10,c0:'#fff0f4',c1:K2.glow}});
     for(let i=0;i<10;i++){const th=Math.random()*TAU,d=s.r*(0.3+Math.random()*0.9);FOXGL.push({x:s.x+Math.cos(th)*d,y:s.y+Math.sin(th)*d*0.6-10,vx:Math.cos(th)*20,vy:-20-Math.random()*40,z:3+Math.random()*5,t:0,life:0.5+Math.random()*0.6,ph:Math.random()*TAU})}}
+}
+/* 着弾の「魔法陣＋放射の光」（2026-10-17 ユーザー案：旧演出の魔法陣と、中心から外へ広がる白い線＝spark を、スキルの色で発光・ぼかし・フェードさせて原画版に重ねる）。
+   mring：床に寝かせた魔法陣（circle）。0.55→1倍に開きながらゆっくり回り、0.35秒から薄れる。くっきりした線＋ぼかした光（vblurA）の二重、加算。敵の下。
+   mspark：放射の光（spark）。0.4→1.65倍に一気に広がって0.42秒で消える。ぼかした大きめの光＋芯の二重、加算。敵の上。
+   col＝線の色（明るめ）、gc＝にじみの色（濃いめ）。使い方：fxMagicHit(x,y,r,col,gc,遅れ秒) */
+// 黒地の光の絵（circle・spark）用のぼかし：染めた写しを縮めて広げるだけ（vglow は不透明な黒地だと四角く塗れるので使わない）
+function vblurA(n,col){const key='ba'+n+col;let c=VC[key];if(c)return c;const im=vtex(n,col);if(!im)return null;
+  const w=im.width,h=im.height,q=document.createElement('canvas');q.width=Math.max(8,w>>3);q.height=Math.max(8,h>>3);q.getContext('2d').drawImage(im,0,0,q.width,q.height);
+  const q2=document.createElement('canvas');q2.width=Math.max(4,w>>4);q2.height=Math.max(4,h>>4);q2.getContext('2d').drawImage(q,0,0,q2.width,q2.height);
+  c=document.createElement('canvas');c.width=w>>1;c.height=h>>1;const y=c.getContext('2d');y.imageSmoothingEnabled=true;y.globalCompositeOperation='lighter';
+  y.drawImage(q2,0,0,c.width,c.height);y.drawImage(q2,0,0,c.width,c.height);y.globalAlpha=0.8;y.drawImage(q,0,0,c.width,c.height);VC[key]=c;return c}
+function fxMagicHit(x,y,r,col,gc,dl){const t=-(dl||0);
+  FX.sh.push({k:'mring',x,y,r,col,gc,t,life:0.85,rot:Math.random()*TAU});
+  FX.sh.push({k:'mspark',x,y:y-r*0.1,r,col,gc,t,life:0.42,rot:Math.random()*TAU})}
+function drawMagicHit(g,s){
+  if(s.t<0)return;const u=s.t/s.life;
+  if(s.k==='mring'){const im=vtex('circle',s.col),gl=vblurA('circle',s.gc);if(!im)return;
+    const e=1-Math.pow(1-Math.min(1,s.t/0.22),3),z=s.r*2.3*(0.55+0.45*e),a=Math.min(1,s.t/0.05)*(s.t<0.35?1:Math.max(0,1-(s.t-0.35)/(s.life-0.35)));
+    g.save();g.translate(s.x,s.y);g.scale(1,0.55);g.rotate(s.rot+s.t*0.9);g.globalCompositeOperation='lighter';
+    if(gl){g.globalAlpha=a*0.9;g.drawImage(gl,-z*0.54,-z*0.54,z*1.08,z*1.08)}
+    g.globalAlpha=a*0.85;g.drawImage(im,-z/2,-z/2,z,z);g.restore();return}
+  const im=vtex('spark',s.col),gl=vblurA('spark',s.gc);if(!im)return;
+  const e=1-Math.pow(1-Math.min(1,u),2.4),z=s.r*2*(0.4+1.25*e),a=Math.pow(1-u,1.6);
+  g.save();g.translate(s.x,s.y);g.rotate(s.rot);g.scale(1,0.85);g.globalCompositeOperation='lighter';
+  if(gl){g.globalAlpha=a*0.55;g.drawImage(gl,-z*0.65,-z*0.65,z*1.3,z*1.3)}
+  g.globalAlpha=a*0.75;g.drawImage(im,-z/2,-z/2,z,z);g.restore();
 }
 const dv=(v,d)=>v==null?d:v;
 // 弾のように数が多く小さい絵は、表示の大きさ（3倍の解像度）に縮めた写しを使う（スマホの負荷を下げる）
@@ -3973,7 +3999,7 @@ function render(T){
   g.save();
   if(FX.shake>0.3)g.translate((Math.random()-0.5)*FX.shake,(Math.random()-0.5)*FX.shake);
   jcZoom(g);shinZoom(g);
-  for(const s of FX.sh)if(s.k==='blackhole'&&s.layer==='floor')drawBlackhole(g,s);else if(s.k==='shadow'&&s.layer==='floor')drawShadow(g,s);else if(s.k==='rift'&&s.layer==='floor')drawRift(g,s);else if(s.k==='riftk')drawRiftK(g,s,'floor');else if(s.k==='quake'&&s.layer==='floor')drawQuake(g,s);else if(s.k==='decal'){g.globalAlpha=(1-s.t/s.life)*0.5;g.fillStyle=s.col;g.beginPath();g.ellipse(s.x,s.y,s.r*0.9,s.r*(s.flat||0.6),0,0,TAU);g.fill()}else if(s.k==='tex'&&s.ly==='floor')drawTex(g,s);
+  for(const s of FX.sh)if(s.k==='blackhole'&&s.layer==='floor')drawBlackhole(g,s);else if(s.k==='shadow'&&s.layer==='floor')drawShadow(g,s);else if(s.k==='rift'&&s.layer==='floor')drawRift(g,s);else if(s.k==='riftk')drawRiftK(g,s,'floor');else if(s.k==='mring')drawMagicHit(g,s);else if(s.k==='quake'&&s.layer==='floor')drawQuake(g,s);else if(s.k==='decal'){g.globalAlpha=(1-s.t/s.life)*0.5;g.fillStyle=s.col;g.beginPath();g.ellipse(s.x,s.y,s.r*0.9,s.r*(s.flat||0.6),0,0,TAU);g.fill()}else if(s.k==='tex'&&s.ly==='floor')drawTex(g,s);
   for(const z of B.zones)drawZone(g,z,T);
   g.globalAlpha=1;
   const list=B.enemies.slice().sort((a,b)=>a.y-b.y);
@@ -3983,7 +4009,7 @@ function render(T){
     g.save();g.globalAlpha=1-u;g.translate(o.x,o.y+u*10);blit(g,set,f,o.h);g.globalCompositeOperation='lighter';g.globalAlpha=(1-u)*0.45;blit(g,set,f,o.h);g.restore();
   }
   jcDrawPops(g);
-  for(const s of FX.sh)if(s.k==='tex'&&s.ly==='top')drawTex(g,s);else if(s.k==='riftk')drawRiftK(g,s,'top');else if(s.k==='voidk')drawVoidK(g,s);else if(s.k==='foxk')drawFoxK(g,s);
+  for(const s of FX.sh)if(s.k==='tex'&&s.ly==='top')drawTex(g,s);else if(s.k==='riftk')drawRiftK(g,s,'top');else if(s.k==='voidk')drawVoidK(g,s);else if(s.k==='foxk')drawFoxK(g,s);else if(s.k==='mspark')drawMagicHit(g,s);
   for(const s of FX.sh)if(s.k==='blackhole'&&s.layer==='air')drawBlackhole(g,s);else if(s.k==='shadow'&&s.layer==='air')drawShadow(g,s);
   ULTLIT=null;for(const id in ULT_SEQ)if(FX[ULT_SEQ[id].fx])drawUltSeq(g,id); // 超必殺の連番（味方の後ろに1枚。味方は光の色を受ける）
   for(const a of B.allies)drawAlly(g,a,T);
