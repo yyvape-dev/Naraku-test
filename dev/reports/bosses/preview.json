@@ -1,0 +1,30 @@
+{
+  "controls": {
+    "violet_knight": {
+      "type": "violet_knight",
+      "boss": true,
+      "elite": false
+    },
+    "frill_dragon": {
+      "type": "frill_dragon",
+      "boss": true,
+      "elite": false
+    },
+    "sixarm_minotaur": {
+      "type": "sixarm_minotaur",
+      "boss": true,
+      "elite": false
+    },
+    "blue_cyclops": {
+      "type": "blue_cyclops",
+      "boss": true,
+      "elite": false
+    },
+    "crimson_succubus": {
+      "type": "crimson_succubus",
+      "boss": false,
+      "elite": true
+    }
+  },
+  "errors": []
+}

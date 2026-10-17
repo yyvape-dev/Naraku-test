@@ -1,0 +1,30 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ボス4体・サキュバス（エリート）</title>
+<style>body{margin:0;background:#191817;color:#e6d7c3;font:15px system-ui}main{max-width:900px;margin:auto;padding:16px}h1{font-size:20px}button,select,input{font:inherit}button,select{padding:8px;background:#34302b;color:inherit;border:1px solid #72614c;border-radius:5px}label{display:inline-block;margin:5px}iframe{display:block;width:393px;max-width:100%;height:852px;border:1px solid #68553c;margin-top:12px}p{line-height:1.6}a{color:#a7dad9}</style>
+<main><h1>ボス4体・サキュバス（エリート）</h1><p>実ゲームの描画処理を使用。高解像度の正面8コマを実ゲームで表示。前半4コマが前進、後半4コマが攻撃。サキュバスは遠距離魔法型のエリート、残り4体はボス。蠍の女王で既存サイズと比較できます。</p>
+<label>敵 <select id="enemy"><option value="violet_knight">ボス：紫紋の黒騎士</option><option value="frill_dragon">ボス：紅鰭の竜戦士</option><option value="sixarm_minotaur">ボス：六腕のミノタウロス</option><option value="blue_cyclops">ボス：蒼肌のサイクロプス</option><option value="crimson_succubus">エリート：紅翼のサキュバス</option><option value="scorp">既存：蠍の女王</option></select></label><label>動作 <select id="mode"><option value="walk">前進／浮遊</option><option value="attack">攻撃</option><option value="idle">待機</option></select></label>
+<label>速度 <select id="speed"><option value="1">通常</option><option value="0.25">1/4倍</option></select></label><button id="play">停止</button>
+<label>攻撃の時点 <input id="time" type="range" min="0" max="499" value="0"></label><output id="status">読込中…</output><p><a href="../../index.html">ゲームへ</a></p>
+<iframe id="game" src="../../index.html" title="敵キャラを並べた実ゲーム"></iframe></main>
+<script>
+const $=id=>document.getElementById(id),ids=['scorp','violet_knight','frill_dragon','sixarm_minotaur','crimson_succubus','blue_cyclops'];let N=null,t=0,playing=true,last=0;
+$('play').onclick=()=>{playing=!playing;$('play').textContent=playing?'停止':'再生'};
+$('time').oninput=()=>{t=+$('time').value/1000;playing=false;$('play').textContent='再生';$('mode').value='attack'};
+$('mode').onchange=()=>t=0;
+function show(){if(!N)return;N.B.enemies.length=0;N.spawn($('enemy').value);const e=N.B.enemies[0];e.x=180;e.y=N.B.lineY-130;e.atkT=999;e.hp=e.max*.85;t=0}
+$('enemy').onchange=show;
+function tick(now){
+ const dt=last?Math.min(.1,(now-last)/1000):0;last=now;
+ try{
+  if(!N){const n=$('game').contentWindow.NARAKU;if(n&&$('game').contentWindow.NARAKU_READY&&ids.every(id=>n.SPR.enemy[id]?.real)){
+   N=n;N.start(['fox','sword','mage'],777);N.B.enemies.length=0;N.QUAKE_VFX.preview=true;N.FX.banner=null;
+   $('game').contentDocument.getElementById('btnPause').click();
+   show();
+  }}
+  if(N){if(playing)t+=dt*+$('speed').value;const mode=$('mode').value;
+   N.B.enemies.forEach(e=>{e.st=mode==='walk'?'walk':'cast';e.motionT=t;e.ph=0;e.animT=mode==='attack'?t%.5:-1});
+   $('status').textContent=N.B.enemies.map(e=>N.enemyFrame(e)+1).join(' / ');if(playing)$('time').value=Math.round(t%.5*1000);
+  }
+ }catch(e){$('status').textContent=e.message}
+ requestAnimationFrame(tick);
+}requestAnimationFrame(tick);
+</script></html>

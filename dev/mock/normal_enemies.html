@@ -13,7 +13,7 @@ $('mode').onchange=()=>t=0;
 function tick(now){
  const dt=last?Math.min(.1,(now-last)/1000):0;last=now;
  try{
-  if(!N){const n=$('game').contentWindow.NARAKU;if(n&&ids.every(id=>n.SPR.enemy[id]?.real)){
+  if(!N){const n=$('game').contentWindow.NARAKU;if(n&&$('game').contentWindow.NARAKU_READY&&ids.every(id=>n.SPR.enemy[id]?.real)){
    N=n;N.start(['fox','sword','mage'],777);N.B.enemies.length=0;N.QUAKE_VFX.preview=true;N.FX.banner=null;
    $('game').contentDocument.getElementById('btnPause').click();
    ids.forEach((id,i)=>{N.spawn(id);const e=N.B.enemies.at(-1);e.x=64+i%3*115;e.y=200+Math.floor(i/3)*145;e.atkT=999});

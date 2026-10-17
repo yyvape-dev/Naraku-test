@@ -1153,7 +1153,12 @@ const ENEMIES={
   twin_orc:{name:'双斧の鬼兵',kind:'melee',hp:62,spd:26,dmg:7,cd:1.5,h:88,r:16,col:'#a4af72',splitMotion:true,walkFps:6},
   veil_ghost:{name:'青衣の浮遊霊',kind:'ranged',hp:20,spd:28,dmg:4,cd:3.2,h:80,r:14,col:'#6ce5db',splitMotion:true,walkFps:5,float:true,opacity:0.78},
   ogre:  {name:'鎚の大鬼',      kind:'melee', hp:340, spd:25,dmg:10,cd:1.6,h:126,r:24,col:'#ffb36a',elite:true,life:3, soul:10},
-  scorp: {name:'蠍の女王',      kind:'melee', hp:1400,spd:15,dmg:18,cd:1.8,h:160,r:46,col:'#ff5a4a',boss:true, life:10,soul:50}
+  scorp: {name:'蠍の女王',      kind:'melee', hp:1400,spd:15,dmg:18,cd:1.8,h:160,r:46,col:'#ff5a4a',boss:true, life:10,soul:50},
+  violet_knight:{name:'紫紋の黒騎士',kind:'melee',hp:1400,spd:15,dmg:18,cd:1.8,h:174,r:46,col:'#bf79ff',boss:true,life:10,soul:50,splitMotion:true,walkFps:6},
+  frill_dragon:{name:'紅鰭の竜戦士',kind:'melee',hp:1400,spd:15,dmg:18,cd:1.8,h:178,r:46,col:'#ed9570',boss:true,life:10,soul:50,splitMotion:true,walkFps:6},
+  sixarm_minotaur:{name:'六腕のミノタウロス',kind:'melee',hp:1400,spd:15,dmg:18,cd:1.8,h:182,r:46,col:'#c17b92',boss:true,life:10,soul:50,splitMotion:true,walkFps:5},
+  crimson_succubus:{name:'紅翼のサキュバス',kind:'ranged',hp:340,spd:25,dmg:10,cd:1.6,h:142,r:24,col:'#ed67ab',elite:true,life:3,soul:10,splitMotion:true,walkFps:7},
+  blue_cyclops:{name:'蒼肌のサイクロプス',kind:'melee',hp:1400,spd:15,dmg:18,cd:1.8,h:184,r:46,col:'#72b8bd',boss:true,life:10,soul:50,splitMotion:true,walkFps:4}
 };
 
 /* ---- モーションの緩急（コマを等間隔で再生しない。役割に応じて映す長さを変える） ----
@@ -1184,7 +1189,12 @@ const MOTION={
   chain_brute:{ms:[190,50,95,170],hit:1},
   hook_goblin:{ms:[100,35,65,100],hit:1},
   twin_orc:{ms:[170,45,85,150],hit:1},
-  veil_ghost:{ms:[180,50,95,160],hit:1}
+  veil_ghost:{ms:[180,50,95,160],hit:1},
+  violet_knight:{ms:[190,45,95,155],hit:1},
+  frill_dragon:{ms:[170,40,90,145],hit:1},
+  sixarm_minotaur:{ms:[210,50,105,185],hit:1},
+  crimson_succubus:{ms:[150,40,85,130],hit:1},
+  blue_cyclops:{ms:[230,50,110,195],hit:1}
 };
 // 表の無い絵（差し替えの候補など）に使う仮の配分。コマ数で選ぶ。本採用のときは、その絵に合わせた表を MOTION に足す
 const MOTION_DEF={6:{ms:[120,100,80,45,85,130],hit:3},12:{ms:[120,100,90,80,65,50,40,45,65,85,105,130],hit:6}};
@@ -1321,7 +1331,7 @@ const EVENTS=[
 ];
 
 /* ---- モジュールA（街）と、モジュールD・軸1（永続資産＝Goldと装備）。数値はここだけで調整する ---- */
-const GCFG={drop:0.0025,dropElite:0.4,       // 装備の落ちる確率（ふつうの敵／鎚の大鬼）。蠍の女王は必ず落とす。1探索で8〜15個が目安
+const GCFG={drop:0.0025,dropElite:0.4,       // 装備の落ちる確率（ふつうの敵／エリート）。ボスは必ず落とす。1探索で8〜15個が目安
   plus:0.08,maxPlus:10,                     // 強化値 +1 ごとに、基礎値（ATK・DFN）が8%伸びる
   enhGold:40,                               // 強化の費用：金＝enhGold×(強化値+1)×(1+0.5×格)、資材＝強化値+1
   lvK:0.35,                                 // 層と深さによる基礎値の伸び（1層ぶんで +35%。同じ層でも深いマスほど良い）
@@ -2855,7 +2865,7 @@ function shopBuy(id){const t=TSHOP.find(x=>x.id===id);if(!t||S.bag[id]>=t.cap||S
 function setFloor(d){const f=clamp(S.floor+d,1,S.floorMax);if(f===S.floor)return false;S.floor=f;save();return true}
 
 /* ドロップは「戦闘シード×出現番号」だけで決まる。倒す順番や逆転の右手では変わらない（装備の中身も同じ乱数から決める）。
-   lv=層と深さ / boss=蠍の女王（必ず英雄以上を落とす） */
+   lv=層と深さ / boss=ボス全種（必ず英雄以上を落とす） */
 function dropFor(seed,idx,elite,lv,boss){
   const r=mulberry32(hash32(seed^Math.imul(idx+1,0x9E3779B1))),a=r(),b=r(),c=r();
   return{gear:(boss||c<(elite?GCFG.dropElite:GCFG.drop))?mkItem(r,lv||0,boss?2:elite?1:0):null,gold:(elite||a<0.4)?1+Math.floor(b*4)+(elite?20:0):0};
@@ -2888,13 +2898,19 @@ function normalVariant(base){
     base==='knight'?['knight','chain_brute','twin_orc']:['shaman','veil_ghost'];
   return pool[hash32(B.seed^Math.imul(B.idx+1,0x45d9f3b))%pool.length];
 }
+// エリートとボスは既存の出現数/時刻を維持して種類を抽選する。
+const ENCOUNTERS={elite:['ogre','crimson_succubus'],boss:['scorp','violet_knight','frill_dragon','sixarm_minotaur','blue_cyclops']};
+function encounterType(kind,index=0){
+  const pool=ENCOUNTERS[kind],salt=kind==='boss'?0x7f4a7c15:0x6a09e667;
+  return pool[hash32(B.seed^Math.imul(index+1,0x9e3779b1)^salt)%pool.length];
+}
 function spawner(dt){
   const t=B.t*B.ts;B.acc+=dt; // t=敵インフレ曲線の上での時刻（短い戦闘は早回しで進む）
   const iv=Math.max(CFG.spawnMin,CFG.spawnStart*Math.exp(-t/CFG.spawnDecay));
   while(B.acc>=iv){B.acc-=iv;spawn(pickType(t))}
   if(t>=B.nextWave){const n=CFG.waveBase+Math.floor(B.nextWave/30)*CFG.waveGrow;for(let i=0;i<n;i++)spawn(pickType(t));banner('大群襲来');B.nextWave+=30}
-  if(t>=B.nextElite){spawn('ogre');banner('鎚の大鬼');B.nextElite+=B.eliteGap}
-  if(B.hasBoss&&!B.bossOut&&t>=CFG.bossAt){B.bossOut=true;spawn('scorp');banner('蠍の女王');FX.shake=14}
+  if(t>=B.nextElite){const type=encounterType('elite',Math.round(B.nextElite/B.eliteGap)-1);spawn(type);banner(ENEMIES[type].name);B.nextElite+=B.eliteGap}
+  if(B.hasBoss&&!B.bossOut&&t>=CFG.bossAt){B.bossOut=true;const type=encounterType('boss');spawn(type);banner(ENEMIES[type].name);FX.shake=14}
 }
 const dmgMul=()=>(1+B.t*B.ts/CFG.dmgRamp)*B.dmgK;
 
@@ -5827,7 +5843,7 @@ window.NARAKU={
   town:{show:showTown,view:showView,pick:togglePick,hire:hireChar,equip:equipItem,unequip,enhance,breakItem,breakAll,inn:innStay,revive,buy:shopBuy,floor:setFloor,bank:bankLoot},
   look:{set:setLook,get:id=>allyLook(id).key,frames:id=>allyLook(id).seq.length,list:id=>lookList(id).map(o=>o.key)},
   hub:{HUB,select:hubSelect,enter:hubEnter,tick:hubTick,get sel(){return HSEL},get on(){return!!HUBS}},
-  MOTION,MOTION_DEF,HIT_AT,motionOf,frameAt,enemyFrame,enemyAttackFrame,spawn,pickType,
+  MOTION,MOTION_DEF,HIT_AT,motionOf,frameAt,enemyFrame,enemyAttackFrame,spawn,pickType,ENCOUNTERS,encounterType,
   mkItem,gearStats,itemName,itemPow,itemLines,enhCost,exportCode,importCode,fixSave,saveText:o=>saveText(o),loadSave,resume:resumeRun,bag:askBag,use:useBag,rng:mulberry32,
   // 探索の操作。go=1歩進んでマスを開く（移動の演出は省く）/ info=そのマスの見え方 / choose・buy・leave=各マスの画面 / next=勝利後 / giveUp=敗北後 / retreat=街へ帰還
   go(id){if(!stepTo(id))return false;arrive();return mode},

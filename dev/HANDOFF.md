@@ -897,3 +897,16 @@ boot操作も出撃→戦闘→勝利→帰還→全施設→写し復元→保�
 専用の5体検証は成功。実ブラウザで各体のdrawImage時のalphaを記録し、他4体1/幽霊0.78/被弾0.585を確認、エラーなし。dev/reports/ghost-opacity/に前後画像・opacity.json・checks.json。対象はNaraku-test。
 
 透過版の総合smokeもRESULT OK・エラーなし（操縦9/12・火力優先11/12）、bootも保存再開まで成功。
+
+## 2026-10-17 ボス4体＋サキュバスをエリートとして採用
+
+ユーザー「サキュバスはエリートにしよう、実装して」に対応。前回生成した正面/高解像度/高頭身の8コマ原画を、各640×640×8へ無縮小パッキング。原本/生成指示dev/art/bosses/、再生成dev/tools/pack_boss_enemies.py。
+
+violet_knight（紫紋の黒騎士）/frill_dragon（紅鰭の竜戦士）/sixarm_minotaur（六腕のミノタウロス）/blue_cyclops（蒼肌のサイクロプス）はboss:true。蠍の女王と同じ基礎HP1400・dmg18・cd1.8・life10・soul50・英雄以上必ずドロップ。h174/178/182/184とs127%で女王より約9〜15%大きくする。
+crimson_succubus（紅翼のサキュバス）はelite:trueのみ、bossなし。遠距離の魔法型。大鬼と同じ基礎HP340・dmg10・cd1.6・life3・soul10。h142/s100%で大鬼より約13%大きい。前進4＋攻撃4、0.25秒詠唱後に発射。エリート用の黄色足元/青HPバーで、上部ボスバーは表示しない。
+
+ENCOUNTERSのeliteは大鬼/サキュバス、bossは女王/新4体。出現数・タイミングを維持し、seed×出現回数のハッシュで選ぶ。戦闘/出現乱数の消費数を増やさず、巻き戻し/保存再開も同じ候補になる。通常枠には混ぜない。既存通常5体と幽霊opacity.78は維持。
+
+dev/tests/boss_enemies.pyで50seed×2区分の出現時刻/早期出現/重複/全候補/決定性、5体の分類/8コマ/表示サイズ/基準能力と報酬、ボス近接命中/凍結、サキュバス魔法、欠損時fallbackを確認、エラーなし。375/393幅の実戦と攻撃時点をdev/reports/bosses/に記録。dev/mock/boss_enemies.htmlは敵の選択、移動/攻撃/待機、停止/1/4速/時点指定で実ゲームを確認できる。読み込み途中の比較開始競合を防ぐため、この確認ページとnormal_enemies.htmlはNARAKU_READYを待つ。index.htmlはリンク方式で再ビルド。追加素材7.41MB/復号65.54MB。実機Safari未確認。今回の対象はNaraku-test。
+
+全23体版の総合smokeはRESULT OK・エラーなし（操縦9/12・火力優先11/12）。bootも保存再開まで成功、errsなし。既存通常敵の確認ページも起動成功。

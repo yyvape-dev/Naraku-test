@@ -180,7 +180,7 @@ with sync_playwright() as p:
       
       o.uni=[0,0.2,0.5,0.99].map(u=>NARAKU.frameAt(null,6,u,0.55)).join();o.def=[!!NARAKU.motionOf('zzz',6),!!NARAKU.motionOf('zzz',12),NARAKU.motionOf('zzz',7)===null,NARAKU.motionOf('fox',6)===NARAKU.MOTION_DEF[6]].join();
       return o}""")
-    check('全18体に緩急の表があり（新規敵は移動4＋攻撃4）、ヒットが最短・待機と回収が長め・回収は徐々に長い。どの速さでもヒットのコマが命中の瞬間に出る',not r['bad'] and r['keys']==18,r['bad'] or 'ユズナミキ0.42秒の配分(ms) '+str(r['fox']))
+    check('全23体に緩急の表があり（新規敵は移動4＋攻撃4）、ヒットが最短・待機と回収が長め・回収は徐々に長い。どの速さでもヒットのコマが命中の瞬間に出る',not r['bad'] and r['keys']==23,r['bad'] or 'ユズナミキ0.42秒の配分(ms) '+str(r['fox']))
     check('表の無い絵は、コマ数に合う仮の配分か等間隔で再生する',r['uni']=='0,1,3,5' and r['def']=='true,true,true,true',(r['uni'],r['def']))
 
     print('装備（モジュールD・軸1）')
