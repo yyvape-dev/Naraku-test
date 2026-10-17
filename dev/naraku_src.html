@@ -3216,6 +3216,7 @@ function raidHit(e){
   breach(e);
 }
 function updEnemies(dt){
+  const sl=sanctOn()?SANCT.slow:1; // 聖母の加護：敵の移動0.6倍（足止めと重なったら強いほう）
   for(const e of B.enemies){
     if(e.dead)continue;
     if(e.flash>0)e.flash-=dt;if(e.kbT>0)e.kbT-=dt;
@@ -3227,8 +3228,8 @@ function updEnemies(dt){
       if(e.burnT<=0)e.burnDps=0;
     }
     if(e.frzT>0){e.frzT-=dt;continue}
-    e.motionT=(e.motionT||0)+dt*(e.slowT>0?0.45:1);
-    const sp=e.spd*(e.slowT>0?0.45:1);if(e.slowT>0)e.slowT-=dt;
+    const slk=Math.min(e.slowT>0?0.45:1,sl);e.motionT=(e.motionT||0)+dt*slk;
+    const sp=e.spd*slk;if(e.slowT>0)e.slowT-=dt;
     const stopY=B.lineY+e.stopOff;
     if(e.d.kind==='ranged'){
       if(e.y<stopY){e.y+=sp*dt;e.st='walk';continue}
@@ -3395,11 +3396,7 @@ function useStrategy(si){
 const ULT_DEF={
   fox:   {name:'百鬼狐火',  col:'#ff9a2e',fire(a){const c=Object.assign({},CARDS.find(o=>o.id==='fox_fire'),{ult:'fox'}),pts=ultTargets(14);if(ultSeqOn('fox'))FX.foxU={t:0};pts.forEach((p,i)=>B.impacts.push({t:0.05+i*0.07,c,x:p.x,y:p.y,k:1.5}))}},
   sword: {name:'天地開闢',  col:'#ff2a1e',fire(a){const b=CARDS.find(o=>o.id==='sw_rift'),c=Object.assign({},b,{dmg:140,zone:4,zdps:55,ult:'sword',pal:this.pal||['#fff0e8','#ff2a1e','#2a0504']});if(ultSeqOn('sword'))FX.lanaU={t:0};for(let i=0;i<6;i++)B.impacts.push({t:0.04+i*0.06,c,x:30+i*60,y:B.lineY*0.5,k:1})}},
-  sister:{name:'聖母の加護',col:'#ffe9a0',fire(a){
-    const b=CARDS.find(o=>o.id==='si_pillar'),c=Object.assign({},b,{shape:'row',hh:B.lineY*0.5/B.M.skR,dmg:90,healFlat:0,fx:'full'});
-    B.impacts.push({t:0.05,c,x:W/2,y:B.lineY*0.5,k:1});
-    for(const o of B.allies)if(o.alive){const v=Math.round(o.max-o.hp);o.hp=o.max;if(v>0)floatTxt(o.x,o.y-ALLY_H-6,'+'+v,'#bff0c0',15);fxSpark(o.x,o.y-60,'#fff3c4',18)}
-    B.life+=1;floatTxt(W/2,B.lineY-40,'拠点 +1','#ffe9a0',18)}},
+  sister:{name:'聖母の加護',col:'#ffe9a0',fire(a){sanctStart(a)}}, // 15秒の聖域（SANCT）
   mage:  {name:'永劫凍獄',  col:'#8fd8ff',fire(a){
     const v=CARDS.find(o=>o.id==='mg_void'),f=CARDS.find(o=>o.id==='mg_inferno'),hh=B.lineY*0.5/B.M.skR;fxBlackhole();
     B.impacts.push({t:0.05,c:Object.assign({},v,{shape:'row',hh,dmg:40,freeze:3,fx:'full',ult:'mage'}),x:W/2,y:B.lineY*0.5,k:1});
@@ -3416,6 +3413,56 @@ const ULT_DEF={
     for(let i=0;i<4;i++)B.impacts.push({t:0.06+i*0.16,c,x:45+i*90,y:B.lineY*0.5,k:1})}},
   blue:  {name:'斬月三日月',col:'#4fc3f7',fire(a){const b=CARDS.find(o=>o.id==='bl_moon'),hh=B.lineY/6/B.M.skR,c=Object.assign({},b,{hh,dmg:120,ult:'blue'});if(ultSeqOn('blue'))FX.blueU={t:0};for(let i=0;i<3;i++)B.impacts.push({t:0.05+i*0.22,c,x:W/2,y:B.lineY*(5-2*i)/6,k:1})}}
 };
+/* 聖母の加護（2026-10-18 ユーザー指示で持続型へ。旧＝全員全回復＋拠点+1＋全面90）：15秒の聖域。
+   入りの瞬間に全員の最大HPの10%を回復。発動中は 毎秒最大HPの3%の継続回復・攻撃速度1.4倍・攻撃回数+1（多重撃と同じ扱い）・射程1.25倍・敵の移動0.6倍（スキルの足止め0.45倍と重なったら強いほう）。
+   戦場の背景は聖域の絵（assets/bg_sanctuary.webp。ユーザー原画 dev/art/src_sanctuary）へ、マリアンヌの足元から光の輪で広がって切り替わり、終わると輪が足元へ縮んで元の背景へ戻る。
+   再発動（大異変の再臨・戦略札）は残り時間を15秒へ戻す。B に持つので逆転の右手で消える */
+const SANCT={dur:15,heal0:0.10,regen:0.03,spd:1.4,multi:1,range:1.25,slow:0.6,inT:0.7,outT:0.8};
+let bgSC=null;
+function sanctOn(){return!!(B&&B.sanct&&B.sanct.t<SANCT.dur)}
+function sanctStart(a){
+  const s=B.sanct,x=a?a.x:W/2,y=a?a.y-30:B.lineY-30;
+  if(s&&s.t<SANCT.dur)s.t=Math.min(s.t,SANCT.inT);else B.sanct={t:0,x,y};
+  for(const o of B.allies)if(o.alive){const v=Math.round(Math.min(o.max-o.hp,o.max*SANCT.heal0));o.hp+=v;if(v>0)floatTxt(o.x,o.y-ALLY_H-6,'+'+v,'#bff0c0',15);fxSpark(o.x,o.y-60,'#fff3c4',14)}
+  recalc();
+}
+function updSanct(dt){
+  const s=B.sanct;if(!s)return;
+  const was=s.t<SANCT.dur;s.t+=dt;
+  if(s.t<SANCT.dur){
+    for(const o of B.allies)if(o.alive&&o.hp<o.max)o.hp=Math.min(o.max,o.hp+o.max*SANCT.regen*dt);
+    for(let n=Math.random()<dt*24?1:0;n>0;n--){const o=B.allies[Math.floor(Math.random()*B.allies.length)];if(o&&o.alive)addPart({x:o.x+(Math.random()-0.5)*44,y:o.y-Math.random()*20,vx:(Math.random()-0.5)*10,vy:-30-Math.random()*40,t:0,life:0.9+Math.random()*0.8,size:1.6+Math.random()*2,col:Math.random()<0.5?'#fff3c4':'#ffd37a',drag:0.3,grav:0})}
+  }
+  if(was&&s.t>=SANCT.dur)recalc();
+  const r=sanctR(); // 広がる・縮むあいだは境目から光の粒を散らす
+  if(r>1&&(s.t<SANCT.inT||s.t>=SANCT.dur))for(let i=0;i<Math.ceil(dt*220);i++){const q=Math.random()*TAU,x=s.x+Math.cos(q)*r,y=s.y+Math.sin(q)*r;if(x<-10||x>W+10||y<-10||y>H+10)continue;addPart({x,y,vx:Math.cos(q)*30,vy:Math.sin(q)*30-30,t:0,life:0.4+Math.random()*0.5,size:1.5+Math.random()*2.5,col:i%3?'#fff3c4':'#ffd37a',drag:0.6,grav:0})}
+  if(s.t>=SANCT.dur+SANCT.outT)B.sanct=null;
+}
+// 聖域の半径（マリアンヌの足元から）。広がりは減速、戻りは滑らかに縮む
+function sanctR(){
+  const s=B&&B.sanct;if(!s)return 0;const R=Math.hypot(Math.max(s.x,W-s.x),Math.max(s.y,H-s.y))+30;
+  if(s.t<SANCT.inT)return R*(1-Math.pow(1-s.t/SANCT.inT,3));
+  if(s.t<SANCT.dur)return R;
+  const k=Math.min(1,(s.t-SANCT.dur)/SANCT.outT);return R*(1-k*k*(3-2*k));
+}
+function sanctBg(){if(!SPR.bg.sanctuary)return null;if(!bgSC||bgSC.w!==W||bgSC.h!==H)bgSC={w:W,h:H,c:buildBG('sanctuary')};return bgSC.c}
+function drawSanctBg(g,T){
+  const s=B&&B.sanct;if(!s)return;const r=sanctR();if(r<=1)return;const c=sanctBg();
+  g.save();g.beginPath();g.arc(s.x,s.y,r,0,TAU);g.clip();
+  if(c)g.drawImage(c,0,0,W,H);else{g.fillStyle='rgba(255,226,150,.18)';g.fillRect(0,0,W,H)}
+  g.globalCompositeOperation='lighter'; // 天から差す光の息づき
+  let gr=g.createLinearGradient(0,0,0,B.lineY);gr.addColorStop(0,'rgba(255,226,150,'+(0.12+0.05*Math.sin(T*1.6))+')');gr.addColorStop(1,'rgba(255,226,150,0)');g.fillStyle=gr;g.fillRect(0,0,W,B.lineY);
+  g.restore();
+  if(s.t<SANCT.inT||s.t>=SANCT.dur){ // 境目の光の輪
+    g.save();g.globalCompositeOperation='lighter';
+    gr=g.createRadialGradient(s.x,s.y,Math.max(0,r-34),s.x,s.y,r+10);gr.addColorStop(0,'rgba(255,233,160,0)');gr.addColorStop(0.7,'rgba(255,214,120,.45)');gr.addColorStop(0.9,'rgba(255,250,235,.95)');gr.addColorStop(1,'rgba(255,233,160,0)');
+    g.fillStyle=gr;g.beginPath();g.arc(s.x,s.y,r+10,0,TAU);g.fill();g.restore();
+  }
+  if(s.t<SANCT.dur){ // 残り時間：味方の足元に金の輪（減っていく）
+    const k=1-s.t/SANCT.dur;g.save();g.globalCompositeOperation='lighter';g.strokeStyle='rgba(255,226,150,.85)';g.lineWidth=2.5;
+    g.beginPath();g.ellipse(s.x,s.y+30,30,10,0,-Math.PI/2,-Math.PI/2+TAU*k);g.stroke();g.restore();
+  }
+}
 let ULT=null;const ULT_DUR=1.3;
 // 狐火の着弾点：防衛線に近い敵から順に。足りなければ戦場に散らす（乱数は使わない）
 function ultTargets(n){
@@ -3522,6 +3569,7 @@ function castInstant(c,a){
 function step(dt){
   B.t+=dt;
   spawner(dt);
+  updSanct(dt);
   for(const a of B.allies){
     if(a.hitT>0)a.hitT-=dt;
     if(a.lunge>0)a.lunge=Math.max(0,a.lunge-dt*3.2);
@@ -3578,6 +3626,7 @@ function recalc(){
     const g=a.g,both=a.tags.phys&&a.tags.mag,s=both?{dmg:ph.dmg*mg.dmg/aD,spd:ph.spd*mg.spd/aS,multi:ph.multi,crit:ph.crit,knock:ph.knock,pierce:mg.pierce,burn:mg.burn,chill:mg.chill}:a.tags.phys?ph:mg;
     a.M={dmg:s.dmg*(1+g.atk/100),spd:s.spd*(1+g.spd/100),multi:s.multi,crit:s.crit+g.crit/100,knock:s.knock,pierce:s.pierce,burn:s.burn,chill:s.chill};
     a.rg=B.M.range*(1+g.range/100);a.sk=(1+g.atk/100)*(1+g.skill/100);
+    if(sanctOn()){a.M.spd*=SANCT.spd;a.M.multi+=SANCT.multi;a.rg*=SANCT.range} // 聖母の加護の発動中
     if(!a.m.collapsed)soulG+=g.soul;
   }
   B.M.soul*=1+soulG/100;
@@ -4079,8 +4128,8 @@ function updFX(dt){
 /* 床の絵に重ねる暗さ。絵ごとの色を殺さないよう、控えめにする（強いと、どの戦場も同じ黒い床に見える）。
    dim＝全体の黒 / top・topH＝上端の闇（敵は闇の奥から現れる）の濃さと高さ / gate＝門の青い光 / foot＝防衛線より下の帯の黒 / vig＝周辺の暗さ */
 const BGFX={dim:0,top:0.85,topH:0.2,gate:0.15,foot:0,vig:0.4}; // 2026-10-11 ユーザー：暗くしすぎて全部同じ戦場に見える → 全体の黒と足元の帯を無しに（以前は dim .3 / top .92 / topH .24 / gate .4 / foot .5 / vig .62）
-function buildBG(){
-  bgC=mkCanvas(W*2,Math.round(H*2));const g=bgC.getContext('2d');g.scale(2,2);const ly=B?B.lineY:defenseLineY(),ts=45,img=B?SPR.bg[B.bg]:null;
+function buildBG(alt){ // alt＝別の床の絵のキー（聖域など）。その時は作った絵を返すだけ
+  const cv=mkCanvas(W*2,Math.round(H*2));const g=cv.getContext('2d');g.scale(2,2);const ly=B?B.lineY:defenseLineY(),ts=45,img=alt?SPR.bg[alt]:B?SPR.bg[B.bg]:null;
   let gr;
   if(img){
     // 床の絵を、縦横比を保ったまま画面いっぱいに敷く（はみ出す分は中央基準で切る）
@@ -4104,7 +4153,8 @@ function buildBG(){
     for(let x=9;x<W;x+=18)g.fillRect(x-0.5,ly-4,1,8);
   }
   gr=g.createRadialGradient(W/2,H*0.5,H*0.25,W/2,H*0.5,H*0.78);gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,'rgba(0,0,0,'+(img?BGFX.vig:0.62)+')');g.fillStyle=gr;g.fillRect(0,0,W,H);
-  updateBattleFloor();
+  if(alt)return cv;
+  bgC=cv;bgSC=null;updateBattleFloor();
 }
 // 絵の名前とコマ数から、緩急の表を選ぶ（コマ数が合わなければ仮の配分。それも無ければ等間隔）
 function motionOf(name,n){const m=MOTION[name];return m&&m.ms.length===n?m:MOTION_DEF[n]||null}
@@ -4233,6 +4283,7 @@ function render(T){
   const g=ctx;g.setTransform(VSx,0,0,VSy,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';VFXT=T;
   if(bgC)g.drawImage(bgC,0,0,W,H);
   if(!B)return;
+  drawSanctBg(g,T);
   drawBarrier(g,T);
   g.save();
   if(FX.shake>0.3)g.translate((Math.random()-0.5)*FX.shake,(Math.random()-0.5)*FX.shake);
