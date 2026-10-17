@@ -4,7 +4,7 @@
 <label>敵 <select id="enemy"><option value="violet_knight">ボス：紫紋の黒騎士</option><option value="frill_dragon">ボス：紅鰭の竜戦士</option><option value="sixarm_minotaur">ボス：六腕のミノタウロス</option><option value="blue_cyclops">ボス：蒼肌のサイクロプス</option><option value="crimson_succubus">エリート：紅翼のサキュバス</option><option value="scorp">既存：蠍の女王</option></select></label><label>動作 <select id="mode"><option value="walk">前進／浮遊</option><option value="attack">攻撃</option><option value="idle">待機</option></select></label>
 <label>速度 <select id="speed"><option value="1">通常</option><option value="0.25">1/4倍</option></select></label><button id="play">停止</button>
 <label>攻撃の時点 <input id="time" type="range" min="0" max="499" value="0"></label><output id="status">読込中…</output><p><a href="../../index.html">ゲームへ</a></p>
-<iframe id="game" src="../../index.html" title="敵キャラを並べた実ゲーム"></iframe></main>
+<iframe id="game" src="../../index.html?v=boss-enemies-20261017" title="敵キャラを並べた実ゲーム"></iframe></main>
 <script>
 const $=id=>document.getElementById(id),ids=['scorp','violet_knight','frill_dragon','sixarm_minotaur','crimson_succubus','blue_cyclops'];let N=null,t=0,playing=true,last=0;
 $('play').onclick=()=>{playing=!playing;$('play').textContent=playing?'停止':'再生'};
