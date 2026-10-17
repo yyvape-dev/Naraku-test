@@ -1,0 +1,100 @@
+{
+  "frames": {
+    "relic_dead": {
+      "walk": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "attack": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "height": 78,
+      "refH": 490
+    },
+    "chain_brute": {
+      "walk": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "attack": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "height": 88,
+      "refH": 407
+    },
+    "hook_goblin": {
+      "walk": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "attack": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "height": 70,
+      "refH": 442
+    },
+    "twin_orc": {
+      "walk": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "attack": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "height": 88,
+      "refH": 441
+    },
+    "veil_ghost": {
+      "walk": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "attack": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "height": 80,
+      "refH": 514
+    }
+  },
+  "spawnCounts": {
+    "veil_ghost": 38,
+    "skel": 122,
+    "relic_dead": 129,
+    "shaman": 38,
+    "beast": 30,
+    "hook_goblin": 20,
+    "twin_orc": 7,
+    "chain_brute": 7,
+    "knight": 9
+  },
+  "meleeHit": true,
+  "frozen": true,
+  "ghostRelease": true,
+  "fallback": true,
+  "errors": []
+}

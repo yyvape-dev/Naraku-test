@@ -1151,7 +1151,7 @@ const ENEMIES={
   chain_brute:{name:'鎖肉の屍兵',kind:'melee',hp:62,spd:26,dmg:7,cd:1.5,h:88,r:16,col:'#bc6e66',splitMotion:true,walkFps:5},
   hook_goblin:{name:'鉤刃の小鬼',kind:'melee',hp:30,spd:56,dmg:5,cd:1.0,h:70,r:17,col:'#c2a877',splitMotion:true,walkFps:10},
   twin_orc:{name:'双斧の鬼兵',kind:'melee',hp:62,spd:26,dmg:7,cd:1.5,h:88,r:16,col:'#a4af72',splitMotion:true,walkFps:6},
-  veil_ghost:{name:'青衣の浮遊霊',kind:'ranged',hp:20,spd:28,dmg:4,cd:3.2,h:80,r:14,col:'#6ce5db',splitMotion:true,walkFps:5,float:true},
+  veil_ghost:{name:'青衣の浮遊霊',kind:'ranged',hp:20,spd:28,dmg:4,cd:3.2,h:80,r:14,col:'#6ce5db',splitMotion:true,walkFps:5,float:true,opacity:0.78},
   ogre:  {name:'鎚の大鬼',      kind:'melee', hp:340, spd:25,dmg:10,cd:1.6,h:126,r:24,col:'#ffb36a',elite:true,life:3, soul:10},
   scorp: {name:'蠍の女王',      kind:'melee', hp:1400,spd:15,dmg:18,cd:1.8,h:160,r:46,col:'#ff5a4a',boss:true, life:10,soul:50}
 };
@@ -2601,8 +2601,8 @@ function jcZoom(g){
 function jcDrawPops(g){ // 撃破の瞬間：敵の絵が白く焼けて、膨らみながら消える
   if(!JC.on)return;
   g.save();g.globalCompositeOperation='lighter';
-  for(const p of JC.pops){const u=p.t/p.life,s=1+u*0.4,set=SPR.enemy[p.type];
-    g.save();g.translate(p.x,p.y-p.h*0.04*u);g.scale(s,s*(1-u*0.15));g.globalAlpha=(1-u)*0.95;blit(g,set,0,p.h);g.globalAlpha=(1-u)*0.6;blit(g,set,0,p.h);g.restore()}
+  for(const p of JC.pops){const u=p.t/p.life,s=1+u*0.4;
+    g.save();g.translate(p.x,p.y-p.h*0.04*u);g.scale(s,s*(1-u*0.15));g.globalAlpha=(1-u)*0.95;blitEnemy(g,p.type,0,p.h);g.globalAlpha=(1-u)*0.6;blitEnemy(g,p.type,0,p.h);g.restore()}
   g.restore();
 }
 function jcText(g,txt,x,y,size,core,edge,a){
@@ -3948,6 +3948,11 @@ function blit(g,set,f,h){
   const fr=set.frames[f%set.frames.length],s=h/set.refH,ax=CFG.fix?fr.ax:fr.rax,ay=CFG.fix?fr.ay:fr.ray;
   g.drawImage(fr.c,-ax*s,-ay*s,fr.c.width*s,fr.c.height*s);
 }
+// 霊体の透過は描画だけに適用。命中時や消失時のalphaにも掛け合わせる。
+function blitEnemy(g,type,f,h){
+  const alpha=g.globalAlpha;g.globalAlpha=alpha*(ENEMIES[type].opacity??1);
+  blit(g,SPR.enemy[type],f,h);g.globalAlpha=alpha;
+}
 function mark(g,x,y){g.fillStyle='#39ff6a';g.fillRect(x-5,y-0.75,10,1.5);g.fillRect(x-0.75,y-5,1.5,10)}
 function enemyAttackFrame(type,u){
   const set=SPR.enemy[type],split=ENEMIES[type].splitMotion&&set.real&&set.frames.length===8;
@@ -3959,7 +3964,7 @@ function enemyFrame(e){
   return e.d.splitMotion&&set.real&&set.frames.length===8&&(e.st==='walk'||e.d.float)?Math.floor((e.motionT||0)*e.d.walkFps+e.ph)%4:0;
 }
 function drawEnemy(g,e,T){
-  const set=SPR.enemy[e.type],tn=TUNE[e.type],h=e.d.h*e.sc*tn.s/100*.85;let f=enemyFrame(e),bob=0,rot=0;
+  const tn=TUNE[e.type],h=e.d.h*e.sc*tn.s/100*.85;let f=enemyFrame(e),bob=0,rot=0;
   if(e.d.splitMotion){
     if(e.d.float)bob=-5-Math.sin((e.motionT||0)*2.8+e.ph)*3;
   }else if(e.animT<0&&e.frzT<=0){
@@ -3970,8 +3975,8 @@ function drawEnemy(g,e,T){
   if(e.elite){g.strokeStyle=e.d.boss?'rgba(255,90,74,.75)':'rgba(255,179,106,.7)';g.lineWidth=2;g.beginPath();g.ellipse(e.x,e.y,h*0.34,h*0.12,0,0,TAU);g.stroke()}
   g.save();g.translate(e.x+tn.x*e.sc,e.y+bob+tn.y*e.sc);g.rotate(rot);
   if(e.kbT>0){const u=e.kbT/0.13;g.translate(0,-6*u);g.scale(1+0.14*u,1-0.12*u)} // のけぞり：描くときだけ押し上げて潰す（位置の計算はそのまま）
-  blit(g,set,f,h);
-  if(e.flash>0){g.globalCompositeOperation='lighter';g.globalAlpha=0.75;blit(g,set,f,h)}
+  blitEnemy(g,e.type,f,h);
+  if(e.flash>0){g.globalCompositeOperation='lighter';g.globalAlpha=0.75;blitEnemy(g,e.type,f,h)}
   g.restore();
   if(e.burnT>0){g.fillStyle='rgba(255,138,58,'+(0.2+Math.sin(T*22+e.ph)*0.08)+')';g.beginPath();g.ellipse(e.x,e.y-h*0.42,h*0.2,h*0.42,0,0,TAU);g.fill()}
   if(e.frzT>0){g.strokeStyle='#bfe9ff';g.lineWidth=1.5;g.beginPath();g.ellipse(e.x,e.y,h*0.3,h*0.11,0,0,TAU);g.stroke();g.fillStyle='rgba(143,216,255,.28)';g.fillRect(e.x-h*0.2,e.y-h*0.9,h*0.4,h*0.9)}
@@ -4020,7 +4025,7 @@ function drawTunePreview(g,T){ // 敵を調整するときは、戦場の中央�
   const set=SPR.enemy[tuneKey],tn=TUNE[tuneKey],x=W/2,y=B.lineY-90,h=d.h*tn.s/100;
   g.fillStyle='rgba(0,0,0,.6)';g.beginPath();g.ellipse(x,y,26,8,0,0,TAU);g.fill();
   g.strokeStyle=CSSGOLD;g.lineWidth=1.5;g.beginPath();g.ellipse(x,y,30,9,0,0,TAU);g.stroke();
-  g.save();g.translate(x+tn.x,y+tn.y);blit(g,set,tuneAnim?(d.splitMotion&&set.real&&set.frames.length===8?(T%2<1?Math.floor(T*d.walkFps)%4:enemyAttackFrame(tuneKey,T%1)):frameLoop(motionOf(tuneKey,6),6,T)):0,h);g.restore();
+  g.save();g.translate(x+tn.x,y+tn.y);blitEnemy(g,tuneKey,tuneAnim?(d.splitMotion&&set.real&&set.frames.length===8?(T%2<1?Math.floor(T*d.walkFps)%4:enemyAttackFrame(tuneKey,T%1)):frameLoop(motionOf(tuneKey,6),6,T)):0,h);g.restore();
   if(CFG.showAnchor)mark(g,x,y);
 }
 // スキル発動の瞬間だけ、使い手の正面絵が斜めの帯で横切る（ゲームは止めない）
@@ -4063,8 +4068,8 @@ function render(T){
   const list=B.enemies.slice().sort((a,b)=>a.y-b.y);
   for(const e of list)if(!e.dead)drawEnemy(g,e,T);
   for(const o of FX.ghosts){ // 突破した敵：振り抜きの残りのコマを、赤く染まりながら沈めて消す
-    const u=o.t/o.life,f=enemyAttackFrame(o.type,0.5+u*0.5),set=SPR.enemy[o.type];
-    g.save();g.globalAlpha=1-u;g.translate(o.x,o.y+u*10);blit(g,set,f,o.h);g.globalCompositeOperation='lighter';g.globalAlpha=(1-u)*0.45;blit(g,set,f,o.h);g.restore();
+    const u=o.t/o.life,f=enemyAttackFrame(o.type,0.5+u*0.5);
+    g.save();g.globalAlpha=1-u;g.translate(o.x,o.y+u*10);blitEnemy(g,o.type,f,o.h);g.globalCompositeOperation='lighter';g.globalAlpha=(1-u)*0.45;blitEnemy(g,o.type,f,o.h);g.restore();
   }
   jcDrawPops(g);
   for(const s of FX.sh)if(s.k==='tex'&&s.ly==='top')drawTex(g,s);else if(s.k==='riftk')drawRiftK(g,s,'top');else if(s.k==='voidk')drawVoidK(g,s);else if(s.k==='foxk')drawFoxK(g,s);else if(s.k==='mspark')drawMagicHit(g,s);

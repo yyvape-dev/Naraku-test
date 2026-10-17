@@ -1,0 +1,21 @@
+{
+  "bodyAlphas": {
+    "relic_dead": [
+      1
+    ],
+    "chain_brute": [
+      1
+    ],
+    "hook_goblin": [
+      1
+    ],
+    "twin_orc": [
+      1
+    ],
+    "veil_ghost": [
+      0.78
+    ]
+  },
+  "hitFlashAlpha": 0.585,
+  "errors": []
+}
