@@ -1563,7 +1563,7 @@ function fxQuake(x,y,r){
 // 連番の斬撃（リンネ赤黒・シオウ緑と墨。assets/vfx_<名前>_fb.webp、4列。tools/dev/slashfb.py で焼く）
 const FB={ninja:{n:'ninja_fb',frames:13,life:0.34},samurai:{n:'samurai_fb',frames:13,life:0.42},princess:{n:'princess_fb',frames:13,life:0.42}};
 // 通常攻撃の直線の斬撃の大きさ：sc＝長さの倍率、th＝太さ（線と直角の向きだけ縮める）。風断ち・真・花鳥風月は元の大きさのまま
-const FB_LINE={samurai:{sc:1,th:1},princess:{sc:1,th:1}};
+const FB_LINE={samurai:{sc:0.85,th:0.65},princess:{sc:0.85,th:0.65}}; // 2026-10-17 ユーザー選択「C」（長さ85%×太さ65%）
 function fxFB(id,x,y,w,rot,fl,th){const F=FB[id];if(!F||!vtex(F.n))return false;FX.sh.push({k:'fb',id,x,y,w,rot,fl:fl?-1:1,th:th||1,ax:!!th,t:0,life:F.life});return true}
 function drawFB(g,s){const F=FB[s.id],im=vtex(F.n);if(!im||s.t<0)return;
   const fr=Math.min(F.frames-1,Math.floor(s.t/s.life*F.frames)),tile=im.width/4,sx=(fr%4)*tile,sy=Math.floor(fr/4)*tile;

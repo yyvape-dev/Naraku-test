@@ -1377,7 +1377,7 @@ const TSHOP=[{id:'oil',price:90,cap:3},{id:'salve',price:130,cap:3},{id:'incense
    ========================================================= */
 const SPR={ally:{},enemy:{},face:{},cut:{},bg:{}};
 /* スキル発動時のカットイン用の横長画像。ビルド時に差し込まれる */
-const CUTS=/*__CUTS_START__*/{"blue":"dev/assets/cut_blue.webp?v=800e8099","fox":"dev/assets/cut_fox.webp?v=559cb8e3","mage":"dev/assets/cut_mage.webp?v=4eccf29a","ninja":"dev/assets/cut_ninja.webp?v=12d8b89b","samurai":"dev/assets/cut_samurai.webp?v=d7bb7613","sister":"dev/assets/cut_sister.webp?v=e2af9c68","sword":"dev/assets/cut_sword.webp?v=d317d64a","sword_p":"dev/assets/cut_sword_p.webp?v=10c85054"}/*__CUTS_END__*/;
+const CUTS=/*__CUTS_START__*/{"blue":"dev/assets/cut_blue.webp?v=800e8099","fox":"dev/assets/cut_fox.webp?v=559cb8e3","mage":"dev/assets/cut_mage.webp?v=4eccf29a","ninja":"dev/assets/cut_ninja.webp?v=12d8b89b","samurai":"dev/assets/cut_samurai.webp?v=d7bb7613","sister":"dev/assets/cut_sister.webp?v=e2af9c68","sword":"dev/assets/cut_sword.webp?v=d317d64a","sword_p":"dev/assets/cut_sword_p.webp?v=e40ae894"}/*__CUTS_END__*/;
 /* 超必殺のカットインの立ち絵（背景を抜いた9:16）。assets/ult_<キャラ>.webp がビルド時に差し込まれる。無ければ札の絵で代用。
    最初の発動でカクつかないよう、読み込み時に先に展開しておく */
 const ULTS=/*__ULTS_START__*/{"blue":"dev/assets/ult_blue.webp?v=706ab151","fox":"dev/assets/ult_fox.webp?v=4856ea9b","mage":"dev/assets/ult_mage.webp?v=66226a57","ninja":"dev/assets/ult_ninja.webp?v=e1406739","samurai":"dev/assets/ult_samurai.webp?v=3a7d9a4f","sister":"dev/assets/ult_sister.webp?v=111ec84a","sword":"dev/assets/ult_sword.webp?v=45d3426d","sword_p":"dev/assets/ult_sword_p.webp?v=e20b81fd"}/*__ULTS_END__*/;
@@ -1563,7 +1563,7 @@ function fxQuake(x,y,r){
 // 連番の斬撃（リンネ赤黒・シオウ緑と墨。assets/vfx_<名前>_fb.webp、4列。tools/dev/slashfb.py で焼く）
 const FB={ninja:{n:'ninja_fb',frames:13,life:0.34},samurai:{n:'samurai_fb',frames:13,life:0.42},princess:{n:'princess_fb',frames:13,life:0.42}};
 // 通常攻撃の直線の斬撃の大きさ：sc＝長さの倍率、th＝太さ（線と直角の向きだけ縮める）。風断ち・真・花鳥風月は元の大きさのまま
-const FB_LINE={samurai:{sc:1,th:1},princess:{sc:1,th:1}};
+const FB_LINE={samurai:{sc:0.85,th:0.65},princess:{sc:0.85,th:0.65}}; // 2026-10-17 ユーザー選択「C」（長さ85%×太さ65%）
 function fxFB(id,x,y,w,rot,fl,th){const F=FB[id];if(!F||!vtex(F.n))return false;FX.sh.push({k:'fb',id,x,y,w,rot,fl:fl?-1:1,th:th||1,ax:!!th,t:0,life:F.life});return true}
 function drawFB(g,s){const F=FB[s.id],im=vtex(F.n);if(!im||s.t<0)return;
   const fr=Math.min(F.frames-1,Math.floor(s.t/s.life*F.frames)),tile=im.width/4,sx=(fr%4)*tile,sy=Math.floor(fr/4)*tile;
