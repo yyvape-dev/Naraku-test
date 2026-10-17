@@ -654,6 +654,7 @@ img.frm{display:block;width:100%;height:100%}
 .fac-card .fac-up{margin-top:6px;padding:5px 8px;border-radius:6px;background:rgba(30,17,8,.34);font-size:11px;color:#dcc99c;text-align:center}
 .fac-card .fac-up{white-space:nowrap}
 .fac-card .fac-up b{display:inline;color:var(--gold-hi);font-size:14px;margin:0 3px}
+.fac.smart .fac-act.rfb,.fac-act.rfb{letter-spacing:.02em;white-space:nowrap}.fac-card .fac-up.rf{white-space:nowrap;font-size:10.5px;line-height:1.55;text-align:center}.fac-card .fac-up.rf b{font-size:11px;margin:0 1px}
 .fac-card .none{margin:auto 0;font-size:12px;line-height:1.7;color:#dcc99c;text-align:center}
 .fac-acts{display:flex;gap:8px;margin-top:auto;padding-top:8px}
 .fac-act{flex:1;min-height:46px;border-radius:7px;border:1px solid #c9a85a;background:linear-gradient(#8a6534,#6a4a22);font-size:14px;letter-spacing:.12em;color:var(--gold-hi);line-height:1.3}
@@ -2933,6 +2934,33 @@ const breakYield=it=>RAR[it.r].mat+Math.floor(it.n*(it.n+1)/4);
 function breakItem(id){const f=findItem(id);if(!f||f.owner)return 0;const y=breakYield(f.it);S.inv.splice(S.inv.indexOf(f.it),1);S.mats+=y;save();return y}
 // 一括分解：倉庫にある、その格以下で、まだ鍛えていない装備だけ（身に着けている装備と、鍛えた装備は残す）
 const bulkList=maxR=>S.inv.filter(it=>it.r<=maxR&&it.n===0);
+/* 鍛え直し（二つ名の引き直し）と格上げ（2026-10-17 ユーザー決定。余りがちな金の使い道。格上げの成功率は厳しめ）。
+   値段は深い層の装備ほど高い（lvF＝基礎値を格と乱数の平均で割り戻した層の伸び）。
+   鍛え直し：同じ装備を回すたびに1.5倍、奈落から戻るたびに元の値段（it.rfR＝回した時の S.runs）。今と同じ二つ名は出ない。直前の1回は無料で元に戻せる。
+   格上げ：失敗すると金と資材だけ失う（装備は壊れない）。失敗するたびに次の成功率が少し上がり（it.upF）、成功で0に戻る。
+   測定（1探索の稼ぎ：第1層2,500〜3,700G・第3層4,000〜6,000G、使い道は約1,200G）に合わせた値。 */
+const RFCFG={base:[0,200,300,450],grow:1.5,
+  upGold:[300,800,2000],upMats:[5,12,25],upP:[0.45,0.2,0.08],upPity:[0.05,0.03,0.015]};
+const itemLvF=it=>Math.max(1,it.pw/(8.5*RAR[it.r].mul));
+const rfK=it=>it.rfR===S.runs?(it.rfK||0):0;
+const rfCost=it=>it.r>0?Math.round(RFCFG.base[it.r]*itemLvF(it)*Math.pow(RFCFG.grow,rfK(it))/10)*10:0;
+const upCost=it=>it.r>=3?null:{gold:Math.round(RFCFG.upGold[it.r]*itemLvF(it)/10)*10,mats:RFCFG.upMats[it.r],p:Math.min(1,RFCFG.upP[it.r]+(it.upF||0)*RFCFG.upPity[it.r])};
+let RFU=null; // 直前の鍛え直し {id,p}：元に戻すため
+function reforge(id){
+  const f=findItem(id);if(!f)return false;const it=f.it,c=rfCost(it);if(it.r<1||S.gold<c)return false;
+  const keys=AFFIX_KEYS[it.s].filter(k=>k!==it.p);
+  S.gold-=c;RFU={id:it.id,p:it.p};it.p=keys[Math.floor(Math.random()*keys.length)];
+  it.rfK=rfK(it)+1;it.rfR=S.runs;save();return true;
+}
+function reforgeUndo(id){if(!RFU||RFU.id!==id)return false;const f=findItem(id);if(!f)return false;f.it.p=RFU.p;RFU=null;save();return true}
+function upgradeItem(id){ // 戻り値：'ok'＝成功 / 'fail'＝失敗 / false＝できない
+  const f=findItem(id);if(!f)return false;const it=f.it,c=upCost(it);if(!c||S.gold<c.gold||S.mats<c.mats)return false;
+  S.gold-=c.gold;S.mats-=c.mats;RFU=null;
+  if(Math.random()<c.p){const r0=it.r;it.r++;it.pw=Math.round(it.pw/RAR[r0].mul*RAR[it.r].mul*10)/10;
+    if(!it.p){const keys=AFFIX_KEYS[it.s];it.p=keys[Math.floor(Math.random()*keys.length)]}
+    it.upF=0;save();return 'ok'}
+  it.upF=(it.upF||0)+1;save();return 'fail';
+}
 function breakAll(maxR){const L=bulkList(maxR);let y=0;L.forEach(it=>{y+=breakYield(it)});S.inv=S.inv.filter(it=>L.indexOf(it)<0);S.mats+=y;save();return{n:L.length,y}}
 // 持ち帰った装備を倉庫へ。上限を超えた分は、弱いものから自動で資材にする
 function bankLoot(items){
@@ -5253,6 +5281,7 @@ function facCmdSub(k){
 function facMount(k){
   const F=FAC[k],sm=k==='smith';SMOPEN=false;SMODE='enh';FLINE=facLine(k);FTIP=(S.day*7+S.runs)%(F.tips?F.tips.length:1);
   const cmds=sm?'<button class="fac-cmd fac-wood" data-smode="enh"><strong>鍛える</strong><span>金と資材で、装備を +1 する</span></button>'
+      +'<button class="fac-cmd fac-wood" data-smode="rf"><strong>鍛え直す</strong><span>二つ名の引き直し・格上げ</span></button>'
       +'<button class="fac-cmd fac-wood" data-smode="brk"><strong>分解する</strong><span>いらない装備を資材に戻す</span></button>'
     :'<button class="fac-cmd fac-wood" data-fopen><strong>'+F.cmd[0]+'</strong><span id="facCmdSub"></span></button>'
       +'<button class="fac-cmd fac-wood talk" data-ftalk><strong>話を聞く</strong><span>'+F.who.split(' ').pop()+'の一言</span></button>';
@@ -5313,21 +5342,31 @@ function facSmith(){
     const it=cur.it,c=enhCost(it),max=it.n>=GCFG.maxPlus,lab=it.s==='w'?['基礎','属性','二つ名']:['基礎','二つ名'],ln=itemLines(it),pw=itemPow(it),nx=Math.max(1,Math.round(it.pw*(1+GCFG.plus*(it.n+1))));
     const eb='<button class="fac-act'+(SMODE==='enh'?'':' sub')+'" data-enh="'+it.id+'"'+(max||S.gold<c.gold||S.mats<c.mats?' disabled':'')+'>'+(max?'強化 最大':'鍛える')+'<small>'+(max?'これ以上は鍛えられない':'金'+c.gold+'・資材'+c.mats)+'</small></button>';
     const bb='<button class="fac-act'+(SMODE==='brk'?'':' sub')+'" data-brk="'+it.id+'"'+(cur.owner?' disabled':'')+'>分解<small>'+(cur.owner?'装備中':'資材 +'+breakYield(it))+'</small></button>';
+    const rc=rfCost(it),uc=upCost(it),und=RFU&&RFU.id===it.id;
+    const rb='<button class="fac-act rfb" data-rf="'+it.id+'"'+(it.r<1||S.gold<rc?' disabled':'')+'>引き直す<small>'+(it.r<1?'二つ名なし':'金'+rc)+'</small></button>';
+    const ub='<button class="fac-act rfb'+(und?' sub':'')+'" data-up="'+it.id+'"'+(!uc||S.gold<uc.gold||S.mats<uc.mats?' disabled':'')+'>格上げ<small>'+(uc?'成功'+Math.round(uc.p*100)+'%':'最高の格')+'</small></button>';
+    const vb=und?'<button class="fac-act rfb sub" data-rfu="'+it.id+'">戻す<small>無料</small></button>':'';
+    const rfInfo=(it.r<1?'二つ名は格上げで付く':'二つ名の引き直し 金<b>'+rc+'</b>')
+      +'<br>'+(uc?'格上げ→<b style="color:'+RAR[it.r+1].col+'">'+RAR[it.r+1].name+'</b> 成功<b>'+Math.round(uc.p*100)+'%</b>':'格は最高（伝説）');
+    const ng=(a,b)=>a<b?' class="ng"':'';
+    const rfMat=uc?'資材 <b'+ng(S.mats,uc.mats)+'>'+S.mats+'</b> / '+uc.mats+'<span class="gd"><i class="sm-coin"></i><b'+ng(S.gold,uc.gold)+'>'+uc.gold+'</b></span>':'金 <b>'+S.gold.toLocaleString('en-US')+'</b>';
     if(SMART){const ng=(a,b)=>a<b?' class="ng"':'',ow=cur.owner?CHARS[cur.owner].name+'が装備中':'倉庫';
       card='<img class="sm-cf" alt="" draggable="false" src="'+UI.sm_card+'">'
         +'<div class="smz ic">'+sockHTML(it)+'</div>'
         +'<div class="smz hd" style="--rc:'+RAR[it.r].col+'"><div class="rk"><span class="bdg">'+RAR[it.r].name+'</span>'+ow+'</div><h3 id="smName">'+itemName(it)+'</h3></div>'
         +'<div class="smz za"><dl>'+ln.map((t,i)=>'<dt>'+(lab[i]||'')+'</dt><dd>'+t+'</dd>').join('')+'</dl></div>'
-        +'<div class="smz zb"><div class="zh">強化結果</div><div class="fac-up">'+(max?'強化値は最大（+'+GCFG.maxPlus+'）':'+'+it.n+' → +'+(it.n+1)+'　'+SLOTS[it.s].stat+'<b>'+itemPowTxt(it)+'</b>→<b>'+powTxt(itemBasePow(it),nx-itemBasePow(it))+'</b>')+'</div></div>'
+        +(SMODE==='rf'?'<div class="smz zb"><div class="zh">鍛え直し・格上げ</div><div class="fac-up rf">'+rfInfo+'</div></div>'
+          +'<div class="smz zc"><div class="sm-mat"><span class="sl"><i></i></span>'+rfMat+'</div><div class="fac-acts">'+rb+(vb||ub)+'</div></div>':'')
+        +(SMODE==='rf'?'':'<div class="smz zb"><div class="zh">強化結果</div><div class="fac-up">'+(max?'強化値は最大（+'+GCFG.maxPlus+'）':'+'+it.n+' → +'+(it.n+1)+'　'+SLOTS[it.s].stat+'<b>'+itemPowTxt(it)+'</b>→<b>'+powTxt(itemBasePow(it),nx-itemBasePow(it))+'</b>')+'</div></div>'
         +'<div class="smz zc"><div class="sm-mat"><span class="sl"><i></i></span>'+(SMODE==='brk'?(cur.owner?'装備中は分解できない':'分解で 資材 <b>+'+breakYield(it)+'</b>')
           :max?'これ以上は鍛えられない':'資材 <b'+ng(S.mats,c.mats)+'>'+S.mats+'</b> / '+c.mats+'<span class="gd"><i class="sm-coin"></i><b'+ng(S.gold,c.gold)+'>'+c.gold+'</b></span>')+'</div>'
-        +'<div class="fac-acts">'+(SMODE==='brk'?bb+eb:eb+bb)+'</div></div>';
+        +'<div class="fac-acts">'+(SMODE==='brk'?bb+eb:eb+bb)+'</div></div>');
     }else
     card='<div class="rk" style="--rc:'+RAR[it.r].col+'">'+RAR[it.r].name+(cur.owner?'<small>'+CHARS[cur.owner].name+'が装備中</small>':'')+'</div>'
       +'<h3 style="--rc:'+RAR[it.r].col+'">'+itemName(it)+'</h3>'
       +'<dl>'+ln.map((t,i)=>'<dt>'+(lab[i]||'')+'</dt><dd>'+t+'</dd>').join('')+'</dl>'
       +'<div class="fac-up">'+(max?'強化値は最大（+'+GCFG.maxPlus+'）':'+'+it.n+' → +'+(it.n+1)+'　'+SLOTS[it.s].stat+'<b>'+itemPowTxt(it)+'</b>→<b>'+powTxt(itemBasePow(it),nx-itemBasePow(it))+'</b>')+'</div>'
-      +'<div class="fac-acts">'+(SMODE==='brk'?bb+eb:eb+bb)+'</div>';
+      +(SMODE==='rf'?'<div class="fac-up rf">'+rfInfo+'</div><div class="fac-acts">'+rb+(vb||ub)+'</div>':'<div class="fac-acts">'+(SMODE==='brk'?bb+eb:eb+bb)+'</div>');
   }
   if(SMART&&!cur)card='<img class="sm-cf" alt="" draggable="false" src="'+UI.sm_card+'"><div class="smz za" style="top:25%;height:64%">'+card+'</div>';
   const cd=$('#facCard');cd.innerHTML=card;if(SMART)fitLine($('#smName'),14,9.5);
@@ -5338,7 +5377,7 @@ function facSmith(){
   const msg=TMSG?'<div class="tw-msg'+(TBAD?' bad':'')+'">'+TMSG+'</div>':'';
   const bulk=r=>{const n=bulkList(r).length,k='bulk'+r;return'<button class="tbtn '+(TCONF===k?'red':'sub')+'" data-bulk="'+r+'"'+(n?'':' disabled')+'>'+(TCONF===k?'もう一度押すと分解（'+n+'個）':RAR[r].name+(r?'以下':'')+'を一括分解（'+n+'個）')+'</button>'};
   const hint='強化値 +1 ごとに基礎値が'+Math.round(GCFG.plus*100)+'%伸びます（最大 +'+GCFG.maxPlus+'）';
-  $('#facFoot').innerHTML=SMART?(SMODE==='brk'?'<div class="bulk">'+bulk(0)+bulk(1)+'</div>':'')+'<div class="sm-log'+(TMSG&&TBAD?' bad':'')+'">'+(TMSG||(SMODE==='brk'?'鍛えていない倉庫の装備だけを、まとめて分解できます。':hint))+'</div>'
+  $('#facFoot').innerHTML=SMART?(SMODE==='brk'?'<div class="bulk">'+bulk(0)+bulk(1)+'</div>':'')+'<div class="sm-log'+(TMSG&&TBAD?' bad':'')+'">'+(TMSG||(SMODE==='brk'?'鍛えていない倉庫の装備だけを、まとめて分解できます。':SMODE==='rf'?'鍛え直しは回すたびに高くなり、奈落から戻ると元の値段に。格上げは失敗すると金と資材を失い、次の成功率が少し上がる。':hint))+'</div>'
     :msg+(SMODE==='brk'?'<div class="bulk">'+bulk(0)+bulk(1)+'</div>':msg?'':hint);
   facHit(cd);
 }
@@ -5532,6 +5571,10 @@ function townClick(ev){
   if((b=q('data-uneq'))){const a=b.dataset.uneq.split(':');say(unequip(a[0],a[1])?'装備を外して、倉庫に戻した。':'');reView();return}
   if((b=q('data-smf'))){SMF=b.dataset.smf;say('');reView();return}
   if((b=q('data-enh'))){const f=findItem(+b.dataset.enh);if(f&&enhance(f.it.id)){say(itemName(f.it)+' に鍛え上げた。');FHIT='enh'}TCONF='';reView();return}
+  if((b=q('data-rf'))){const f=findItem(+b.dataset.rf);if(f&&reforge(f.it.id)){say('二つ名が「'+AFFIX[f.it.p].n.replace(/の$/,'')+'」に変わった。');FHIT='enh'}TCONF='';reView();return}
+  if((b=q('data-rfu'))){const f=findItem(+b.dataset.rfu);if(f&&reforgeUndo(f.it.id))say('元の二つ名に戻した。');TCONF='';reView();return}
+  if((b=q('data-up'))){const f=findItem(+b.dataset.up),r=f?upgradeItem(f.it.id):false;
+    if(r==='ok'){say(itemName(f.it)+' は '+RAR[f.it.r].name+' に格が上がった！');FHIT='enh'}else if(r==='fail')say('格上げに失敗した…（次の成功率が少し上がった）');TCONF='';reView();return}
   if((b=q('data-brk'))){const f=findItem(+b.dataset.brk),y=f?breakItem(f.it.id):0;if(y){say(itemName(f.it)+'を分解した。資材 +'+y);SMSEL=0;FHIT='brk'}TCONF='';reView();return}
   if((b=q('data-sel'))){const id=+b.dataset.sel;SMSEL=(facOn()||SMSEL!==id)?id:0;say('');TCONF='';reView();return}
   if((b=q('data-bulk'))){const r=+b.dataset.bulk,k='bulk'+r;if(TCONF!==k){TCONF=k;say('')}else{const o=breakAll(r);TCONF='';SMSEL=0;say(o.n+'個を分解した。資材 +'+o.y)}reView();return}
@@ -5957,6 +6000,7 @@ window.NARAKU={
   go(id){if(!stepTo(id))return false;arrive();return mode},
   info:id=>nodeInfo(id),light:()=>lightState(),nodeXY:id=>{R.camY=null;const q=mapXY(R.map.nodes[id]);return{x:q.x/W,y:q.y/H}},choose:chooseNode,buy:buyItem,leave:leaveNode,next:afterVictory,giveUp,
   retreat(){if(mode!=='map'||R.walk)return false;endRun('return');return true},
+  smith:{reforge,reforgeUndo,upgrade:upgradeItem,rfCost,upCost,RFCFG},
   vfx:{fbLine:FB_LINE,tick:updFX,blackholeReady,blackholeSmoothReady,shadowReady,ready:()=>!!(vtex('quake_floor')&&vtex('quake_air')),quakeCReady,riftReady:()=>!!(vtex('rift_floor')&&vtex('rift_air'))},QUAKE_VFX,QUAKE_C,RIFT_VFX,SHADOW_VFX,BLACKHOLE_VFX,SHIN,shinStart,useCard,startRewind,updRewind,dropSig,dropFor,get ULT(){return ULT},ULT_DEF,startUlt,SEQ,ULT_SEQ,
   pick:chooseUp,
   grant(id){const u=UPS.find(x=>x.id===id);if(!u||!B)return false;applyUp(u);return true},
