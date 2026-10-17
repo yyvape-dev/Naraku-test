@@ -2808,11 +2808,12 @@ const OMENS={
  seal:{name:'魔封じの霧',rumor:'奈落の霧が、魔力を吸い込んでいるらしい……。',effect:'敵が受ける魔法ダメージ30%減。物理中心の編成が有利。'},
  cata:{name:'大異変',rumor:'奈落の底が、裂けたらしい。主が、何体も這い出してくる――。',effect:'道はなく、奈落の主の間だけ。9分の長期戦で3分ごとに主が現れ、強敵は2体ずつ。最後の主を倒すまで終わらない。超必殺は1分半ごとに再び使える。踏破で伝説の装備が確定。'}
 };
-/* 大異変（2026-10-17 ユーザー決定）。出やすさ CATA_P は仮置き（他の異変より出にくくする）。他の異変の抽選結果は変えない（大異変が当たらなかったときは従来の式） */
-const CATA={p:0.08,dur:540,bossEvery:180,ultEvery:90,eliteN:2};
+/* 大異変（2026-10-17 ユーザー決定）。出やすさは他の異変と等分（rollOmen）。 */
+const CATA={dur:540,bossEvery:180,ultEvery:90,eliteN:2};
 const omenKey=k=>Object.prototype.hasOwnProperty.call(OMENS,k)?k:'none';
 function rollOmen(seed,runs,previous){
-  if(previous!=='cata'&&hash32(seed^Math.imul(runs+1,0x85ebca6b)^0x43415441)/4294967296<CATA.p)return 'cata';
+  // 大異変も他と等分（2026-10-17 ユーザー指示）：候補（直前を除く）の数で割った確率。外れたら従来の式なので、他の異変どうしの結果は従来どおり
+  if(previous!=='cata'&&hash32(seed^Math.imul(runs+1,0x85ebca6b)^0x43415441)/4294967296<1/Object.keys(OMENS).filter(k=>k!==previous).length)return 'cata';
   const keys=Object.keys(OMENS).filter(k=>k!==previous&&k!=='cata');return keys[hash32(seed^Math.imul(runs+1,0x9e3779b1)^0x4f4d454e)%keys.length]}
 function omenDamage(dmg,who){
   const tag=CHAR_TAG[who];

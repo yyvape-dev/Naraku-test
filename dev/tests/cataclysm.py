@@ -1,5 +1,5 @@
 """大異変の確認。使い方: python3 dev/tests/cataclysm.py <http の配布版URL> [seeds=1,2,3]
-   1マスの地図／9分戦・主は3・6・9分／強敵は2体ずつ／最後の主を倒すまで終わらない／超必殺が1分半ごとに戻る／踏破で伝説確定／抽選は約8%で他の異変の結果は不変"""
+   1マスの地図／9分戦・主は3・6・9分／強敵は2体ずつ／最後の主を倒すまで終わらない／超必殺が1分半ごとに戻る／踏破で伝説確定／抽選は他と等分（直前が平穏なら1/8）で他の異変の結果は不変"""
 import sys, json
 from playwright.sync_api import sync_playwright
 url=sys.argv[1]; seeds=[int(x) for x in (sys.argv[2].split('=')[1] if len(sys.argv)>2 else '1,2,3').split(',')]
@@ -30,7 +30,7 @@ with sync_playwright() as p:
     b=p.chromium.launch(); pg=b.new_page(); errs=[]; pg.on('pageerror',lambda e:errs.append(str(e)[:200]))
     pg.goto(url); pg.wait_for_function('window.NARAKU_READY',timeout=120000)
     lot=pg.evaluate("""(()=>{let c=0,n=4000,diff=0;for(let i=0;i<n;i++){const s=(i*2654435761)>>>0,k=NARAKU.omens.roll(s,i,'none');if(k==='cata')c++}return c/n})()""")
-    print('大異変の抽選率',lot); assert 0.06<lot<0.10
+    print('大異変の抽選率',lot); assert 0.11<lot<0.14  # 直前が平穏なら候補8種＝1/8
     res=[]
     for sd in seeds:
         for pid in (['fox','sword','mage'],['blue','sister','mage']):
