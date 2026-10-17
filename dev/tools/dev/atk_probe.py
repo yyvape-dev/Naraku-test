@@ -2,12 +2,12 @@
    使い方: python3 atk_probe.py <配布版.html> ['<CHARS上書きJSON>']"""
 import sys, os, json
 from playwright.sync_api import sync_playwright
-html=os.path.abspath(sys.argv[1]); ov=json.loads(sys.argv[2]) if len(sys.argv)>2 else {}
+html=sys.argv[1] if sys.argv[1].startswith("http") else os.path.abspath(sys.argv[1]); ov=json.loads(sys.argv[2]) if len(sys.argv)>2 else {}
 JS=r"""([ids,seed,ov])=>{
   for(const k in ov)Object.assign(NARAKU.CHARS[k],ov[k]);
   if(!window._w){window._w=1;window.PS={};const h0=window.hitFrom,a0=window.allyHit;
     window.allyHit=function(a,tg,rep){const s=PS[a.d.id]||(PS[a.d.id]={n:0,hits:0,raw:0});s.n++;return a0(a,tg,rep)};
-    window.hitFrom=function(a,e,k){const s=PS[a.d.id]||(PS[a.d.id]={n:0,hits:0,raw:0});s.hits++;s.raw+=a.d.dmg*NARAKU.B.M[a.tag].dmg*k;return h0(a,e,k)}}
+    window.hitFrom=function(a,e,k){const s=PS[a.d.id]||(PS[a.d.id]={n:0,hits:0,raw:0});s.hits++;s.raw+=a.d.dmg*k;return h0(a,e,k)}}
   window.PS={};
   const BOT=(B)=>{const al=B.allies.filter(a=>a.alive);
     B.slots.forEach((s,i)=>{const c=s.card;if(!c)return;
@@ -26,7 +26,7 @@ JS=r"""([ids,seed,ov])=>{
 with sync_playwright() as p:
     b=p.chromium.launch(); pg=b.new_page(viewport={'width':390,'height':844})
     errs=[]; pg.on('pageerror',lambda e: errs.append(str(e)))
-    pg.goto('file://'+html); pg.wait_for_timeout(1200)
+    pg.goto(html if html.startswith("http") else "file://"+html); pg.wait_for_function("window.NARAKU_READY",timeout=120000)
     agg={}; wins=0; n=0
     for party in (['fox','sword','mage'],['blue','sword','sister'],['blue','fox','sword'],['blue','sister','mage'],['sword','sister','mage']):
         for seed in (1,2):

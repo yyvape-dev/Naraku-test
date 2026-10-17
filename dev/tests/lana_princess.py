@@ -43,9 +43,12 @@ with sync_playwright() as p:
       }
       N.costume.set('princess',true);const atlas=N.SPR.ally.sword_princess_smooth;delete N.SPR.ally.sword_princess_smooth;
       const fallback=N.look.frames('sword')===16;N.SPR.ally.sword_princess_smooth=atlas;
-      return {halfSpeed:Math.abs(slow[0]-.9)<1e-8&&Math.abs(old[0]-.45)<1e-8&&Math.abs(slow[1]-.9*.55)<1e-8&&old[2]===slow[2],parity:raw===smooth,timeline,fallback,hit:N.frameAt({ms,hit:7},16,.55,.55)===7&&N.frameAt({ms:ms2,hit:14},31,.55,.55)===14};
+      N.costume.set('princess',false);const pd=N.costume.d('sword'),pSeq=N.costume.ultSeq(),pCol=N.costume.col();
+      N.costume.set('normal',false);const nd=N.costume.d('sword'),nSeq=N.costume.ultSeq(),nCol=N.costume.col();
+      const holy=pd.atk==='line'&&pd.range===265&&pd.fb==='princess'&&!pd.far&&nd.atk==='circle'&&!!nd.far&&/^lanaPU/.test(pSeq)&&/^lanaU/.test(nSeq)&&pCol!==nCol&&N.CHARS.sword.atk==='circle';
+      return {holy,halfSpeed:Math.abs(slow[0]-.9)<1e-8&&Math.abs(old[0]-.45)<1e-8&&Math.abs(slow[1]-.9*.55)<1e-8&&Math.abs(slow[2]/old[2]-2.3/1.15)<1e-6,parity:raw===smooth,timeline,fallback,hit:N.frameAt({ms,hit:7},16,.55,.55)===7&&N.frameAt({ms:ms2,hit:14},31,.55,.55)===14};
     }""")
     assert all(result.values()),result
     assert not errors,errors
     b.close()
-print('OK: original pixels retained; selection persists; half-speed duration, cadence, hit sync, fallback and raw/smooth battle parity')
+print('OK: holy-gold swap and princess line attack; original pixels retained; selection persists; half-speed duration, cadence, hit sync, fallback and raw/smooth battle parity')

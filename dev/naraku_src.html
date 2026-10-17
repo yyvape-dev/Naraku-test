@@ -1402,13 +1402,13 @@ const VFX=/*__VFX_START__*/{}/*__VFX_END__*/;
 /* 連番の全画面エフェクト（assets/seq_<名前>_NN.webp＝光・黒背景、seq_<名前>m_NN.webp＝抜き・黒＋不透明度）。tools/dev/lanaseq.py が焼く。
    48コマを展開すると約75MBになるので、常には持たない。撃つとき（カットインの間）に seqLoad で展開し、終わったら seqFree で捨てる */
 const SEQS=/*__SEQS_START__*/{}/*__SEQS_END__*/;
-const SEQ={};
+const SEQ={};const SEQ_MT={lanaPU:'lanaU',lanaPU24:'lanaU24'}; // 抜きを別の連番と共有する（姫騎士の白金版は光だけ焼き直した）
 function seqLoad(name){
   let q=SEQ[name];if(q)return q;
   let n=0;while(SEQS[name+'_'+String(n+1).padStart(2,'0')])n++;
   q=SEQ[name]={n,im:new Array(n),mt:new Array(n)};
   for(let i=0;i<n;i++){const k=String(i+1).padStart(2,'0');
-    for(const[arr,key]of[[q.im,name+'_'+k],[q.mt,name+'m_'+k]]){const src=SEQS[key];if(!src)continue;
+    for(const[arr,key]of[[q.im,name+'_'+k],[q.mt,(SEQS[name+'m_'+k]?name:SEQ_MT[name]||name)+'m_'+k]]){const src=SEQS[key];if(!src)continue;
       const im=new Image();
       im.onload=()=>{if(SEQ[name]!==q)return;arr[i]=im;
         if(typeof createImageBitmap==='function')createImageBitmap(im).then(b=>{if(SEQ[name]===q)arr[i]=b;else if(b.close)b.close()}).catch(()=>{})};
@@ -1424,7 +1424,7 @@ const ULT_SEQ={ // n＝素材の名前 / fx＝FX の時計の名前 / fps / fin�
 /* 超必殺の2倍コマ版（RIFEで48→95コマに補間。ラナ12→24fps・アベニウス8→16fps。2026-10-16 試験）。調整パネルの「超必殺なめらか」で切り替え（localStorage） */
 const SEQ24_KEY='naraku_lana24';let SEQ24=true;try{if(localStorage.getItem(SEQ24_KEY)==='0')SEQ24=false}catch(e){}
 const SEQ24_SET={sword:['lanaU',12],blue:['blueU',8],fox:['foxU',16]}; // ユズナミキは2026-10-17に追加（16→32fps）
-function seq24Apply(){for(const id in SEQ24_SET){const L=ULT_SEQ[id],[b,f]=SEQ24_SET[id],on=SEQ24&&!!SEQS[b+'24_01'],n=on?b+'24':b;if(L.n!==n)seqFree(L.n);L.n=n;L.fps=on?f*2:f}}
+function seq24Apply(){for(const id in SEQ24_SET){const L=ULT_SEQ[id];let[b,f]=SEQ24_SET[id];if(id==='sword'&&lanaHolyOn&&SEQS.lanaPU_01)b='lanaPU';const on=SEQ24&&!!SEQS[b+'24_01'],n=on?b+'24':b;if(L.n!==n)seqFree(L.n);L.n=n;L.fps=on?f*2:f}}
 seq24Apply();
 function ultSeqOn(id){const L=ULT_SEQ[id];return !!L&&!!SEQS[L.n+'_01']}
 const BFS=/*__BFS_START__*/{}/*__BFS_END__*/;
@@ -1528,8 +1528,11 @@ function drawBarrier(g,T){
   g.restore();g.globalAlpha=1;
 }
 const VT={},VC={};
+/* 姫騎士（ラナの衣装）のときだけ、赤黒の素材を白金版（<名前>_p。tools/dev/princess_fx.py が焼く）へ差し替える。旗は setLanaCostume が立てる */
+var lanaHolyOn=false;const COS_TEX={rift_fb:1,rift_em:1,rift_slash:1,quakeC_floor:1,quakeC_air:1};
 for(const k in VFX){if(/^blackhole_(floor|air)_mid$/.test(k)&&new URLSearchParams(location.search).get('blackholesmooth')!=='1')continue;const im=new Image();im.src=VFX[k];VT[k]=im}
 function vtex(n,col){ // col を渡すと、白い光をその色に染めた写しを作って使い回す（芯は白を少し残す）
+  if(lanaHolyOn&&COS_TEX[n]&&VT[n+'_p'])n=n+'_p';
   const im=VT[n];if(!im||!im.complete||!im.naturalWidth)return null;if(!col)return im;
   const key=n+col;let c=VC[key];if(c)return c;
   c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext('2d');
@@ -1558,7 +1561,7 @@ function fxQuake(x,y,r){
   return true;
 }
 // 連番の斬撃（リンネ赤黒・シオウ緑と墨。assets/vfx_<名前>_fb.webp、4列。tools/dev/slashfb.py で焼く）
-const FB={ninja:{n:'ninja_fb',frames:13,life:0.34},samurai:{n:'samurai_fb',frames:13,life:0.42}};
+const FB={ninja:{n:'ninja_fb',frames:13,life:0.34},samurai:{n:'samurai_fb',frames:13,life:0.42},princess:{n:'princess_fb',frames:13,life:0.42}};
 function fxFB(id,x,y,w,rot,fl){const F=FB[id];if(!F||!vtex(F.n))return false;FX.sh.push({k:'fb',id,x,y,w,rot,fl:fl?-1:1,t:0,life:F.life});return true}
 function drawFB(g,s){const F=FB[s.id],im=vtex(F.n);if(!im||s.t<0)return;
   const fr=Math.min(F.frames-1,Math.floor(s.t/s.life*F.frames)),tile=im.width/4,sx=(fr%4)*tile,sy=Math.floor(fr/4)*tile;
@@ -2409,15 +2412,34 @@ document.addEventListener('change',e=>{
 // 衣装は同じキャラクターの外見だけを切り替える。育成・戦闘処理は共有。
 const COSTUME_KEY='naraku_lana_costume_v1';let lanaCostume='normal',lanaSmooth=false;
 try{const c=JSON.parse(localStorage.getItem(COSTUME_KEY)||'{}');lanaCostume=c.costume==='princess'?'princess':'normal';lanaSmooth=c.smooth===true}catch(e){}
+lanaHolyOn=lanaCostume==='princess';
 const PRINCESS_MS=[10,8,8,8,6,4,2,2,4,6,6,8,8,8,8,8].map(n=>n*1000/24);
 const PRINCESS_SMOOTH_MS=PRINCESS_MS.flatMap((n,i)=>i<15?[n/2,n/2]:[n]);
 function setLanaCostume(costume,smooth=lanaSmooth){
   if(!['normal','princess'].includes(costume))return false;
   lanaCostume=costume;lanaSmooth=!!smooth;
   try{localStorage.setItem(COSTUME_KEY,JSON.stringify({costume,smooth:lanaSmooth}))}catch(e){}
+  applyCostumeFx();
   return true;
 }
 function lanaOutfit(){return {costume:lanaCostume,smooth:lanaSmooth}}
+/* 姫騎士の性能（2026-10-17 ユーザー決定「攻撃はシオウ式の直線貫通、威力は通常のラナ相当に調整」）。HP・スキル・超必殺はラナのまま */
+// 威力・間隔は atk_probe（5編成×2シード）で通常攻撃の毎秒ダメージを通常ラナ24に寄せた値（13・2.3秒→29。dmg30・1.15秒だと83）
+const PRINCESS_D={role:'姫騎士・聖光の貫通',atk:'line',range:265,lineW:22,dmg:13,cd:2.3,far:null,fb:'princess',color:'#ffe2a0'};
+function charD(id){return id==='sword'&&lanaCostume==='princess'?Object.assign({},CHARS.sword,PRINCESS_D):CHARS[id]}
+/* 赤黒（通常）⇔白金（姫騎士）の色。表の中身を差し替えるだけで、描き方のコードは共通 */
+const COS_FX={red:null,holy:{vfxk:{glow:'#ffcf6a',streak:['#ffd98a','#fff6dc'],shard:'#7a5a22',ring:'#ffe6a0'},lit:{c:'#ffd27a',d:'#1a1204'},col:'#ffcf6a',pal:['#fffaf0','#ffcf6a','#3a2a08']}};
+function applyCostumeFx(){
+  lanaHolyOn=lanaCostume==='princess';
+  if(typeof ULT_DEF==='undefined')return;
+  if(!COS_FX.red)COS_FX.red={vfxk:Object.assign({},VFXK.sword),lit:Object.assign({},ULT_SEQ.sword.lit),col:ULT_DEF.sword.col,pal:['#fff0e8','#ff2a1e','#2a0504']};
+  const P=lanaHolyOn?COS_FX.holy:COS_FX.red;
+  Object.assign(VFXK.sword,P.vfxk);ULT_SEQ.sword.lit=Object.assign({},P.lit);ULT_DEF.sword.col=P.col;ULT_DEF.sword.pal=P.pal;
+  seq24Apply();
+}
+// 衣装ごとの絵の名前（姫騎士は <名前>_p。素材が無ければ通常の絵）。カットイン・カード絵・顔メダル・顔・帯に使う
+function cosK(id){return id==='sword'&&lanaCostume==='princess'?'sword_p':id}
+function cosA(map,id,pre=''){return map&&(map[pre+cosK(id)]||map[pre+id])}
 // そのキャラで選べる見た目（候補が無ければ「今の絵」だけ）
 function lookList(id){
   const cur=SPR.ally[id],alt=SPR.ally[id+'2']||null,out=[{key:'old',name:alt?'今の絵':'今の絵のみ',set:cur,seq:seqAll(cur.frames.length),m:motionOf(id,cur.frames.length)}];
@@ -2588,7 +2610,7 @@ function drawFace(g,k,S){
 function paintFace(cv,id){
   const g=cv.getContext('2d'),w=cv.width,h=cv.height,set=SPR.ally[id];
   g.clearRect(0,0,w,h);
-  if(SPR.face[id]){g.imageSmoothingQuality='high';g.drawImage(SPR.face[id],0,0,w,h);return}
+  const fimg=cosA(SPR.face,id);if(fimg){g.imageSmoothingQuality='high';g.drawImage(fimg,0,0,w,h);return}
   const bg=g.createLinearGradient(0,0,0,h);bg.addColorStop(0,'#241b14');bg.addColorStop(1,'#070605');g.fillStyle=bg;g.fillRect(0,0,w,h);
   if(set&&set.real){ // 正面絵が無いキャラは、背面スプライト1コマ目の頭まわりを切り出して使う
     const fr=set.frames[0],side=set.refH*0.46;g.drawImage(fr.c,fr.ax-side/2,fr.ay-set.refH-side*0.05,side,side,0,(h-w)/2,w,w);
@@ -2716,7 +2738,7 @@ function newBattle(seed){
      sp:0,need:UPCFG.first,lv:0,up:{},M:null,offer:null,echoes:[],judgeT:0,ru:mulberry32(hash32(seed^0x3C6EF372^Math.imul(P.rewinds+1,0x9E3779B1))),rk:mulberry32(hash32(seed^0x1B873593)),
      loot:[],kills:0,idx:0,acc:0,rs,rc,rd:mulberry32(hash32(seed^0x6A09E667)),nextWave:30,nextElite:CFG.eliteEvery*K.elite,bossOut:false,lineY:0,zones:[],combo:null,ultUsed:{},
      enemies:[],shots:[],impacts:[],sel:null,slots:[],queue:[],chaseUntil:0,
-     allies:P.members.map((m,i)=>{const d=CHARS[m.id],g=gearStats(m),max=d.hp*(1+g.hp/100);return{m,d,g,tags:g.tags,M:null,rg:1,sk:1,slot:i,x:0,y:0,animHit:HIT_AT,hp:m.collapsed?0:max*m.hpR,max,alive:!m.collapsed,deadBy:m.collapsed?'mad':null,cdT:0.3+i*0.1,animT:-1,animDur:0.4,pend:null,lunge:0,hitT:0,ph:i*1.7}})};
+     allies:P.members.map((m,i)=>{const d=charD(m.id),g=gearStats(m),max=d.hp*(1+g.hp/100);return{m,d,g,tags:g.tags,M:null,rg:1,sk:1,slot:i,x:0,y:0,animHit:HIT_AT,hp:m.collapsed?0:max*m.hpR,max,alive:!m.collapsed,deadBy:m.collapsed?'mad':null,cdT:0.3+i*0.1,animT:-1,animDur:0.4,pend:null,lunge:0,hitT:0,ph:i*1.7}})};
   recalc();
   B.allies.forEach(a=>{B.stat[a.d.id]={atk:0,skill:0,taken:0};if(a.alive)B.life+=a.g.life}); // 二つ名「守護の」：拠点ライフの上乗せ
   const deck=[];
@@ -3072,8 +3094,8 @@ function allyHit(a,tg,rep,singleOnly=false){
     const ox=a.x,oy=B.lineY-34;let dx=tg.x-ox,dy=(tg.y-18)-oy;const L=Math.hypot(dx,dy)||1;dx/=L;dy/=L;
     const len=rg+40,lw=d.lineW*(1+0.5*m.pierce);
     const mv=d.id==='mage'&&vtex('mage_beam'),hs=[];
-    if(d.id==='samurai'){FX.sh.push({k:'beam',x:ox,y:oy,dx,dy,len,t:0,life:0.18,col:d.color,w:lw*0.55});
-      if(!fxFB('samurai',ox+dx*len*0.5,oy+dy*len*0.5,len*1.05,Math.atan2(dy,dx)+Math.PI/4,Math.random()<0.5))
+    if(d.id==='samurai'||d.fb){FX.sh.push({k:'beam',x:ox,y:oy,dx,dy,len,t:0,life:0.18,col:d.color,w:lw*0.55});
+      if(!fxFB(d.fb||'samurai',ox+dx*len*0.5,oy+dy*len*0.5,len*1.05,Math.atan2(dy,dx)+Math.PI/4,Math.random()<0.5))
         fxTex({n:'slash_a',col:d.color,x:ox+dx*len*0.45,y:oy+dy*len*0.45,w:Math.min(160,len*0.5),rot:Math.atan2(dy,dx)-Math.PI/4,life:0.22,s0:0.8,s1:1.05,fi:0.06,fo:1.5,a:rep?0.7:1})}
     else if(!mv){FX.sh.push({k:'beam',x:ox,y:oy,dx,dy,len,t:0,life:0.24,col:d.color,w:lw*(VT.orb?0.6:1)});
       fxTex({n:'orb',col:'#d9c2ff',x:ox,y:oy,mx:dx*len,my:dy*len,w:34,rot:0,rot1:5,life:0.26,s0:0.7,s1:1,fi:0.05,fo:1.2})}
@@ -3303,7 +3325,7 @@ function useStrategy(si){
    カットイン（透過の立ち絵が滑り込む1.3秒。戦場の枠の中だけを覆う）のあいだ戦闘は完全に止まり、明けた瞬間に必殺が着弾する */
 const ULT_DEF={
   fox:   {name:'百鬼狐火',  col:'#ff9a2e',fire(a){const c=Object.assign({},CARDS.find(o=>o.id==='fox_fire'),{ult:'fox'}),pts=ultTargets(14);if(ultSeqOn('fox'))FX.foxU={t:0};pts.forEach((p,i)=>B.impacts.push({t:0.05+i*0.07,c,x:p.x,y:p.y,k:1.5}))}},
-  sword: {name:'天地開闢',  col:'#ff2a1e',fire(a){const b=CARDS.find(o=>o.id==='sw_rift'),c=Object.assign({},b,{dmg:140,zone:4,zdps:55,ult:'sword',pal:['#fff0e8','#ff2a1e','#2a0504']});if(ultSeqOn('sword'))FX.lanaU={t:0};for(let i=0;i<6;i++)B.impacts.push({t:0.04+i*0.06,c,x:30+i*60,y:B.lineY*0.5,k:1})}},
+  sword: {name:'天地開闢',  col:'#ff2a1e',fire(a){const b=CARDS.find(o=>o.id==='sw_rift'),c=Object.assign({},b,{dmg:140,zone:4,zdps:55,ult:'sword',pal:this.pal||['#fff0e8','#ff2a1e','#2a0504']});if(ultSeqOn('sword'))FX.lanaU={t:0};for(let i=0;i<6;i++)B.impacts.push({t:0.04+i*0.06,c,x:30+i*60,y:B.lineY*0.5,k:1})}},
   sister:{name:'聖母の加護',col:'#ffe9a0',fire(a){
     const b=CARDS.find(o=>o.id==='si_pillar'),c=Object.assign({},b,{shape:'row',hh:B.lineY*0.5/B.M.skR,dmg:90,healFlat:0,fx:'full'});
     B.impacts.push({t:0.05,c,x:W/2,y:B.lineY*0.5,k:1});
@@ -3337,7 +3359,7 @@ function comboArmed(){const c=B&&B.combo;return c&&!ULT&&!B.ultUsed[c.id]&&B.t-c
 function comboBar(c){const cb=comboArmed();return cb===c.owner?'<span class="cb" style="animation-duration:'+CFG.comboWin+'s;animation-delay:-'+(B.t-B.combo.t).toFixed(2)+'s"></span>':''}
 /* カットインの立ち絵の置き方：fx,fy＝絵の中の顔の中心（絵の幅・高さに対する割合）、fw＝顔の幅（絵の幅に対する割合）。
    どのキャラも、戦場の (ULT_POS.x, ULT_POS.y) に顔が来て、顔の幅が戦場の幅×ULT_POS.face になるように置く（絵の幅は戦場の幅の1.0〜1.4倍に収める） */
-const ULT_ART={ninja:{fx:.70,fy:.29,fw:.15},samurai:{fx:.66,fy:.19,fw:.13},sword:{fx:.50,fy:.38,fw:.29},blue:{fx:.68,fy:.36,fw:.18},mage:{fx:.66,fy:.15,fw:.23},sister:{fx:.51,fy:.30,fw:.25},fox:{fx:.68,fy:.33,fw:.26}};
+const ULT_ART={ninja:{fx:.70,fy:.29,fw:.15},samurai:{fx:.66,fy:.19,fw:.13},sword:{fx:.50,fy:.38,fw:.29},sword_p:{fx:.575,fy:.245,fw:.245},blue:{fx:.68,fy:.36,fw:.18},mage:{fx:.66,fy:.15,fw:.23},sister:{fx:.51,fy:.30,fw:.25},fox:{fx:.68,fy:.33,fw:.26}};
 const ULT_POS={x:.55,y:.36,face:.27};
 function startUlt(a,consume=true){
   const id=a.d.id,def=ULT_DEF[id];if(!def)return;
@@ -3345,8 +3367,8 @@ function startUlt(a,consume=true){
   if(consume)B.ultUsed[id]=true;aim.on=false;B.sel=null;FX.cut=null;
   if(ultSeqOn(id))seqLoad(ULT_SEQ[id].n); // 連番はカットインの1.3秒の間に展開しておく
   const el=$('#ult'),AW=el.parentNode.clientWidth||W,AH=el.parentNode.clientHeight||H;
-  let im=ULT_IMG[id],art=ULT_ART[id]||{fx:.5,fy:.35,fw:.3},ar=16/9;
-  if(!im){const src=UI['card_'+id]||CUTS[id]||'';im=new Image();im.alt='';if(src)im.src=src;art={fx:.5,fy:.33,fw:.3};ar=1.5}
+  const ck=ULT_IMG[cosK(id)]?cosK(id):id;let im=ULT_IMG[ck],art=ULT_ART[ck]||{fx:.5,fy:.35,fw:.3},ar=16/9;
+  if(!im){const src=cosA(UI,id,'card_')||cosA(CUTS,id)||'';im=new Image();im.alt='';if(src)im.src=src;art={fx:.5,fy:.33,fw:.3};ar=1.5}
   else if(im.naturalWidth)ar=im.naturalHeight/im.naturalWidth;
   // 戦場は縦長（スマホで約280×650）なので、絵の高さが戦場の高さに届く大きさを下限にする（上下に切れ目を出さない）
   const iw=Math.min(AW*1.7,Math.max(AW*Math.min(1.4,Math.max(1,ULT_POS.face/art.fw)),AH*1.02/ar)),ih=iw*ar;
@@ -4096,7 +4118,7 @@ function drawTunePreview(g,T){ // 敵を調整するときは、戦場の中央�
 // スキル発動の瞬間だけ、使い手の正面絵が斜めの帯で横切る（ゲームは止めない）
 function drawCutin(g){
   const c=FX.cut,t=c.t,inn=Math.min(1,t/0.12),ease=1-Math.pow(1-inn,3),out=t>0.5?Math.max(0,1-(t-0.5)/0.22):1;
-  const bh=128,y0=68,sl=30,img=SPR.cut[c.id];
+  const bh=128,y0=68,sl=30,img=cosA(SPR.cut,c.id);
   g.save();g.globalAlpha=out;g.translate(-(1-ease)*W*c.dir,0);
   g.beginPath();g.moveTo(-40+sl,y0);g.lineTo(W+40,y0);g.lineTo(W+40-sl,y0+bh);g.lineTo(-40,y0+bh);g.closePath();
   g.save();g.clip();
@@ -4347,7 +4369,7 @@ function drawPiece(g,x,y,id,s,down,lift){
     g.imageSmoothingQuality='high';g.drawImage(im,k*cw,0,cw,im.height,-ww/2,-hh,ww,hh);g.restore();
     return;
   }
-  const w=30*s,h=46*s,col=CHARS[id].color;let img=SPR.face[id];
+  const w=30*s,h=46*s,col=CHARS[id].color;let img=cosA(SPR.face,id);
   if(!img){img=pieceFace[id];if(!img){img=pieceFace[id]=mkCanvas(96,128);paintFace(img,id)}}
   g.fillStyle='rgba(0,0,0,'+(0.6-Math.min(0.3,lift*0.015))+')';g.beginPath();g.ellipse(x+3,y+4,w*0.62,w*0.24,0,0,TAU);g.fill();
   g.save();g.translate(x,y-lift);
@@ -4579,13 +4601,13 @@ function buildRail(){
   elRail.innerHTML='';railEls=[];
   if(!P)return;
   P.members.forEach(m=>{
-    const d=CHARS[m.id],u=document.createElement('div');u.className='unit'+(UI['battle_face_'+m.id]?' medal':'');
+    const d=CHARS[m.id],u=document.createElement('div');u.className='unit'+(cosA(UI,m.id,'battle_face_')?' medal':'');
     u.style.setProperty('--member',railEls.length);
     const gr='orb-'+m.id,rad=UI.battle_status_frame?36:44;
     const gradient=(id,colors)=>'<linearGradient id="'+gr+'-'+id+'" x1="0" y1="0" x2="1" y2="1">'+colors.map((color,i)=>'<stop offset="'+[0,22,38,50,66,82,100][i]+'%" stop-color="'+color+'"/>').join('')+'</linearGradient>';
     const defs='<defs>'+gradient('hp',['#500e18','#a82835','#ff8078','#ffd1b0','#cf3c44','#861526','#430b18'])+gradient('mad',['#2d124a','#68309a','#c889ec','#edcffc','#9753c5','#4b216d','#251036'])+gradient('shine',['#ffffff00','#ffffff00','#fff8e9','#ffffff00','#ffffff00','#e9cfff','#ffffff00'])+'</defs>';
     const arc=(cls,r,turn,paint)=>'<circle class="'+cls+'" cx="50" cy="50" r="'+r+'" pathLength="100" transform="rotate('+turn+' 50 50)" style="stroke:url(#'+gr+'-'+paint+')"/>';
-    u.innerHTML='<div class="orb-face">'+(UI['battle_face_'+m.id]?'<img alt="" src="'+UI['battle_face_'+m.id]+'">':'<canvas width="128" height="128"></canvas>')+'</div><img class="orb-frame" alt="" src="'+BATTLE_ART.frame+'"><svg class="orb-gauges" viewBox="0 0 100 100" aria-hidden="true">'+defs+'<circle class="track" cx="50" cy="50" r="'+rad+'"/>'+arc('hp-ring',rad,90,'hp')+arc('mad-ring',rad,-90,'mad')+arc('gauge-shine hp-shine',rad-1.3,90,'shine')+arc('gauge-shine mad-shine',rad-1.3,-90,'shine')+'</svg><div class="fate"></div>';
+    u.innerHTML='<div class="orb-face">'+(cosA(UI,m.id,'battle_face_')?'<img alt="" src="'+cosA(UI,m.id,'battle_face_')+'">':'<canvas width="128" height="128"></canvas>')+'</div><img class="orb-frame" alt="" src="'+BATTLE_ART.frame+'"><svg class="orb-gauges" viewBox="0 0 100 100" aria-hidden="true">'+defs+'<circle class="track" cx="50" cy="50" r="'+rad+'"/>'+arc('hp-ring',rad,90,'hp')+arc('mad-ring',rad,-90,'mad')+arc('gauge-shine hp-shine',rad-1.3,90,'shine')+arc('gauge-shine mad-shine',rad-1.3,-90,'shine')+'</svg><div class="fate"></div>';
     if(u.querySelector('canvas'))paintHead(u.querySelector('canvas'),d.id);
     elRail.appendChild(u);
     railEls.push({u,id:d.id,fate:u.querySelector('.fate'),hp:u.querySelector('.hp-ring'),md:u.querySelector('.mad-ring'),hpShine:u.querySelector('.hp-shine'),mdShine:u.querySelector('.mad-shine')});
@@ -4602,7 +4624,7 @@ function fitRail(){
 if(window.ResizeObserver)new ResizeObserver(fitRail).observe(elRail);
 // 探索中の体力・狂気の帯（顔・体力・狂気を3人ぶん横一列）。下部エリアと、各マスの画面の両方に出す
 function paintHead(c,id){
-  const g=c.getContext('2d'),w=c.width,img=SPR.face[id];g.clearRect(0,0,w,w);
+  const g=c.getContext('2d'),w=c.width,img=cosA(SPR.face,id);g.clearRect(0,0,w,w);
   if(img){g.imageSmoothingQuality='high';g.drawImage(img,0,(img.height-img.width)*0.18,img.width,img.width,0,0,w,w)}
   else{const t=mkCanvas(96,128);paintFace(t,id);g.drawImage(t,0,16,96,96,0,0,w,w)}
 }
@@ -4692,7 +4714,7 @@ function syncDOM(){
           const back=UI[i===STRATEGY_SLOT?'battle_back_strategy':'battle_back_skill'];
           return'<div class="card back'+(back?' back-art':'')+'" data-i="'+i+'"><span class="ar">'+(back?'<img alt="" draggable="false" src="'+back+'">':'')+'<span class="fill"></span></span><img class="fr" alt="" draggable="false" src="'+BATTLE_CARD_FRAME+'"><span class="ki">'+(i===STRATEGY_SLOT?'戦略 装填中':B.queue.length||s.refill>0?'装填中':'札なし')+'</span></div>';
         }
-        const c=s.card,art=c.category==='strategy'?UI['battle_strategy_'+c.effect]:UI['card_'+c.owner];
+        const c=s.card,art=c.category==='strategy'?UI['battle_strategy_'+c.effect]:cosA(UI,c.owner,'card_');
         return'<button class="card'+(c.category==='strategy'?' strategy '+c.effect+(c.rare?' rare':''):'')+(B.sel===i?' sel':'')+(cb===c.owner?' combo':'')+'" data-i="'+i+'" aria-label="'+c.name+'：'+c.desc+'">'+comboBar(c)+'<span class="ar">'+(art?'<img alt="" draggable="false" src="'+art+'">':c.category==='strategy'?strategyMotif(c.effect):'')+'</span><span class="sn'+(c.name.length>4?' lg':'')+'">'+c.name+'</span><img class="fr" alt="" draggable="false" src="'+BATTLE_CARD_FRAME+'"><span class="ki">'+(c.category==='strategy'?(c.rare?'希少戦略':'戦略'):'スキル')+'</span></button>';
       }
       if(!s.card)return'<div class="card empty" data-i="'+i+'"><span class="fill"></span><span class="ds">'+(i===STRATEGY_SLOT?'戦略 装填中':B.queue.length||s.refill>0?'装填中':'札なし')+'</span></div>';
@@ -4744,7 +4766,7 @@ function barsHTML(m){
 }
 const tagsHTML=m=>{const t=gearStats(m).tags;return['phys','mag'].filter(k=>t[k]).map(k=>'<i class="tg" style="--tc:'+FAMS[k].col+'">'+FAMS[k].name+'</i>').join('')};
 const gearLine=m=>['w','a'].map(s=>SLOTS[s].name[0]+'：'+(m[s]?'<span style="color:'+RAR[m[s].r].col+'">'+itemName(m[s])+'</span>':'—')).join('　');
-const charRow=(id,right,extra)=>{const m=S.roster[id],d=CHARS[id],i=S.picks.indexOf(id);
+const charRow=(id,right,extra)=>{const m=S.roster[id],d=charD(id),i=S.picks.indexOf(id);
   return'<div class="row'+(i>=0?' on':'')+(m.collapsed?' dead':'')+'"><canvas width="96" height="128" data-id="'+id+'"></canvas><div class="rb"><div class="rn">'+d.name+tagsHTML(m)+'</div>'+barsHTML(m)+(extra===false?'':'<div class="re">'+gearLine(m)+'</div>')+'</div>'+(right?'<div class="rx">'+right+'</div>':'')+'</div>'};
 const bagTxt=()=>TSHOP.map(t=>SHOP.find(s=>s.id===t.id).name+'×'+S.bag[t.id]).join('　');
 const itemSort=(a,b)=>b.r-a.r||itemPow(b)-itemPow(a)||a.id-b.id;
@@ -5054,7 +5076,7 @@ const VIEWS={
   },
   char(id){if(TVART&&facHas('party')){facTvChar(id);return}VIEWS.charPlain(id)},
   charPlain(id){
-    const m=S.roster[id],d=CHARS[id],g=gearStats(m),ex=[];
+    const m=S.roster[id],d=charD(id),g=gearStats(m),ex=[];
     [['spd','攻撃速度','+','%'],['range','射程','+','%'],['crit','会心率','+','%'],['skill','スキル威力','+','%'],['reload','スキル装填','−','%'],['soul','ソウル獲得','+','%'],['hp','最大体力','+','%'],['life','拠点ライフ','+','']].forEach(q=>{if(g[q[0]])ex.push('<div>'+q[1]+'<b>'+q[2]+g[q[0]]+q[3]+'</b></div>')});
     if(g.regen)ex.push('<div>毎秒の回復<b>'+(g.regen/10).toFixed(1)+'%</b></div>');
     townScreen(d.name,d.role,charRow(id,'',false)
@@ -5341,7 +5363,7 @@ function facTvChar(id){
   const m=S.roster[id];if(!m){showView('party');return}
   tvEnter();FBACK=['party'];tvMode('c');$('#fac').classList.toggle('open',SMOPEN);
   tvHead(id==='sword'&&lanaCostume==='princess'?'ラナ（姫騎士）':CHARS[id].name,'冒険者の酒場');
-  const d=CHARS[id],g=gearStats(m),mx=Math.round(maxHpOf(m)),hp=Math.round(mx*m.hpR),pi=S.picks.indexOf(id),pct=v=>Math.round(v);
+  const d=charD(id),g=gearStats(m),mx=Math.round(maxHpOf(m)),hp=Math.round(mx*m.hpR),pi=S.picks.indexOf(id),pct=v=>Math.round(v);
   const rg=Math.round(d.range*(1+g.range/100)),rl=rg<=150?'近接':rg<=240?'中距離':'遠距離';
   const ex=[];[['spd','攻撃速度','+','%'],['range','射程','+','%'],['crit','会心率','+','%'],['skill','スキル威力','+','%'],['reload','スキル装填','−','%'],['soul','ソウル獲得','+','%'],['hp','最大体力','+','%'],['life','拠点ライフ','+','']].forEach(q=>{if(g[q[0]])ex.push('<div>'+q[1]+'<b>'+q[2]+g[q[0]]+q[3]+'</b></div>')});
   if(g.regen)ex.push('<div>毎秒の回復<b>'+(g.regen/10).toFixed(1)+'%</b></div>');
@@ -5891,7 +5913,7 @@ window.NARAKU={
   startRun(ids,seed,floor){SAVE_ON=false;S=newSave();S.picks=ids.slice();if(floor){S.floorMax=Math.max(S.floorMax,floor);S.floor=floor}beginRun(seed)},
   // 街の操作と装備・セーブ
   town:{show:showTown,view:showView,pick:togglePick,hire:hireChar,equip:equipItem,unequip,enhance,breakItem,breakAll,inn:innStay,revive,buy:shopBuy,floor:setFloor,bank:bankLoot},
-  costume:{get:lanaOutfit,set:setLanaCostume},
+  costume:{get:lanaOutfit,set:setLanaCostume,d:id=>charD(id),ultSeq:()=>ULT_SEQ.sword.n,col:()=>ULT_DEF.sword.col,holy:()=>lanaHolyOn},
   look:{set:setLook,get:id=>allyLook(id).key,frames:id=>allyLook(id).seq.length,list:id=>lookList(id).map(o=>o.key)},
   hub:{HUB,select:hubSelect,enter:hubEnter,tick:hubTick,get sel(){return HSEL},get on(){return!!HUBS}},
   MOTION,MOTION_DEF,HIT_AT,motionOf,frameAt,enemyFrame,enemyAttackFrame,spawn,pickType,ENCOUNTERS,encounterType,
@@ -5930,11 +5952,12 @@ if(LINKED){
   ldTm=setInterval(()=>{const n=$('#ldgN');if(n&&LD.t)n.textContent=Math.min(99,Math.round(LD.n/LD.t*100))+'%'},120);
 }
 function seqPrefetch(){ // 戦闘に入る前の静かな時間に、連番の画像をキャッシュへ（1枚ずつ。失敗しても気にしない）
-  const urls=Object.keys(SEQS).map(k=>SEQS[k]).filter(u=>!/^data:/.test(u));let i=0;
+  const urls=Object.keys(SEQS).filter(k=>lanaHolyOn||!/^lanaPU/.test(k)).map(k=>SEQS[k]).filter(u=>!/^data:/.test(u));let i=0;
   const next=()=>{if(i>=urls.length)return;const u=urls[i++];(window.fetch?fetch(u,{cache:'force-cache'}).catch(()=>{}):Promise.resolve()).then(()=>setTimeout(next,30))};
   setTimeout(next,1500);
 }
 LD.t=Object.keys(FACES).length+Object.keys(CUTS).length+Object.keys(BGS).length+Object.keys(EMBED).length+(UI.map?1:0)+(UI.medals?1:0)+(UI.pieces?1:0)+(UI.table?1:0)+(UI.smoke?1:0);
+applyCostumeFx();
 loadEmbedded().then(()=>{
   window.NARAKU_READY=true;
   if(ldEl){clearInterval(ldTm);ldEl.remove();ldEl=null;seqPrefetch()}
