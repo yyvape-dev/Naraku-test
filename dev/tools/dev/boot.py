@@ -101,7 +101,9 @@ with sync_playwright() as p:
     home(); fac('smith'); tap('#screen [data-smode=enh]',500); tap('#screen [data-sel]'); m0=S('mats')
     can=pg.evaluate("!!document.querySelector('#screen [data-brk]:not([disabled])')")
     if can: tap('#screen [data-brk]')
-    else: tap('#screen [data-sel]:nth-of-type(3)'); tap('#screen [data-brk]')
+    else:  # 帰還の代償（2026-10-17〜）で持ち帰る装備が減るので、分解できる装備を探して選ぶ（無ければ分解は飛ばす）
+        k=pg.evaluate("(()=>{const L=[...document.querySelectorAll('#screen [data-sel]')];for(let i=0;i<L.length;i++){if(!/装備中/.test(L[i].textContent))return i}return -1})()")
+        if k>=0: tap(f'#screen [data-sel]:nth-of-type({k+1})'); tap('#screen [data-brk]')
     tap('#screen [data-sel]'); e0=pg.evaluate("document.querySelector('#screen [data-enh]').disabled"); tap('#screen [data-enh]') if not e0 else None
     print('鍛冶屋: 分解で資材',m0,'→',S('mats'),'/ 強化',('済み' if not e0 else '不可（資材か金が足りない）'),'/ 倉庫',S('inv.length'),'個 / 知らせ「'+(pg.evaluate("(document.querySelector('#screen .tw-msg')||{}).textContent||''"))+'」')
     pg.screenshot(path=out.replace('.png','_smith.png'))

@@ -3869,9 +3869,21 @@ function useBag(id){
 }
 /* 探索の終わり。clear=ボス撃破 / return=途中で帰還 … 戦利品を持ち帰る。wipe=戦闘で全滅 / mad=全員が精神崩壊 … 未精算の戦利品をすべて失う。
    体力・狂気・崩壊は街へ持ち越す（P.members は街の記録そのもの）。戦闘で全滅したときは、生き残りが瀕死で街へ運ばれる */
+/* 帰還の代償（2026-10-17 ユーザー決定）：途中で引き返すと、金と装備の一部を置いていく。奥まで進むほど失う量が減る。
+   進み＝(歩み−1)/(全歩−1)。金は 50%→100% を持ち帰り、装備は 約半分→0個 をランダムに失う（探索の種と歩みで決まる）。踏破・全滅・精神崩壊は従来どおり */
+const RETCFG={goldMin:0.5,lootLose:0.5};
+function retreatCost(){
+  const M=R.map,dep=M.steps>1?clamp((M.nodes[R.at].L-1)/(M.steps-1),0,1):1;
+  const keepR=RETCFG.goldMin+(1-RETCFG.goldMin)*dep,gold=Math.floor(R.gold*keepR),nLose=Math.round(R.loot.length*RETCFG.lootLose*(1-dep));
+  const r=mulberry32(hash32((R.seed|0)^0x5E7A11^(M.nodes[R.at].L*977))),idx=R.loot.map((_,i)=>i);
+  for(let i=idx.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]]}
+  const lost=new Set(idx.slice(0,nLose));
+  return{dep,keepR,gold,lostGold:R.gold-gold,keep:R.loot.filter((_,i)=>!lost.has(i)),lost:R.loot.filter((_,i)=>lost.has(i))};
+}
 function endRun(kind){
-  const keep=kind==='clear'||kind==='return';
-  R.end={kind,keep,gold:R.gold,loot:R.loot.slice(),auto:null,deeper:false};R.node=null;R.walk=null;
+  const keep=kind==='clear'||kind==='return',rc=kind==='return'?retreatCost():null;
+  if(rc){R.gold=rc.gold;R.loot=rc.keep}
+  R.end={kind,keep,gold:R.gold,loot:R.loot.slice(),auto:null,deeper:false,ret:rc&&{keepR:rc.keepR,lostGold:rc.lostGold,lost:rc.lost.length}};R.node=null;R.walk=null;
   S.runs++;S.day++;
   if(kind==='clear'){S.clears++;if(R.floor>=S.floorMax){S.floorMax=R.floor+1;S.floor=S.floorMax;R.end.deeper=true}}
   if(keep){S.gold+=R.gold;R.end.auto=bankLoot(R.loot)}
@@ -5739,7 +5751,9 @@ function showNode(){
   const head=(g,col,t,ix)=>'<div class="emb'+(UI.medals&&ix>=0?' mart':'')+'" style="--nc:'+col+(UI.medals&&ix>=0?';'+medalPos(ix):'')+'">'+g+'</div><h1>'+t+'</h1>',mix=MEDAL_IX[n.type];
   const purse='<div class="stats">未精算の金<b>'+R.gold+'</b>　装備<b>'+R.loot.length+'</b><br>灯り<b>'+R.light+'%</b></div>';
   if(N.phase==='retreat'){
-    h=head('還','#b39355','街へ帰還する')+'<p>来た道を引き返し、探索を終えます。未精算の戦利品は、すべて持ち帰れます。</p>'+purse
+    const rc=retreatCost();
+    h=head('還','#b39355','街へ帰還する')+'<p>来た道を引き返し、探索を終えます。急いで戻るため、戦利品の一部を置いていきます。奥まで進むほど、失う物は減ります。</p>'
+      +'<div class="stats">持ち帰り　金<b>'+rc.gold+'</b>（'+Math.round(rc.keepR*100)+'%）　装備<b>'+rc.keep.length+' / '+R.loot.length+'</b></div>'+purse
       +'<div class="acts"><button data-act="retreat">帰還する</button><button class="sub" data-act="leave">探索に戻る</button></div>';
   }else if(N.phase==='bag'){
     h=head('荷','#b39355','荷物')+'<p>'+(N.last||'街の商店で買った物資です。使うとその場で効きます。')+'</p>'+purse+'<div class="acts">'
@@ -5763,11 +5777,12 @@ function showNode(){
 function showSettle(){
   const e=R.end,M=R.map,t={
     clear: ['奈落踏破','奈落の主を退け、夜が来る前に街へ戻りました。戦利品は、すべて持ち帰れます。'+(e.deeper?'さらに深い第'+S.floorMax+'層への道が開けました。':'')],
-    return:['帰還','灯りが尽きる前に、来た道を引き返しました。戦利品は無事です。'],
+    return:['帰還','灯りが尽きる前に、来た道を引き返しました。急いだ帰り道で、戦利品の一部を置いてきました。'],
     wipe:  ['全滅','前線は崩れました。未精算の戦利品は、すべて奈落に呑まれました。生き残った者は、瀕死で街へ運ばれます。'],
     mad:   ['精神崩壊','闇の中で、誰も正気を保てませんでした。未精算の戦利品は、すべて奈落に呑まれました。教会で蘇らせるまで、彼らは戻りません。']}[e.kind];
   openScreen('<h1'+(e.keep?'':' class="bad"')+'>'+t[0]+'</h1><p>'+t[1]+'</p>'
     +'<div class="stats">第'+R.floor+'層　歩み<b>'+M.nodes[R.at].L+' / '+M.steps+'</b>　勝利<b>'+R.wins+'戦</b><br>'+(e.keep?'持ち帰り':'失った戦利品')+'　金<b>'+e.gold+'</b>　装備<b>'+e.loot.length+'</b><br>街の蓄え　金<b>'+S.gold+'</b>　資材<b>'+S.mats+'</b></div>'
+    +(e.ret&&(e.ret.lostGold||e.ret.lost)?'<p class="note">帰還の代償：金 −'+e.ret.lostGold+'（持ち帰り '+Math.round(e.ret.keepR*100)+'%）'+(e.ret.lost?'・装備 '+e.ret.lost+'個を失った':'')+'。奥まで進むほど、失う物は減ります。</p>':'')
     +(e.keep?lootHTML(e.loot,'持ち帰った装備'):'')
     +(e.auto&&e.auto.n?'<p class="note">倉庫がいっぱいのため、弱い装備'+e.auto.n+'個を資材 +'+e.auto.y+' に変えました。</p>':'')
     +'<div class="acts"><button data-act="town">街へ戻る</button></div>',false);
@@ -6001,6 +6016,7 @@ window.NARAKU={
   go(id){if(!stepTo(id))return false;arrive();return mode},
   info:id=>nodeInfo(id),light:()=>lightState(),nodeXY:id=>{R.camY=null;const q=mapXY(R.map.nodes[id]);return{x:q.x/W,y:q.y/H}},choose:chooseNode,buy:buyItem,leave:leaveNode,next:afterVictory,giveUp,
   retreat(){if(mode!=='map'||R.walk)return false;endRun('return');return true},
+  retreatCost:()=>R?retreatCost():null,
   smith:{reforge,reforgeUndo,upgrade:upgradeItem,rfCost,upCost,RFCFG},
   vfx:{fbLine:FB_LINE,tick:updFX,blackholeReady,blackholeSmoothReady,shadowReady,ready:()=>!!(vtex('quake_floor')&&vtex('quake_air')),quakeCReady,riftReady:()=>!!(vtex('rift_floor')&&vtex('rift_air'))},QUAKE_VFX,QUAKE_C,RIFT_VFX,SHADOW_VFX,BLACKHOLE_VFX,SHIN,shinStart,useCard,startRewind,updRewind,dropSig,dropFor,get ULT(){return ULT},ULT_DEF,startUlt,SEQ,ULT_SEQ,
   pick:chooseUp,

@@ -135,7 +135,7 @@ with sync_playwright() as p:
       NARAKU.start(['fox','sword','mage'],9,{kind:'battle',depth:1});const B=NARAKU.B;o.deep=[B.dur,+B.hpK.toFixed(3),+B.dmgK.toFixed(3)].join();
       NARAKU.start(['fox','sword','mage'],9);o.trial=[NARAKU.B.dur,NARAKU.B.hpK,NARAKU.B.dmgK,NARAKU.B.ts,NARAKU.B.hasBoss].join();
       return o}""")
-    check('帰還は金と装備を街へ持ち帰り、戦闘での全滅は未精算の戦利品をすべて失って全員が瀕死（体力10%）で戻る',r['ret']=='settle,return,123,2' and r['def']=='defeat' and r['wipe']=='settle,wipe,false,0,0,0.1/0.1/0.1',(r['ret'],r['wipe']))
+    check('帰還は入口だと金の50%・装備の半分を持ち帰り（帰還の代償）、戦闘での全滅は未精算の戦利品をすべて失って全員が瀕死（体力10%）で戻る',r['ret']=='settle,return,61,1' and r['def']=='defeat' and r['wipe']=='settle,wipe,false,0,0,0.1/0.1/0.1',(r['ret'],r['wipe']))
     check('敵の強さ：最深部の通常戦は体力1.35倍・攻撃力1.2倍。単発の検証戦はStep 2と同じ条件',r['deep']=='90,1.35,1.2' and r['trial']=='180,1,1,1,true',(r['deep'],r['trial']))
     r=pg.evaluate("""()=>{
       const walk=()=>{NARAKU.startRun(['blue','sword','sister'],11);const log=[];
