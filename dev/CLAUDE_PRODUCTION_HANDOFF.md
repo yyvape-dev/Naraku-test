@@ -1,5 +1,7 @@
 # Claude向け：戦闘UI改修・本番移行引き継ぎ
 
+> 2026-10-17追記：この文書は2026-10-14時点の履歴資料です。最新の仕様・公開範囲は [CLAUDE_HANDOFF.md](CLAUDE_HANDOFF.md) と [OMENS_SPEC.md](OMENS_SPEC.md) を先に確認してください。
+
 更新日：2026-10-14。対象は **yyvape-dev/Naraku-test**。現在の配信コードは `5f3a9ec`。テストURL： https://yyvape-dev.github.io/Naraku-test/?v=5f3a9ec 。本番 `yyvape-dev/Naraku` は変更していない。本書は移行のための説明で、本番へ反映する指示・承認ではない。
 
 初めに `dev/HANDOFF.md` の「現在の確定状態」を読む。下に残した過去の「最新」項目は履歴であり、サイズ・位置・公開状態は最新の集約記述を優先する。
