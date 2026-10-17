@@ -10,7 +10,8 @@
   "details": {
     "slow": 4.5,
     "reload": 8,
-    "visualLife": 1.8,
+    "visualLife": 0.9,
+    "playbackFps": 60,
     "echoLayers": 6,
     "fallback": true,
     "cleanup": true

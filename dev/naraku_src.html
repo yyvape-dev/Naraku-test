@@ -1118,8 +1118,8 @@ const CHAR_TAG={fox:'phys',sword:'phys',blue:'phys',sister:'mag',mage:'mag',ninj
 const LINE_OFF=124,FOOT_OFF=22,ALLY_H=100; // 防衛線と味方の足元（アリーナ下端からの距離）、味方の表示身長
 
 const CARDS=[
-  {id:'fox_fire',  owner:'fox',   name:'狐火乱舞',  kind:'target', r:72, dmg:55, reload:5, desc:'狐火で範囲を焼く',        pal:['#fff3c4','#ff9a2e','#b3340c']},
-  {id:'fox_bind',  owner:'fox',   name:'影縫い',    kind:'target', r:95, dmg:15, slow:4.5,reload:8, desc:'広範囲の敵を鈍足にする',pal:['#d8fff4','#2fb89a','#0c3b3a']},
+  {id:'fox_fire',  owner:'fox',   name:'狐火乱舞',  kind:'target', r:72, dmg:75, reload:4.5, desc:'狐火で範囲を焼く',        pal:['#fff3c4','#ff9a2e','#b3340c']},
+  {id:'fox_bind',  owner:'fox',   name:'影縫い',    kind:'target', r:95, dmg:35, slow:4.5,reload:8, desc:'広範囲の敵を鈍足にする',pal:['#d8fff4','#2fb89a','#0c3b3a']},
   {id:'sw_quake',  owner:'sword', name:'大地割り',  kind:'target', r:88, dmg:130,knock:44,reload:9, desc:'大打撃を与え吹き飛ばす',pal:['#ffffff','#e6c36a','#6e5220']},
   {id:'sw_rift',   owner:'sword', name:'乾坤一擲',  kind:'target', shape:'col',hw:30,dmg:90,zone:3,zdps:40,reload:11,desc:'縦一列を割り、3秒間その道を阻む',pal:['#ffffff','#ffb347','#5a2a0a']},
   {id:'si_pillar', owner:'sister',name:'聖光の柱',  kind:'target', r:76, dmg:85, healFlat:12,reload:8,desc:'浄化し、味方を少し癒す',pal:['#ffffff','#ffe9a0','#b88a2a']},
@@ -3394,7 +3394,7 @@ function useStrategy(si){
 /* ---- 超必殺（同じキャラの札の2連続で発動。1戦闘1回） ----
    カットイン（透過の立ち絵が滑り込む1.3秒。戦場の枠の中だけを覆う）のあいだ戦闘は完全に止まり、明けた瞬間に必殺が着弾する */
 const ULT_DEF={
-  fox:   {name:'百鬼狐火',  col:'#ff9a2e',fire(a){const c=Object.assign({},CARDS.find(o=>o.id==='fox_fire'),{ult:'fox'}),pts=ultTargets(14);if(ultSeqOn('fox'))FX.foxU={t:0};pts.forEach((p,i)=>B.impacts.push({t:0.05+i*0.07,c,x:p.x,y:p.y,k:1.5}))}},
+  fox:   {name:'百鬼狐火',  col:'#ff9a2e',fire(a){const c=Object.assign({},CARDS.find(o=>o.id==='fox_fire'),{ult:'fox',dmg:55}),pts=ultTargets(14);if(ultSeqOn('fox'))FX.foxU={t:0};pts.forEach((p,i)=>B.impacts.push({t:0.05+i*0.07,c,x:p.x,y:p.y,k:1.5}))}},
   sword: {name:'天地開闢',  col:'#ff2a1e',fire(a){const b=CARDS.find(o=>o.id==='sw_rift'),c=Object.assign({},b,{dmg:140,zone:4,zdps:55,ult:'sword',pal:this.pal||['#fff0e8','#ff2a1e','#2a0504']});if(ultSeqOn('sword'))FX.lanaU={t:0};for(let i=0;i<6;i++)B.impacts.push({t:0.04+i*0.06,c,x:30+i*60,y:B.lineY*0.5,k:1})}},
   sister:{name:'聖母の加護',col:'#ffe9a0',fire(a){sanctStart(a)}}, // 15秒の聖域（SANCT）
   mage:  {name:'永劫凍獄',  col:'#8fd8ff',fire(a){
