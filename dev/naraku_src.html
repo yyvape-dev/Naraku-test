@@ -1021,6 +1021,7 @@ img.frm{display:block;width:100%;height:100%}
 @media(prefers-reduced-motion:reduce){#strategyReveal .turn{animation:none;transform:rotateY(180deg)}}
 
 .tvc-pr.lana-profile{display:flex;flex-direction:column;align-items:stretch;justify-content:center;font-size:calc(10px*var(--lk));line-height:1.35}.lana-profile p{margin:0 0 4px;color:#3e2a17;font-size:11px}.lana-outfit{font-size:12px;display:flex;align-items:center;gap:10px;white-space:nowrap}.lana-outfit label{display:flex;align-items:center;gap:4px}.lana-outfit select{min-height:28px;font:inherit;color:#f4dfae;background:#211b17;border:1px solid #94764b;padding:3px}.lana-outfit input{margin:0}
+.omen-notice{pointer-events:auto;margin:0 10px 3px;padding:9px 12px;border:1px solid #967448;border-radius:5px;background:linear-gradient(130deg,rgba(39,27,22,.97),rgba(17,16,24,.97));color:#eddbb8;text-align:left;font-size:12px;line-height:1.45;box-shadow:0 2px 12px #0008;max-height:36vh;overflow:auto}.omen-notice summary{cursor:pointer;list-style:none}.omen-notice summary::-webkit-details-marker{display:none}.omen-notice summary small{display:block;color:#b7a78d;font-size:10px}.omen-notice summary b{display:block;color:#ffdf9d;font-size:14px}.omen-notice summary b::after{content:' ⌄';float:right;font-size:12px}.omen-notice summary span{display:block;margin-top:3px}.omen-notice p{font-size:12px;margin:8px 0;color:#c9bfae}.omen-notice button{font:inherit;background:#4c3926;color:#f1dfb5;border:1px solid #9d7a46;padding:7px 12px}.omen-notice:focus-within{border-color:#e0ba71}
 </style>
 <script>
 /* 起動の見張り。本体のスクリプトより前に置く。本体が読み込めない・途中で止まったときに、真っ暗な戦闘画面のまま黙らないようにする */
@@ -2732,7 +2733,7 @@ function clearFX(){FX.shin=null;FX.parts.length=0;FOXGL.length=0;FX.dust.length=
 
 function newBattle(seed){
   const rs=mulberry32(seed),rc=mulberry32(hash32(seed^0x5A5A5A5A)),K=BKINDS[BOPT.kind],dep=BOPT.depth||0,fl=(BOPT.floor||1)-1;
-  B={seed,bg:BOPT.bg||pickBg(seed),t:0,life:CFG.baseLife,soul:0,gold:0,
+  B={seed,anomaly:omenKey(BOPT.anomaly),bg:BOPT.bg||pickBg(seed),t:0,life:CFG.baseLife,soul:0,gold:0,
      // 戦闘の種類と深さで決まる条件（逆転の右手でも変わらない）
      kind:BOPT.kind,dur:K.dur||CFG.dur,ts:K.ts,hpK:K.hp*(1+XCFG.depthHp*dep)*(1+TCFG.floorHp*fl),dmgK:K.dmg*(1+XCFG.depthDmg*dep)*(1+TCFG.floorDmg*fl),goldK:1+TCFG.floorGold*fl,ilv:fl+dep,soulK:K.soul,eliteGap:CFG.eliteEvery*K.elite,hasBoss:K.boss,back:[],
      // ソウル強化（戦闘1回分。逆転の右手で消える）。ru=強化の抽選用。逆転の右手を使うたびに引き直しになる / rk=会心の判定用
@@ -2793,10 +2794,33 @@ const maxHpOf=m=>CHARS[m.id].hp*(1+gearStats(m).hp/100);
 
 /* ---- セーブ（廃屋）。街の蓄え・仲間の状態・探索の途中経過を1つにまとめ、localStorage に自動で書く。
         localStorage が使えない環境でも止まらないよう必ず try/catch で守り、エクスポート用のコードを保険にする ---- */
+// 探索ごとの異変。街の次回分と探索中の写しを分け、戦闘乱数を消費しない。
+const OMENS={
+ none:{name:'平穏な奈落',rumor:'今のところ、奈落に妙な気配はないらしい。',effect:'特別な変化なし。いつもの編成で挑める。'},
+ swarm:{name:'群れの夜',rumor:'闇の奥で、小さな影の群れを見た者がいる……。',effect:'通常敵の出現数が約25%増加・HP25%減。撃破ソウル10%増。'},
+ giants:{name:'巨影の気配',rumor:'数は少ないが、やけに頑丈な影が歩いているらしい。',effect:'通常敵の出現数が約25%減少・HP50%増・攻撃力25%増。撃破ソウル25%増。'},
+ whispers:{name:'狂気の囁き',rumor:'正気を失いかけた者ほど、闇を裂く力を得るという……。',effect:'味方の狂気に応じて与ダメージ増加（狂気1%につき0.5%、最大+49.5%）。精神崩壊は通常どおり。'},
+ undead:{name:'不死者の行進',rumor:'倒れたはずの影が、再び立ち上がったらしい……。',effect:'通常敵が一度だけHP35%でその場で復活。報酬は最終撃破時の1回のみ。'},
+ treasure:{name:'宝物の匂い',rumor:'宝の噂が絶えない。だが、それを守る影も多いようだ。',effect:'宝箱と強敵の道が出やすくなる。敵の撃破で得る金20%増。'},
+ steel:{name:'鋼の瘴気',rumor:'奈落に、刃を弾く瘴気が漂っているらしい……。',effect:'敵が受ける物理ダメージ30%減。魔法中心の編成が有利。'},
+ seal:{name:'魔封じの霧',rumor:'奈落の霧が、魔力を吸い込んでいるらしい……。',effect:'敵が受ける魔法ダメージ30%減。物理中心の編成が有利。'}
+};
+const omenKey=k=>Object.prototype.hasOwnProperty.call(OMENS,k)?k:'none';
+function rollOmen(seed,runs,previous){const keys=Object.keys(OMENS).filter(k=>k!==previous);return keys[hash32(seed^Math.imul(runs+1,0x9e3779b1)^0x4f4d454e)%keys.length]}
+const skillTag=c=>c.damageTag||(['fox_fire','fox_bind'].includes(c.id)?'mag':CHAR_TAG[c.owner]);
+function omenDamage(dmg,who,tag){
+  const key=B.anomaly;if((key==='steel'&&tag==='phys')||(key==='seal'&&tag==='mag'))dmg*=.7;
+  if(key==='whispers'&&who){const a=B.allies.find(a=>a.d.id===who);if(a)dmg*=1+clamp(a.m.madness||0,0,99)*.005}
+  return dmg;
+}
+function omenHTML(key,label='次の探索'){
+  const o=OMENS[omenKey(key)];return '<details class="omen-notice"><summary><small>酒場の噂 · '+label+'</small><b>奈落の異変：'+o.name+'</b><span>'+o.effect+'</span></summary><p>「'+o.rumor+'」</p><p>この異変は探索終了まで固定。編成・階層変更や再読み込みでは変わりません。</p><p>通常攻撃はキャラ固有の属性、スキルは技の属性で判定。狐火・影縫い・延焼は魔法です。</p><button data-go="party">酒場で編成を整える ›</button></details>';
+}
 const SAVE_KEY='naraku_save_v1';
 function newSave(){
+  const omenSeed=newSeed();
   const roster={};CHAR_ORDER.forEach(id=>{roster[id]={id,hpR:1,madness:0,collapsed:false,surge:false,w:null,a:null,hired:!HIRE[id]}});
-  return{v:1,gold:TCFG.startGold,mats:0,day:1,runs:0,clears:0,floorMax:1,floor:1,nid:1,inv:[],bag:{oil:1,salve:0,incense:0},picks:['fox','sword','mage'],roster,run:null};
+  return{v:1,omenSeed,omen:rollOmen(omenSeed,0),gold:TCFG.startGold,mats:0,day:1,runs:0,clears:0,floorMax:1,floor:1,nid:1,inv:[],bag:{oil:1,salve:0,incense:0},picks:['fox','sword','mage'],roster,run:null};
 }
 // 装備は短い配列にして書く（写しのコードを短くするため）。surge は見た目だけの印なので書かない
 const saveText=o=>JSON.stringify(o||S,(k,v)=>k==='surge'?undefined:(v&&typeof v==='object'&&typeof v.pw==='number'&&v.s)?[v.s,v.b,v.r,v.p,v.pw,v.n]:v);
@@ -2814,6 +2838,7 @@ function fixSave(o){
   const d=newSave();let nid=1;
   const item=(x,slot)=>{const it=fixItem(x);if(!it||(slot&&it.s!==slot))return null;it.id=nid++;return it};
   d.gold=toInt(o.gold,0,99999999,0);d.mats=toInt(o.mats,0,9999999,0);d.day=toInt(o.day,1,999999,1);d.runs=toInt(o.runs,0,999999,0);d.clears=toInt(o.clears,0,999999,0);
+  d.omenSeed=toInt(o.omenSeed,0,0xffffffff,hash32(d.runs^d.day^0x4f4d454e));d.omen=typeof o.omen==='string'?omenKey(o.omen):(o.run?'none':rollOmen(d.omenSeed,d.runs));
   d.floorMax=toInt(o.floorMax,1,999,1);d.floor=toInt(o.floor,1,d.floorMax,d.floorMax);
   d.inv=(Array.isArray(o.inv)?o.inv:[]).slice(0,GCFG.invCap*2).map(x=>item(x)).filter(Boolean);
   TSHOP.forEach(t=>{d.bag[t.id]=toInt(o.bag&&o.bag[t.id],0,t.cap,0)});
@@ -2827,11 +2852,11 @@ function fixSave(o){
   d.picks=ids(o.picks);
   const r=o.run;
   if(r&&typeof r==='object'){ // 探索の途中経過。マップは seed から作り直す
-    const seed=toInt(r.seed,0,0xffffffff,0)>>>0,map=genMap(seed),rid=ids(r.ids),at=toInt(r.at,0,map.nodes.length-1,-1);
+    const seed=toInt(r.seed,0,0xffffffff,0)>>>0,map=genMap(seed,omenKey(r.anomaly)),rid=ids(r.ids),at=toInt(r.at,0,map.nodes.length-1,-1);
     if(rid.length===3&&at>=0){
       const stock={};if(r.stock&&typeof r.stock==='object')map.nodes.forEach(n=>{const q=r.stock[n.id];if(n.type==='camp'&&q&&typeof q==='object'){stock[n.id]={};SHOP.forEach(s=>{stock[n.id][s.id]=toInt(q[s.id],0,s.stock,0)})}});
       const seen=toMap(r.seen);seen[0]=true;seen[at]=true;
-      d.run={seed,floor:toInt(r.floor,1,d.floorMax,1),ids:rid,at,from:toInt(r.from,0,map.nodes.length-1,0),light:toInt(r.light,0,100,0),gold:toInt(r.gold,0,99999999,0),
+      d.run={seed,anomaly:omenKey(r.anomaly),floor:toInt(r.floor,1,d.floorMax,1),ids:rid,at,from:toInt(r.from,0,map.nodes.length-1,0),light:toInt(r.light,0,100,0),gold:toInt(r.gold,0,99999999,0),
         loot:(Array.isArray(r.loot)?r.loot:[]).slice(0,200).map(x=>item(x)).filter(Boolean),seen,trail:toMap(r.trail),done:toMap(r.done),stock,
         wins:toInt(r.wins,0,999,0),amb:r.amb===at?at:null,rewinds:toInt(r.rewinds,0,999,0),cleared:!!r.cleared};
       d.picks=rid.slice();
@@ -2874,7 +2899,7 @@ function importCode(code){
 // 探索の途中経過を書く。1歩進んだとき・マスの結果が出たとき・戦闘に勝ったときに呼ぶ（戦闘の途中は書かない。閉じたら、そのマスの最初からになる）
 function saveRun(){
   if(!R||!S||R.end)return;
-  S.run={seed:R.seed,floor:R.floor,ids:P.members.map(m=>m.id),at:R.at,from:R.from,light:R.light,gold:R.gold,loot:R.loot,seen:R.seen,trail:R.trail,done:R.done,stock:R.stock,wins:R.wins,amb:R.amb,rewinds:P.rewinds,cleared:R.cleared};
+  S.run={seed:R.seed,anomaly:R.anomaly,floor:R.floor,ids:P.members.map(m=>m.id),at:R.at,from:R.from,light:R.light,gold:R.gold,loot:R.loot,seen:R.seen,trail:R.trail,done:R.done,stock:R.stock,wins:R.wins,amb:R.amb,rewinds:P.rewinds,cleared:R.cleared};
   save();
 }
 
@@ -2954,6 +2979,7 @@ function spawn(type){
     st:'walk',atkT:0.4,animT:-1,motionT:0,pend:0,slowT:0,frzT:0,burnT:0,burnDps:0,burnTick:0,knT:0,flash:0,elite:big,sc:1,dead:false,tg:null,ph:B.rs()*TAU,stopOff:0};
   if(d.boss){e.x=W/2;e.y=-30;e.spd=d.spd}
   e.stopOff=d.kind==='ranged'?-150-(e.idx%4)*16:-4-(e.idx%3)*8;
+  if(!big){if(B.anomaly==='swarm')e.hp=e.max=e.max*.75;if(B.anomaly==='giants'){e.hp=e.max=e.max*1.5;e.d=Object.assign({},d,{dmg:d.dmg*1.25})}}
   B.enemies.push(e);
 }
 // 時間が進むほど、速い獣と硬い盾騎士が混ざってくる
@@ -2978,10 +3004,10 @@ function encounterType(kind,index=0){
   return pool[hash32(B.seed^Math.imul(index+1,0x9e3779b1)^salt)%pool.length];
 }
 function spawner(dt){
-  const t=B.t*B.ts;B.acc+=dt; // t=敵インフレ曲線の上での時刻（短い戦闘は早回しで進む）
+  const t=B.t*B.ts;B.acc+=dt*(B.anomaly==='swarm'?1.25:B.anomaly==='giants'?.75:1); // t=敵インフレ曲線の上での時刻（短い戦闘は早回しで進む）
   const iv=Math.max(CFG.spawnMin,CFG.spawnStart*Math.exp(-t/CFG.spawnDecay));
   while(B.acc>=iv){B.acc-=iv;spawn(pickType(t))}
-  if(t>=B.nextWave){const n=CFG.waveBase+Math.floor(B.nextWave/30)*CFG.waveGrow;for(let i=0;i<n;i++)spawn(pickType(t));banner('大群襲来');B.nextWave+=30}
+  if(t>=B.nextWave){const n=Math.max(1,Math.round((CFG.waveBase+Math.floor(B.nextWave/30)*CFG.waveGrow)*(B.anomaly==='swarm'?1.25:B.anomaly==='giants'?.75:1)));for(let i=0;i<n;i++)spawn(pickType(t));banner('大群襲来');B.nextWave+=30}
   if(t>=B.nextElite){const type=encounterType('elite',Math.round(B.nextElite/B.eliteGap)-1);spawn(type);banner(ENEMIES[type].name);B.nextElite+=B.eliteGap}
   if(B.hasBoss&&!B.bossOut&&t>=CFG.bossAt){B.bossOut=true;const type=encounterType('boss');spawn(type);banner(ENEMIES[type].name);FX.shake=14}
 }
@@ -3107,17 +3133,19 @@ function allyHit(a,tg,rep,singleOnly=false){
   }
 }
 // who=与えた味方のid / kind='atk'（通常攻撃・延焼）か 'skill'。集計は実際に削った体力ぶん（倒しすぎは数えない）
-function hurt(e,dmg,col,crit,quiet,who,kind){
+function hurt(e,dmg,col,crit,quiet,who,kind,tag=CHAR_TAG[who]){
   if(e.dead)return;
+  dmg=omenDamage(dmg,who,tag);
   const real=Math.min(dmg,Math.max(0,e.hp));if(who&&B.stat[who])B.stat[who][kind]+=real;else B.statX+=real;
   e.hp-=dmg;e.flash=0.12;
   if(JC.on&&!quiet){e.kbT=0.13;if(crit){e.flash=0.18;jcStop(0.035)}}
   if(!quiet)floatTxt(e.x,e.y-e.d.h*e.sc,Math.round(dmg)+(crit?'!':''),crit?'#ffffff':col,crit?15:11);
   if(e.hp<=0){
+    if(B.anomaly==='undead'&&!e.elite&&!e.revived){e.revived=true;e.hp=e.max*.35;e.burnT=0;e.burnDps=0;e.pend=0;e.animT=-1;e.st='walk';floatTxt(e.x,e.y-40,'再起','#c5a2ed',13);return}
     e.dead=true;B.kills++;
-    const sv=(e.d.soul||1)*B.M.soul*B.soulK;B.soul+=sv;B.sp+=sv;
+    const sv=(e.d.soul||1)*B.M.soul*B.soulK*(B.anomaly==='swarm'?1.1:B.anomaly==='giants'?1.25:1);B.soul+=sv;B.sp+=sv;
     const dr=dropFor(B.seed,e.idx,e.elite,B.ilv,!!e.d.boss);
-    if(dr.gold)B.gold+=Math.round(dr.gold*B.goldK);
+    if(dr.gold)B.gold+=Math.round(dr.gold*B.goldK*(B.anomaly==='treasure'?1.2:1));
     if(dr.gear){B.loot.push(dr.gear);floatTxt(e.x,e.y-30,itemName(dr.gear),RAR[dr.gear.r].col,13)}
     fxDeath(e);jcKill(e);
   }
@@ -3157,7 +3185,7 @@ function updEnemies(dt){
     if(e.knT>0)e.knT-=dt;
     if(e.burnT>0){ // 延焼：0.5秒ごとにまとめて焼く
       e.burnT-=dt;e.burnTick-=dt;
-      if(e.burnTick<=0){e.burnTick+=0.5;hurt(e,e.burnDps*0.5,'#ff8a3a',false,true,e.burnBy,'atk');if(e.dead)continue}
+      if(e.burnTick<=0){e.burnTick+=0.5;hurt(e,e.burnDps*0.5,'#ff8a3a',false,true,e.burnBy,'atk','mag');if(e.dead)continue}
       if(e.burnT<=0)e.burnDps=0;
     }
     if(e.frzT>0){e.frzT-=dt;continue}
@@ -3414,7 +3442,7 @@ function impact(c,x,y,k,shadow=false){
     if(c.slow)e.slowT=Math.max(e.slowT,c.slow);
     if(c.freeze)e.frzT=Math.max(e.frzT,c.freeze*(e.elite?0.5:1));
     if(c.knock)e.y-=c.knock*k*(e.elite?0.3:1);
-    hurt(e,dmg*((c.boss&&(e.elite||e.d.boss))?c.boss:1),c.pal[1],false,false,c.owner,'skill');
+    hurt(e,dmg*((c.boss&&(e.elite||e.d.boss))?c.boss:1),c.pal[1],false,false,c.owner,'skill',skillTag(c));
   }
   if(c.shape!=='full'&&c.fx!=='full'&&(c.dmg||0)>0)jcImpact(x,y,B.kills-k0);
   if(c.healFlat)for(const a of B.allies)if(a.alive){a.hp=Math.min(a.max,a.hp+c.healFlat*k);fxSpark(a.x,a.y-64,'#bff0c0',6)}
@@ -3438,7 +3466,7 @@ function castInstant(c,a){
     for(const e of B.enemies){
       if(e.dead||e.y<top)continue;
       e.y-=c.push*(e.d.boss?0.1:e.elite?0.3:1);e.knT=Math.max(e.knT,0.5);
-      hurt(e,dmg*((c.boss&&(e.elite||e.d.boss))?c.boss:1),c.pal[1],false,false,c.owner,'skill');
+      hurt(e,dmg*((c.boss&&(e.elite||e.d.boss))?c.boss:1),c.pal[1],false,false,c.owner,'skill',skillTag(c));
     }
     fxRow(B.lineY-c.band*0.5,c.band*0.5,c.pal);
     fxTex({n:'slash_a',col:c.pal[1],x:W/2,y:B.lineY-c.band*0.5,w:W*1.3,rot:1.0,sq:0.6,life:0.45,s0:0.85,s1:1.1,fi:0.05,fo:1.4});
@@ -3622,7 +3650,7 @@ function win(){mode='victory';if(R)commitBattle();showResult(true,'')}
 function lose(why){if(mode==='defeat')return;mode='defeat';aim.on=false;showResult(false,why)}
 
 /* ---- モジュールB：探索（網の目マップと灯火）。マップの形も各マスの結果も、探索のシードだけで決まる ---- */
-function genMap(seed){
+function genMap(seed,anomaly='none'){
   const r=mulberry32(hash32(seed^0x7A3D11C5));
   const steps=XCFG.stepsMin+Math.floor(r()*(XCFG.stepsMax-XCFG.stepsMin+1));
   // 数歩ごとに1マスへ収束する：中継キャンプ（道のりが長ければ2か所）と、最後のボス部屋
@@ -3658,7 +3686,7 @@ function genMap(seed){
     const row=layers[L];if(row.length===1)continue;
     const used={};let fight=false;
     row.forEach(id=>{
-      const w=[['battle',46],['elite',L>=2?13:0],['chest',used.chest?0:13],['event',18],['rest',L>=2&&!used.rest?(L===steps-1?22:10):0]];
+      const w=[['battle',46],['elite',L>=2?(anomaly==='treasure'?23:13):0],['chest',used.chest?0:(anomaly==='treasure'?26:13)],['event',18],['rest',L>=2&&!used.rest?(L===steps-1?22:10):0]];
       let tot=0;for(const o of w)tot+=o[1];
       let q=r()*tot,t='battle';for(const o of w){q-=o[1];if(q<0){t=o[0];break}}
       nodes[id].type=t;used[t]=true;if(t==='battle'||t==='elite')fight=true;
@@ -3676,8 +3704,8 @@ function genMap(seed){
   });
   return{seed,steps,camps,layers,nodes};
 }
-function newRun(seed,floor){
-  R={seed,floor:floor||1,map:genMap(seed),at:0,from:0,light:100,gold:0,loot:[],done:{},amb:null,sel:null,walk:null,seen:{0:true},trail:{},wins:0,stock:{},node:null,end:null,cleared:false,flash:0,land:0,camY:null}; // flash・land・camY は見た目だけ（暗闇の明滅・着地の輪・盤の流れ）
+function newRun(seed,floor,anomaly='none'){
+  R={seed,anomaly:omenKey(anomaly),floor:floor||1,map:genMap(seed,anomaly),at:0,from:0,light:100,gold:0,loot:[],done:{},amb:null,sel:null,walk:null,seen:{0:true},trail:{},wins:0,stock:{},node:null,end:null,cleared:false,flash:0,land:0,camY:null}; // flash・land・camY は見た目だけ（暗闇の明滅・着地の輪・盤の流れ）
 }
 const lightState=()=>R.light>=XCFG.lightClear?'clear':R.light>=XCFG.lightDim?'dim':'dark';
 const partyAlive=()=>P.members.some(m=>!m.collapsed);
@@ -3739,7 +3767,7 @@ function arrive(){
 }
 function startNodeBattle(n,kind){
   const dep=R.map.steps>1?(n.L-1)/(R.map.steps-1):0;
-  R.node=null;beginBattle(kind==='ambush'?hash32(n.seed^0x0A3B5C7D):n.seed,{kind,depth:dep,bg:bgFor(dep,kind),floor:R.floor});
+  R.node=null;beginBattle(kind==='ambush'?hash32(n.seed^0x0A3B5C7D):n.seed,{kind,depth:dep,bg:bgFor(dep,kind),floor:R.floor,anomaly:R.anomaly});
 }
 // 焚き火ごとに固定抽選。通常各45%、民家各5%。再開しても引き直さない。
 function restArt(n){
@@ -3819,7 +3847,7 @@ function endRun(kind){
   if(kind==='clear'){S.clears++;if(R.floor>=S.floorMax){S.floorMax=R.floor+1;S.floor=S.floorMax;R.end.deeper=true}}
   if(keep){S.gold+=R.gold;R.end.auto=bankLoot(R.loot)}
   if(kind==='wipe')for(const m of P.members)if(!m.collapsed)m.hpR=TCFG.wipeHp;
-  S.run=null;save();
+  S.omen=rollOmen(S.omenSeed,S.runs,R.anomaly);S.run=null;save();
   mode='settle';showSettle();
 }
 
@@ -3864,7 +3892,7 @@ function updZones(dt){
     const z=B.zones[i];z.t-=dt;z.tick-=dt;
     if(z.tick<=0){z.tick+=0.5;
       for(const e of B.enemies){if(e.dead||e.y>B.lineY+8||Math.abs(e.x-z.x)>z.hw+e.d.r*e.sc)continue;
-        e.slowT=Math.max(e.slowT,0.6);hurt(e,z.dps*0.5,z.c.pal[1],false,true,z.c.owner,'skill')}
+        e.slowT=Math.max(e.slowT,0.6);hurt(e,z.dps*0.5,z.c.pal[1],false,true,z.c.owner,'skill',skillTag(z.c))}
       if(z.c.id==='sw_rift'&&!z.c.ult&&!RIFT_VFX.enabled&&riftKOn()){const K=VFXK.sword;for(let k=0;k<3;k++)dustBurst('streak',z.x+(Math.random()-0.5)*z.hw*1.2,B.lineY*(0.1+Math.random()*0.85),1,{ang:-Math.PI/2,spread:0.5,v0:40,v1:110,l0:0.3,l1:0.4,p:{drag:1,w:1.2,len:6,c0:K.streak[0],c1:K.streak[1]}})}
       else if(!(z.c.ult==='sword'&&ultSeqOn('sword'))&&!(z.c.id==='sw_rift'&&!z.c.ult&&RIFT_VFX.enabled&&vtex('rift_floor')&&vtex('rift_air')))for(let k=0;k<6;k++)addPart({x:z.x+(Math.random()-0.5)*z.hw*1.4,y:Math.random()*B.lineY,vx:0,vy:-40-Math.random()*60,t:0,life:0.5+Math.random()*0.4,size:2+Math.random()*2,col:z.c.pal[1],drag:0.5,grav:0})}
     if(z.t<=0)B.zones.splice(i,1);
@@ -4676,6 +4704,7 @@ function syncMap(){
   const st=$('#mState');setTxt(st,{clear:'明瞭',dim:'薄暗がり',dark:'暗闇'}[ls]);if(st._c!==ls){st._c=ls;st.className=ls;$('#mhud').className=ls}
   const lf=$('#lampFill');if(lf._r!==R.light){lf._r=R.light;lf.style.transform='scaleX('+R.light/100+')'}
   const sp=$('#mStep'),sk=cur.L+'/'+M.steps;if(sp._v!==sk){sp._v=sk;sp.innerHTML=(R.floor>1?R.floor+'層 ':'')+(cur.L?'第<b>'+KANSUJI[cur.L]+'</b>歩':'<b>入口</b>')+' ／ 全'+KANSUJI[M.steps]+'歩'}
+  $('#mStep').title='異変：'+OMENS[R.anomaly].name+' · '+OMENS[R.anomaly].effect;
   setTxt($('#mGold'),R.gold);setTxt($('#mGear'),R.loot.length);
   const sig='m'+R.at+'|'+R.sel+'|'+R.light+'|'+(busy?1:0);
   if(sig!==handSig){
@@ -4845,7 +4874,7 @@ function hubBuild(){
     +'</div>'
     +'<div class="hub-top"><div class="ht ht-day"><canvas class="thc"></canvas><b id="hubDayN"></b><span>日目</span></div>'
       +'<div class="ht ht-purse"><canvas class="thc"></canvas><i class="ht-coin"></i><b id="hubGold"></b><i class="ht-sep"></i><i class="ht-cry"></i><small>資材</small><b id="hubMats"></b></div></div>'
-    +'<div class="hub-bottom" id="hubBottom"><div class="hb-panel" id="hubPanel">'
+    +'<div class="hub-bottom" id="hubBottom">'+omenHTML(S.omen)+'<div class="hb-panel" id="hubPanel">'
       +'<button class="hub-card" id="hubEnter"><i class="hc-vig" id="hubVig"></i><span class="hc-t"><span class="hc-h"><b id="hubName"></b><em id="hubNote"></em><span class="hc-go" id="hubGo"></span></span><span id="hubDesc"></span></span></button>'
       +'<button class="hub-rb p1" data-hubgo="party" aria-label="パーティ"><span>パーティ</span></button><button class="hub-rb p2" data-hubgo="hut" aria-label="記録"><span>記録</span></button>'
       +'<span class="hf-n" id="hubFloorN"></span><button class="hf-a l" data-floor="-1" aria-label="浅い層へ"></button><button class="hf-a r" data-floor="1" aria-label="深い層へ"></button>'
@@ -4924,6 +4953,7 @@ function hubSync(){
   $('#hubEnter').disabled=!sel;
   $('#hubFloorN').innerHTML='第<b>'+S.floor+'</b>層';
   elScreen.querySelector('.hf-a.l').disabled=S.floor<=1;elScreen.querySelector('.hf-a.r').disabled=S.floor>=S.floorMax;
+  const notice=$('#hubBottom .omen-notice');if(notice&&!notice.open)notice.outerHTML=omenHTML(S.omen);
   $('#hubDive').disabled=!ok;
   setTxt($('#hubDiveSub'),S.picks.length<3?'酒場で、出撃する3人を選んでください':!ok?'崩壊した仲間は出撃できません（教会か酒場へ）':'第'+S.floor+'層'+(S.floor>1?'（敵の体力 +'+Math.round(TCFG.floorHp*(S.floor-1)*100)+'%）':''));
   HUBS.pw=0;hubLayoutBottom();hubTags();hubPaint();
@@ -5063,7 +5093,7 @@ const VIEWS={
     const ok=canDive(),why=S.picks.length<3?'酒場で、出撃する3人を選んでください。':!ok?'精神崩壊した仲間は出撃できません。教会で蘇らせるか、酒場で入れ替えてください。':'';
     const fl=S.floorMax>1?'<div class="fstep"><button data-floor="-1"'+(S.floor<=1?' disabled':'')+' aria-label="浅い層へ">‹</button><span>第<b>'+S.floor+'</b>層</span><button data-floor="1"'+(S.floor>=S.floorMax?' disabled':'')+' aria-label="深い層へ">›</button></div>':'';
     townScreen('奈落の縁の街',S.day+'日目　探索'+S.runs+'回・踏破'+S.clears+'回',
-      '<div class="pstrip">'+partyHTML()+'</div>'+(why?'<div class="tw-msg bad" style="margin-top:10px">'+why+'</div>':'')
+      omenHTML(S.omen)+'<div class="pstrip">'+partyHTML()+'</div>'+(why?'<div class="tw-msg bad" style="margin-top:10px">'+why+'</div>':'')
       +'<div class="tgrid big">'+tile('party','酒','#8a6a14','酒場','編成と装備',S.picks.length<3?'あと'+(3-S.picks.length)+'人':'',true)+tile('smith','鍛','#8a3418','鍛冶屋','装備の強化と分解','倉庫 '+S.inv.length)
       +tile('shop','商','#1f6a44','商店','探索へ持っていく物資')+tile('inn','宿','#9a4a10','宿屋','体力と狂気を癒す',tired?'要休息 '+tired:'')
       +tile('church','教','#55358a','教会','崩壊した仲間の蘇生',dead?'崩壊 '+dead:'',true)+tile('hut','廃','#4a4238','廃屋','記録の写しと復元',SAVE_OK===false?'自動保存なし':'',true)+'</div>'
@@ -5531,13 +5561,13 @@ function townClick(ev){
 }
 // 探索の途中で閉じていたときの入口
 function showResume(){
-  mode='town';const s=S.run,m=genMap(s.seed);
+  mode='town';const s=S.run,m=genMap(s.seed,s.anomaly);
   openScreen('<h1>探索の途中</h1><p>第'+s.floor+'層の、第'+KANSUJI[m.nodes[s.at].L]+'歩（全'+KANSUJI[m.steps]+'歩）で中断した探索があります。たどり着いたマスの最初から再開します。</p>'
-    +'<div class="stats">未精算の金<b>'+s.gold+'</b>　装備<b>'+s.loot.length+'</b><br>灯り<b>'+s.light+'%</b></div><div class="acts"><button data-act="resume">探索を再開する</button></div>',false);
+    +'<div class="stats">未精算の金<b>'+s.gold+'</b>　装備<b>'+s.loot.length+'</b><br>灯り<b>'+s.light+'%</b><br>異変：'+OMENS[omenKey(s.anomaly)].name+'</div><div class="acts"><button data-act="resume">探索を再開する</button></div>',false);
 }
 function resumeRun(){
   const s=S.run;if(!s||R)return false;
-  S.picks=s.ids.slice();P={members:s.ids.map(id=>S.roster[id]),rewinds:s.rewinds};newRun(s.seed,s.floor);
+  S.picks=s.ids.slice();P={members:s.ids.map(id=>S.roster[id]),rewinds:s.rewinds};newRun(s.seed,s.floor,s.anomaly);
   Object.assign(R,{at:s.at,from:s.from,light:s.light,gold:s.gold,loot:s.loot,seen:s.seen,trail:s.trail,done:s.done,stock:s.stock,wins:s.wins,amb:s.amb,cleared:s.cleared});
   enterMap();
   const n=R.map.nodes[R.at];
@@ -5551,9 +5581,9 @@ function newSeed(){return(Date.now()^Math.floor(Math.random()*0xffffffff))>>>0}
 // 検証用の、街と切り離したパーティ（全快・狂気0）。gear={w,a} を渡すと全員に同じ装備を持たせる
 function makeParty(ids,gear){P={members:ids.map(id=>({id,madness:0,collapsed:false,surge:false,hpR:1,w:gear&&gear.w||null,a:gear&&gear.a||null})),rewinds:0}}
 // 探索に出る（街の「出撃」）。出撃の3人は街の状態（体力・狂気・装備）をそのまま持っていく
-function beginRun(seed){townParty();newRun(seed==null?newSeed():seed>>>0,S.floor);saveRun();enterMap()}
+function beginRun(seed){townParty();newRun(seed==null?newSeed():seed>>>0,S.floor,S.omen);saveRun();enterMap()}
 // 単発の戦闘（検証用）。opt を省くと、Step 2までと同じ条件の180秒戦になる
-function beginTrial(ids,seed,opt){opt=opt||{};makeParty(ids,opt.gear);R=null;beginBattle(seed,{kind:opt.kind||'trial',depth:opt.depth||0,bg:opt.bg||null,floor:opt.floor||1})}
+function beginTrial(ids,seed,opt){opt=opt||{};makeParty(ids,opt.gear);R=null;beginBattle(seed,{kind:opt.kind||'trial',depth:opt.depth||0,bg:opt.bg||null,floor:opt.floor||1,anomaly:omenKey(opt.anomaly)})}
 function enterMap(){
   if(tuning)closeTune();
   B=null;R.node=null;R.camY=null;mode='map';hideUp();app.classList.remove('battle-ui');app.classList.add('exploring');elScreen.classList.remove('on');
@@ -5569,7 +5599,7 @@ function beginBattle(seed,opt){
   setControlLabel($('#btnPause'),'Ⅱ');setControlLabel($('#btnSpeed'),speed===1?'×1':'×2');
   elScreen.classList.remove('on');mode='battle';
   if(R){elRail.classList.remove('enter');void elRail.offsetWidth;elRail.classList.add('enter')} // 探索から戦闘へ：サイドエリアが右から入ってくる
-  banner({battle:'敵襲',elite:'強敵の気配',boss:'奈落の主',ambush:'奇襲'}[B.kind]||'防衛開始');
+  banner(({battle:'敵襲',elite:'強敵の気配',boss:'奈落の主',ambush:'奇襲'}[B.kind]||'防衛開始')+(B.anomaly!=='none'?' · '+OMENS[B.anomaly].name:''));
 }
 // マップ上の移動（画面からの操作）。駒が滑って着いてから、そのマスが開く
 function travel(id){if(!stepTo(id))return false;R.walk={from:R.from,t:0};return true}
@@ -5726,6 +5756,7 @@ function showResult(ok,why){
   openScreen(h,false);
   elScreen.querySelectorAll('.dps canvas').forEach(c=>paintFace(c,c.dataset.id));
 }
+elScreen.addEventListener('toggle',()=>{if(mode==='town')hubLayoutBottom()},true);
 elScreen.addEventListener('click',ev=>{
   if(elScreen.classList.contains('town')){townClick(ev);return}
   if(elScreen.classList.contains('node')&&performance.now()-scrAt<250)return; // 誤タップ防止：マスの画面は、出た直後は選べない
@@ -5912,10 +5943,11 @@ window.NARAKU={
   // start=単発の戦闘（opt省略でStep 2までと同じ180秒戦。{kind,depth}で探索中の戦闘を再現できる）/ startRun=探索を始める
   start:(ids,seed,opt)=>beginTrial(ids,seed,opt),
   // fresh=まっさらな街にする（自動保存は切る。検証が本物の記録を書き換えないように）/ sortie=今の街の状態で出撃 / startRun=まっさらな街から、その3人で出撃
-  fresh(){SAVE_ON=false;S=newSave();showTown();return S},sortie(seed){townParty();if(!canDive())return false;beginRun(seed);return true},
-  startRun(ids,seed,floor){SAVE_ON=false;S=newSave();S.picks=ids.slice();if(floor){S.floorMax=Math.max(S.floorMax,floor);S.floor=floor}beginRun(seed)},
+  fresh(){SAVE_ON=false;S=newSave();S.omen='none';showTown();return S},sortie(seed){townParty();if(!canDive())return false;beginRun(seed);return true},
+  startRun(ids,seed,floor,anomaly='none'){SAVE_ON=false;S=newSave();S.omen=omenKey(anomaly);S.picks=ids.slice();if(floor){S.floorMax=Math.max(S.floorMax,floor);S.floor=floor}beginRun(seed)},
   // 街の操作と装備・セーブ
   town:{show:showTown,view:showView,pick:togglePick,hire:hireChar,equip:equipItem,unequip,enhance,breakItem,breakAll,inn:innStay,revive,buy:shopBuy,floor:setFloor,bank:bankLoot},
+  omens:{table:OMENS,roll:rollOmen,damage:omenDamage,hurt,skillTag,hitFrom,impact},
   costume:{get:lanaOutfit,set:setLanaCostume,d:id=>charD(id),ultSeq:()=>ULT_SEQ.sword.n,col:()=>ULT_DEF.sword.col,holy:()=>lanaHolyOn},
   look:{set:setLook,get:id=>allyLook(id).key,frames:id=>allyLook(id).seq.length,list:id=>lookList(id).map(o=>o.key)},
   hub:{HUB,select:hubSelect,enter:hubEnter,tick:hubTick,get sel(){return HSEL},get on(){return!!HUBS}},
@@ -5964,7 +5996,7 @@ applyCostumeFx();
 loadEmbedded().then(()=>{
   window.NARAKU_READY=true;
   if(ldEl){clearInterval(ldTm);ldEl.remove();ldEl=null;seqPrefetch()}
-  S=loadSave()||newSave(); // 自動保存があれば続きから。探索の途中で閉じていたら、そのマスから再開する
+  S=loadSave()||newSave();save(); // 自動保存があれば続きから。探索の途中で閉じていたら、そのマスから再開する
   if(S.run)showResume();else showTown();
   requestAnimationFrame(frame);
 });

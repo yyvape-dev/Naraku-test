@@ -1,0 +1,43 @@
+{
+  "physical_normal_30pct": true,
+  "magic_normal_30pct": true,
+  "opposite_attribute_unchanged": true,
+  "physical_skills_and_ult": true,
+  "magic_skills_and_fox_fire": true,
+  "burn_magic_once": true,
+  "zone_physical_once": true,
+  "madness_bonus": true,
+  "revive_once_no_reward": true,
+  "final_kill_one_reward": true,
+  "no_duplicate_reward": true,
+  "normal_enemy_modifiers": true,
+  "boss_and_elite_unchanged": true,
+  "spawn_counts": true,
+  "spawnCounts": [
+    9,
+    12,
+    15
+  ],
+  "treasure_map_weights": true,
+  "mapCounts": {
+    "none": {
+      "chest": 373,
+      "elite": 379
+    },
+    "treasure": {
+      "chest": 569,
+      "elite": 561
+    }
+  },
+  "town_choices_keep_omen": true,
+  "run_snapshot": true,
+  "save_snapshot": true,
+  "legacy_active_run_is_normal": true,
+  "invalid_keys_sanitized": true,
+  "battle_uses_frozen_omen": true,
+  "rewind_preserves_omen": true,
+  "return_rolls_next": true,
+  "all_outcomes_drawable": true,
+  "reload_resume_map_exact": true,
+  "errors": []
+}

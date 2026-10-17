@@ -1,0 +1,66 @@
+[
+  {
+    "omen": "none",
+    "mode": "victory",
+    "time": 180.00000000003539,
+    "kills": 797,
+    "level": 15,
+    "gold": 934
+  },
+  {
+    "omen": "swarm",
+    "mode": "victory",
+    "time": 180.00000000003539,
+    "kills": 1014,
+    "level": 17,
+    "gold": 1139
+  },
+  {
+    "omen": "giants",
+    "mode": "victory",
+    "time": 180.00000000003539,
+    "kills": 598,
+    "level": 14,
+    "gold": 722
+  },
+  {
+    "omen": "whispers",
+    "mode": "victory",
+    "time": 180.00000000003539,
+    "kills": 794,
+    "level": 15,
+    "gold": 936
+  },
+  {
+    "omen": "undead",
+    "mode": "victory",
+    "time": 180.00000000003539,
+    "kills": 783,
+    "level": 15,
+    "gold": 921
+  },
+  {
+    "omen": "treasure",
+    "mode": "victory",
+    "time": 180.00000000003539,
+    "kills": 797,
+    "level": 15,
+    "gold": 1118
+  },
+  {
+    "omen": "steel",
+    "mode": "victory",
+    "time": 180.00000000003539,
+    "kills": 800,
+    "level": 15,
+    "gold": 942
+  },
+  {
+    "omen": "seal",
+    "mode": "victory",
+    "time": 180.00000000003539,
+    "kills": 790,
+    "level": 15,
+    "gold": 932
+  }
+]
