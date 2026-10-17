@@ -13,7 +13,7 @@ VW,VH=[int(v) for v in (sys.argv[6] if len(sys.argv)>6 else '390x844').split('x'
 with sync_playwright() as p:
   b=p.chromium.launch();pg=b.new_page(viewport={'width':VW,'height':VH},device_scale_factor=1);errs=[]
   pg.on('pageerror',lambda e:errs.append(str(e)[:160]))
-  pg.add_init_script(INIT);pg.goto('file://'+os.path.abspath(src)+QS)
+  pg.add_init_script(INIT);pg.goto((src if src.startswith('http') else 'file://'+os.path.abspath(src))+QS)
   for _ in range(30):pg.evaluate("__tick(5,16.67)");pg.wait_for_timeout(40)
   others=[i for i in ['fox','sword','mage','sister','blue'] if i!=cid][:2]
   pg.evaluate(f"NARAKU.start({[cid]+others},321)")

@@ -1400,7 +1400,7 @@ const ULT_SEQ={ // n＝素材の名前 / fx＝FX の時計の名前 / fps / fin�
   fox:  {n:'foxU', fx:'foxU', fps:16,fin:0.08,out:[2.7,3.0], end:3.05,mat:1,add:1,mix:0,fadeY:[-34,0],cx:0.5,cy:0.5,wide:1.12,lit:{c:'#ff3048'}}};
 /* 超必殺の2倍コマ版（RIFEで48→95コマに補間。ラナ12→24fps・アベニウス8→16fps。2026-10-16 試験）。調整パネルの「超必殺なめらか」で切り替え（localStorage） */
 const SEQ24_KEY='naraku_lana24';let SEQ24=true;try{if(localStorage.getItem(SEQ24_KEY)==='0')SEQ24=false}catch(e){}
-const SEQ24_SET={sword:['lanaU',12],blue:['blueU',8]};
+const SEQ24_SET={sword:['lanaU',12],blue:['blueU',8],fox:['foxU',16]}; // ユズナミキは2026-10-17に追加（16→32fps）
 function seq24Apply(){for(const id in SEQ24_SET){const L=ULT_SEQ[id],[b,f]=SEQ24_SET[id],on=SEQ24&&!!SEQS[b+'24_01'],n=on?b+'24':b;if(L.n!==n)seqFree(L.n);L.n=n;L.fps=on?f*2:f}}
 seq24Apply();
 function ultSeqOn(id){const L=ULT_SEQ[id];return !!L&&!!SEQS[L.n+'_01']}
@@ -1710,6 +1710,26 @@ function drawVoidK(g,s){
     for(let i=0;i<5;i++){const yy=s.y-w*(0.1+i*0.11);
       dustBurst('shard',s.x,yy,4,{ang:-Math.PI/2,spread:3,v0:80,v1:220,jit:w*0.35,l0:0.45,l1:0.35,spin:20,p:{grav:380,drag:1.2,w:2+Math.random()*2.4,c0:ICEC.sh,c1:ICEC.c1}});
       dustBurst('streak',s.x,yy,3,{ang:-Math.PI/2,spread:3,v0:160,v1:320,jit:w*0.3,l0:0.1,l1:0.12,p:{drag:4,w:1.2,len:9,c0:ICEC.c0,c1:ICEC.c1}})}}
+}
+/* 百鬼狐火（連番）に重ねる光の粒子（2026-10-17）。ダメージの場所ではなく、画面全体に漂う狐火の粉：
+   明けた瞬間に防衛線から火の筋が一斉に昇る → 2.7秒まで、炎片（揺れて昇る花びら色の光）と細い光の筋がこぼれ続ける。見た目だけ（Math.random） */
+const FOXGL=[]; // 百鬼狐火の光の粒（玉ぼけ＋十字のきらめき）。{x,y,vx,vy,z,t,life,ph}
+function drawFoxGlints(g){
+  if(!FOXGL.length)return;g.save();g.globalCompositeOperation='lighter';
+  for(const o of FOXGL){const u=o.t/o.life,a=Math.min(1,u/0.15)*(1-u)*(0.65+0.35*Math.sin(VFXT*14+o.ph)),z=o.z;
+    const gr=g.createRadialGradient(o.x,o.y,0,o.x,o.y,z*2.2);gr.addColorStop(0,'rgba(255,250,240,'+a+')');gr.addColorStop(0.3,'rgba(255,200,150,'+a*0.7+')');gr.addColorStop(1,'rgba(255,60,80,0)');
+    g.fillStyle=gr;g.beginPath();g.arc(o.x,o.y,z*2.2,0,TAU);g.fill();
+    if(z>6){g.globalAlpha=a*0.8;g.strokeStyle='#fff6ea';g.lineWidth=1;const L=z*2.6*(0.7+0.3*Math.sin(VFXT*9+o.ph));g.beginPath();g.moveTo(o.x-L,o.y);g.lineTo(o.x+L,o.y);g.moveTo(o.x,o.y-L);g.lineTo(o.x,o.y+L);g.stroke();g.globalAlpha=1}}
+  g.restore();
+}
+function foxUltDust(U,dt){
+  for(let i=FOXGL.length-1;i>=0;i--){const o=FOXGL[i];o.t+=dt;o.x+=o.vx*dt;o.y+=o.vy*dt;o.vy*=Math.pow(0.6,dt);if(o.t>=o.life)FOXGL.splice(i,1)}
+  if(!U||U.t<0.08||U.t>2.75)return;const K=VFXK.fox,y1=B.lineY;
+  const kk=U.t>2.3?(2.75-U.t)/0.45:1;if(FOXGL.length<70)for(let i=0;i<2;i++)if(Math.random()<dt*34*kk)FOXGL.push({x:Math.random()*W,y:y1*(0.08+Math.random()*0.95),vx:(Math.random()-0.5)*14,vy:-20-Math.random()*50,z:3+Math.random()*7,t:0,life:0.6+Math.random()*0.9,ph:Math.random()*TAU});
+  if(!U.pb){U.pb=1;for(let i=0;i<10;i++)dustBurst('streak',W*(0.05+i*0.1),y1-4,3,{ang:-Math.PI/2,spread:0.5,v0:220,v1:420,jit:20,l0:0.3,l1:0.25,p:{drag:1.6,w:1.8,len:14,c0:'#fffaf0',c1:'#ffb070'}})}
+  const k=U.t>2.3?(2.75-U.t)/0.45:1;
+  for(let i=0;i<3;i++)if(Math.random()<dt*30*k)dustBurst('petal',Math.random()*W,y1*(0.1+Math.random()*0.95),1,{ang:-Math.PI/2,spread:1.2,v0:25,v1:80,l0:0.6,l1:0.7,spin:5,p:{drag:0.7,w:2+Math.random()*2.6,wob:7,c0:'#ffffff',c1:'#ffe2b8',c2:'#ff5a4a'}}); // 赤い絵の上で見えるよう、芯は白〜金
+  if(Math.random()<dt*30*k)dustBurst('streak',Math.random()*W,y1*(0.2+Math.random()*0.85),1,{ang:-Math.PI/2,spread:0.4,v0:80,v1:190,l0:0.25,l1:0.3,p:{drag:1.4,w:1.4,len:10,c0:'#fffaf0',c1:'#ffc890'}});
 }
 const dv=(v,d)=>v==null?d:v;
 // 弾のように数が多く小さい絵は、表示の大きさ（3倍の解像度）に縮めた写しを使う（スマホの負荷を下げる）
@@ -2545,7 +2565,7 @@ const cv=$('#cv'),ctx=cv.getContext('2d'),app=$('#app');
 
 function defenseLineY(){const r=$('#arena').getBoundingClientRect();return H-LINE_OFF+60*H/Math.max(1,r.height)}
 function layout(){B.lineY=defenseLineY();B.allies.forEach(a=>{a.x=W*[0.18,0.5,0.82][a.slot];a.y=H-FOOT_OFF})}
-function clearFX(){FX.shin=null;FX.parts.length=0;FX.dust.length=0;FX.ghosts.length=0;FX.sh.length=0;FX.floats.length=0;FX.shake=0;FX.banner=null;FX.breach=0;FX.cut=null;for(const id in ULT_SEQ){FX[ULT_SEQ[id].fx]=null;seqFree(ULT_SEQ[id].n)}if(typeof BAR!=='undefined')BAR.emb.length=0;jcReset()}
+function clearFX(){FX.shin=null;FX.parts.length=0;FOXGL.length=0;FX.dust.length=0;FX.ghosts.length=0;FX.sh.length=0;FX.floats.length=0;FX.shake=0;FX.banner=null;FX.breach=0;FX.cut=null;for(const id in ULT_SEQ){FX[ULT_SEQ[id].fx]=null;seqFree(ULT_SEQ[id].n)}if(typeof BAR!=='undefined')BAR.emb.length=0;jcReset()}
 
 function newBattle(seed){
   const rs=mulberry32(seed),rc=mulberry32(hash32(seed^0x5A5A5A5A)),K=BKINDS[BOPT.kind],dep=BOPT.depth||0,fl=(BOPT.floor||1)-1;
@@ -3772,7 +3792,7 @@ function updFX(dt){
   FX.shake*=Math.pow(0.0006,dt);if(FX.breach>0)FX.breach-=dt*1.6;
   for(let i=FX.parts.length-1;i>=0;i--){const p=FX.parts[i];p.t+=dt;if(p.t>=p.life){FX.parts[i]=FX.parts[FX.parts.length-1];FX.parts.pop();continue}const k=Math.exp(-p.drag*dt);p.vx*=k;p.vy*=k;p.vy+=p.grav*dt;p.x+=p.vx*dt;p.y+=p.vy*dt}
   for(let i=FX.sh.length-1;i>=0;i--){const s=FX.sh[i];s.t+=dt;if(s.k==='rift'&&s.layer==='floor'){let hit=0;for(const [at,force] of [[0,5],[.085,4],[.175,6],[.29,3.5],[.355,5],[.48,4],[.575,6],[.70,3],[.86,2],[1.16,3],[1.49,1.8],[1.83,2.5],[2.19,1.6],[2.43,2]]){const age=s.t-at;if(age>=0&&age<.12)hit=Math.max(hit,force*Math.exp(-age*30))}FX.shake=Math.max(FX.shake,hit)}if(s.t>=s.life)FX.sh.splice(i,1)}
-  for(const id in ULT_SEQ){const L=ULT_SEQ[id],U=FX[L.fx];if(U){U.t+=dt;if(U.t>L.end){FX[L.fx]=null;seqFree(L.n)}}}
+  for(const id in ULT_SEQ){const L=ULT_SEQ[id],U=FX[L.fx];if(U){U.t+=dt;if(id==='fox')foxUltDust(U,dt);if(U.t>L.end){FX[L.fx]=null;seqFree(L.n)}}}
   for(let i=FX.dust.length-1;i>=0;i--){const d=FX.dust[i];d.t+=dt;if(d.t>=d.life){FX.dust[i]=FX.dust[FX.dust.length-1];FX.dust.pop();continue}
     const k=Math.exp(-d.drag*dt);d.vx*=k;d.vy*=k;d.vy+=d.grav*dt;d.x+=d.vx*dt;d.y+=d.vy*dt;d.rot+=d.vr*dt;if(d.wob)d.x+=Math.sin(d.t*d.wob+d.ph)*12*dt}
   for(let i=FX.ghosts.length-1;i>=0;i--){const o=FX.ghosts[i];o.t+=dt;if(o.t>=o.life)FX.ghosts.splice(i,1)}
@@ -3997,7 +4017,7 @@ function render(T){
     else if(s.k==='slash'){g.globalAlpha=a;g.strokeStyle=s.col;g.lineWidth=5*a+1;g.beginPath();g.arc(s.x,s.y+s.r*0.3,s.r,Math.PI*(1.05+u*0.3),Math.PI*(1.95-u*0.1));g.stroke()}
   }
   for(const p of FX.parts){const a=1-p.t/p.life,z=p.size*(0.4+a*0.6);g.globalAlpha=a;g.fillStyle=p.col;g.fillRect(p.x-z/2,p.y-z/2,z,z)}
-  g.globalCompositeOperation='lighter';drawDust(g,'add');g.globalCompositeOperation='lighter';
+  g.globalCompositeOperation='lighter';drawDust(g,'add');drawFoxGlints(g);g.globalCompositeOperation='lighter';
   g.globalCompositeOperation='source-over';
   g.textAlign='center';
   for(const f of FX.floats){g.globalAlpha=1-f.t/0.7;g.font='700 '+f.size+'px '+FONT;g.fillStyle='#000';g.fillText(f.txt,f.x+1,f.y+1);g.fillStyle=f.col;g.fillText(f.txt,f.x,f.y)}
