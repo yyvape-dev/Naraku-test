@@ -1146,6 +1146,12 @@ const ENEMIES={
   beast: {name:'棘甲の獣',      kind:'melee', hp:30,  spd:56,dmg:5, cd:1.0,h:70, r:17,col:'#ff8a7a'},
   knight:{name:'血濡れの盾騎士',kind:'melee', hp:62,  spd:26,dmg:7, cd:1.5,h:88, r:16,col:'#7fc4ff'},
   shaman:{name:'車輪杖の呪術師',kind:'ranged',hp:20,  spd:28,dmg:4, cd:3.2,h:80, r:14,col:'#ff7ad0'},
+  // 通常敵追加：8コマ共通規則＝前進4＋攻撃4。霊体の前進は浮遊。
+  relic_dead:{name:'遺物抱えの亡者',kind:'melee',hp:26,spd:36,dmg:5,cd:1.3,h:78,r:13,col:'#b7b586',splitMotion:true,walkFps:7},
+  chain_brute:{name:'鎖肉の屍兵',kind:'melee',hp:62,spd:26,dmg:7,cd:1.5,h:88,r:16,col:'#bc6e66',splitMotion:true,walkFps:5},
+  hook_goblin:{name:'鉤刃の小鬼',kind:'melee',hp:30,spd:56,dmg:5,cd:1.0,h:70,r:17,col:'#c2a877',splitMotion:true,walkFps:10},
+  twin_orc:{name:'双斧の鬼兵',kind:'melee',hp:62,spd:26,dmg:7,cd:1.5,h:88,r:16,col:'#a4af72',splitMotion:true,walkFps:6},
+  veil_ghost:{name:'青衣の浮遊霊',kind:'ranged',hp:20,spd:28,dmg:4,cd:3.2,h:80,r:14,col:'#6ce5db',splitMotion:true,walkFps:5,float:true},
   ogre:  {name:'鎚の大鬼',      kind:'melee', hp:340, spd:25,dmg:10,cd:1.6,h:126,r:24,col:'#ffb36a',elite:true,life:3, soul:10},
   scorp: {name:'蠍の女王',      kind:'melee', hp:1400,spd:15,dmg:18,cd:1.8,h:160,r:46,col:'#ff5a4a',boss:true, life:10,soul:50}
 };
@@ -1172,7 +1178,13 @@ const MOTION={
   knight:{ms:[115,100,85,75,45,125],hit:4},
   shaman:{ms:[120,100,85,70,50,130],hit:4},
   ogre:  {ms:[130,110,95,85,45,140],hit:4},
-  scorp: {ms:[130,110,95,80,45,145],hit:4}
+  scorp: {ms:[130,110,95,80,45,145],hit:4},
+  // 攻撃4コマだけの配分。移動4コマは独立したループ。
+  relic_dead:{ms:[145,45,85,135],hit:1},
+  chain_brute:{ms:[190,50,95,170],hit:1},
+  hook_goblin:{ms:[100,35,65,100],hit:1},
+  twin_orc:{ms:[170,45,85,150],hit:1},
+  veil_ghost:{ms:[180,50,95,160],hit:1}
 };
 // 表の無い絵（差し替えの候補など）に使う仮の配分。コマ数で選ぶ。本採用のときは、その絵に合わせた表を MOTION に足す
 const MOTION_DEF={6:{ms:[120,100,80,45,85,130],hit:3},12:{ms:[120,100,90,80,65,50,40,45,65,85,105,130],hit:6}};
@@ -2332,7 +2344,7 @@ function bgFor(depth,kind){
   if(css){const st=document.createElement('style');st.textContent=css;document.head.appendChild(st)}
 })();
 /* 焼き込み済み素材（透過・足元そろえ済みの等間隔アトラス）。ビルド時に差し込まれる。無いキャラは仮絵で動く */
-const EMBED=/*__EMBED_START__*/{"beast":{"cols":6,"cw":345,"ch":230,"ax":172.5,"ay":225,"refH":217.0,"target":"enemy","src":"dev/assets/beast.webp?v=e622d425"},"blue":{"cols":12,"cw":460,"ch":445,"ax":230.0,"ay":438,"refH":260.0,"target":"ally","src":"dev/assets/blue.webp?v=ffbde5c0"},"fox":{"cols":16,"cw":251,"ch":269,"ax":125.5,"ay":264,"refH":260.0,"target":"ally","src":"dev/assets/fox.webp?v=b180345f"},"knight":{"cols":6,"cw":190,"ch":274,"ax":95.0,"ay":270,"refH":200.0,"target":"enemy","src":"dev/assets/knight.webp?v=2d0e59aa"},"mage":{"cols":12,"cw":304,"ch":270,"ax":152.0,"ay":265,"refH":260.0,"target":"ally","src":"dev/assets/mage.webp?v=bb040a63"},"ninja":{"cols":12,"cw":613,"ch":272,"ax":306.5,"ay":266,"refH":260.0,"target":"ally","src":"dev/assets/ninja.webp?v=62b6f045"},"ogre":{"cols":6,"cw":390,"ch":268,"ax":195.0,"ay":263,"refH":220.0,"target":"enemy","src":"dev/assets/ogre.webp?v=e0c3095c"},"samurai":{"cols":12,"cw":462,"ch":320,"ax":231.0,"ay":314,"refH":260.0,"target":"ally","src":"dev/assets/samurai.webp?v=317c6a33"},"scorp":{"cols":6,"cw":305,"ch":291,"ax":152.5,"ay":275,"refH":270.0,"target":"enemy","src":"dev/assets/scorp.webp?v=5315e671"},"shaman":{"cols":6,"cw":443,"ch":232,"ax":221.5,"ay":227,"refH":220.0,"target":"enemy","src":"dev/assets/shaman.webp?v=6ddfaf3a"},"sister":{"cols":12,"cw":183,"ch":275,"ax":91.5,"ay":269,"refH":260.0,"target":"ally","src":"dev/assets/sister.webp?v=69fc0720"},"skel":{"cols":6,"cw":221,"ch":241,"ax":110.5,"ay":236,"refH":190.0,"target":"enemy","src":"dev/assets/skel.webp?v=1d9f5ee9"},"sword":{"cols":12,"cw":443,"ch":292,"ax":221.5,"ay":287,"refH":189.0,"target":"ally","src":"dev/assets/sword.webp?v=6cc92919"}}/*__EMBED_END__*/;
+const EMBED=/*__EMBED_START__*/{"beast":{"cols":6,"cw":345,"ch":230,"ax":172.5,"ay":225,"refH":217.0,"target":"enemy","src":"dev/assets/beast.webp?v=e622d425"},"blue":{"cols":12,"cw":460,"ch":445,"ax":230.0,"ay":438,"refH":260.0,"target":"ally","src":"dev/assets/blue.webp?v=ffbde5c0"},"chain_brute":{"cols":8,"cw":576,"ch":608,"ax":288,"ay":552,"refH":407,"target":"enemy","src":"dev/assets/chain_brute.webp?v=24e222ec"},"fox":{"cols":16,"cw":251,"ch":269,"ax":125.5,"ay":264,"refH":260.0,"target":"ally","src":"dev/assets/fox.webp?v=b180345f"},"hook_goblin":{"cols":8,"cw":576,"ch":608,"ax":288,"ay":552,"refH":442,"target":"enemy","src":"dev/assets/hook_goblin.webp?v=1a6c8192"},"knight":{"cols":6,"cw":190,"ch":274,"ax":95.0,"ay":270,"refH":200.0,"target":"enemy","src":"dev/assets/knight.webp?v=2d0e59aa"},"mage":{"cols":12,"cw":304,"ch":270,"ax":152.0,"ay":265,"refH":260.0,"target":"ally","src":"dev/assets/mage.webp?v=bb040a63"},"ninja":{"cols":12,"cw":613,"ch":272,"ax":306.5,"ay":266,"refH":260.0,"target":"ally","src":"dev/assets/ninja.webp?v=62b6f045"},"ogre":{"cols":6,"cw":390,"ch":268,"ax":195.0,"ay":263,"refH":220.0,"target":"enemy","src":"dev/assets/ogre.webp?v=e0c3095c"},"relic_dead":{"cols":8,"cw":576,"ch":608,"ax":288,"ay":552,"refH":490,"target":"enemy","src":"dev/assets/relic_dead.webp?v=ef314ad4"},"samurai":{"cols":12,"cw":462,"ch":320,"ax":231.0,"ay":314,"refH":260.0,"target":"ally","src":"dev/assets/samurai.webp?v=317c6a33"},"scorp":{"cols":6,"cw":305,"ch":291,"ax":152.5,"ay":275,"refH":270.0,"target":"enemy","src":"dev/assets/scorp.webp?v=5315e671"},"shaman":{"cols":6,"cw":443,"ch":232,"ax":221.5,"ay":227,"refH":220.0,"target":"enemy","src":"dev/assets/shaman.webp?v=6ddfaf3a"},"sister":{"cols":12,"cw":183,"ch":275,"ax":91.5,"ay":269,"refH":260.0,"target":"ally","src":"dev/assets/sister.webp?v=69fc0720"},"skel":{"cols":6,"cw":221,"ch":241,"ax":110.5,"ay":236,"refH":190.0,"target":"enemy","src":"dev/assets/skel.webp?v=1d9f5ee9"},"sword":{"cols":12,"cw":443,"ch":292,"ax":221.5,"ay":287,"refH":189.0,"target":"ally","src":"dev/assets/sword.webp?v=6cc92919"},"twin_orc":{"cols":8,"cw":576,"ch":608,"ax":288,"ay":552,"refH":441,"target":"enemy","src":"dev/assets/twin_orc.webp?v=1ea017eb"},"veil_ghost":{"cols":8,"cw":576,"ch":608,"ax":288,"ay":552,"refH":514,"target":"enemy","src":"dev/assets/veil_ghost.webp?v=2ff6e139"}}/*__EMBED_END__*/;
 /* 表示の微調整。s=大きさ(%) x,y=位置のずらし量。調整パネルの値をビルド時に固定値として差し込む */
 const TUNE=/*__TUNE_START__*/{"blue":{"s":94,"x":0,"y":20},"sister":{"s":106,"x":0,"y":20},"mage":{"s":101,"x":0,"y":20},"beast":{"s":87,"x":0,"y":0},"knight":{"s":89,"x":0,"y":0},"scorp":{"s":127,"x":0,"y":0},"sword":{"s":100,"x":0,"y":20},"fox":{"s":100,"x":0,"y":20}}/*__TUNE_END__*/;
 CHAR_ORDER.concat(Object.keys(ENEMIES)).forEach(k=>{TUNE[k]=Object.assign({s:100,x:0,y:0},TUNE[k]||{})});
@@ -2856,18 +2868,25 @@ function dropSig(seed){let h=0;for(let i=0;i<300;i++){const d=dropFor(seed,i,i%7
 function spawn(type){
   const d=ENEMIES[type],tc=B.t*B.ts,hm=(1+tc/CFG.hpRamp+Math.pow(tc/CFG.hpCurve,2))*B.hpK,big=!!(d.elite||d.boss);
   const e={idx:B.idx++,type,d,x:22+B.rs()*(W-44),y:-10-B.rs()*40,hp:d.hp*hm,max:d.hp*hm,spd:d.spd*(0.9+B.rs()*0.25),
-    st:'walk',atkT:0.4,animT:-1,pend:0,slowT:0,frzT:0,burnT:0,burnDps:0,burnTick:0,knT:0,flash:0,elite:big,sc:1,dead:false,tg:null,ph:B.rs()*TAU,stopOff:0};
+    st:'walk',atkT:0.4,animT:-1,motionT:0,pend:0,slowT:0,frzT:0,burnT:0,burnDps:0,burnTick:0,knT:0,flash:0,elite:big,sc:1,dead:false,tg:null,ph:B.rs()*TAU,stopOff:0};
   if(d.boss){e.x=W/2;e.y=-30;e.spd=d.spd}
   e.stopOff=d.kind==='ranged'?-150-(e.idx%4)*16:-4-(e.idx%3)*8;
   B.enemies.push(e);
 }
 // 時間が進むほど、速い獣と硬い盾騎士が混ざってくる
 function pickType(t){
-  if(B.rs()<0.15+t*0.0006)return'shaman';
+  if(B.rs()<0.15+t*0.0006)return normalVariant('shaman');
   const q=B.rs();
-  if(t>=45&&q<Math.min(0.11,0.04+(t-45)*0.0008))return'knight';
-  if(t>=20&&q>0.87)return'beast';
-  return'skel';
+  if(t>=45&&q<Math.min(0.11,0.04+(t-45)*0.0008))return normalVariant('knight');
+  if(t>=20&&q>0.87)return normalVariant('beast');
+  return normalVariant('skel');
+}
+// 独立した出現番号のハッシュで通常枠を置換。出現・戦闘乱数の消費数を変えない。
+// 能力は置換元と同値で、大鬼・女王の出現枠は維持する。
+function normalVariant(base){
+  const pool=base==='skel'?['skel','relic_dead']:base==='beast'?['beast','hook_goblin']:
+    base==='knight'?['knight','chain_brute','twin_orc']:['shaman','veil_ghost'];
+  return pool[hash32(B.seed^Math.imul(B.idx+1,0x45d9f3b))%pool.length];
 }
 function spawner(dt){
   const t=B.t*B.ts;B.acc+=dt; // t=敵インフレ曲線の上での時刻（短い戦闘は早回しで進む）
@@ -3044,7 +3063,7 @@ function updEnemies(dt){
   for(const e of B.enemies){
     if(e.dead)continue;
     if(e.flash>0)e.flash-=dt;if(e.kbT>0)e.kbT-=dt;
-    if(e.animT>=0){e.animT+=dt;if(e.animT>=0.5)e.animT=-1}
+    if(e.animT>=0&&(!e.d.splitMotion||e.frzT<=0)){e.animT+=dt;if(e.animT>=0.5)e.animT=-1}
     if(e.knT>0)e.knT-=dt;
     if(e.burnT>0){ // 延焼：0.5秒ごとにまとめて焼く
       e.burnT-=dt;e.burnTick-=dt;
@@ -3052,14 +3071,22 @@ function updEnemies(dt){
       if(e.burnT<=0)e.burnDps=0;
     }
     if(e.frzT>0){e.frzT-=dt;continue}
+    e.motionT=(e.motionT||0)+dt*(e.slowT>0?0.45:1);
     const sp=e.spd*(e.slowT>0?0.45:1);if(e.slowT>0)e.slowT-=dt;
     const stopY=B.lineY+e.stopOff;
     if(e.d.kind==='ranged'){
       if(e.y<stopY){e.y+=sp*dt;e.st='walk';continue}
       e.st='cast';e.atkT-=dt;
+      if(e.castTarget&&e.pend>0){e.pend-=dt;if(e.pend<=0){
+        const tg=e.castTarget;e.castTarget=null;
+        if(tg.alive)B.shots.push({from:0,x:e.x,y:e.y-e.d.h*0.55,tg,tx:tg.x,ty:B.lineY-30,spd:210,dmg:e.d.dmg*dmgMul(),col:e.d.col});
+      }}
       if(e.atkT<=0){
         const al=B.allies.filter(a=>a.alive);
-        if(al.length){const tg=al[Math.floor(B.rc()*al.length)];e.atkT=e.d.cd;e.animT=0;B.shots.push({from:0,x:e.x,y:e.y-e.d.h*0.55,tg,tx:tg.x,ty:B.lineY-30,spd:210,dmg:e.d.dmg*dmgMul(),col:'#b78cff'})}
+        if(al.length){const tg=al[Math.floor(B.rc()*al.length)];e.atkT=e.d.cd;e.animT=0;
+          if(e.d.splitMotion){e.castTarget=tg;e.pend=0.25}
+          else B.shots.push({from:0,x:e.x,y:e.y-e.d.h*0.55,tg,tx:tg.x,ty:B.lineY-30,spd:210,dmg:e.d.dmg*dmgMul(),col:'#b78cff'});
+        }
       }
       continue;
     }
@@ -3922,10 +3949,20 @@ function blit(g,set,f,h){
   g.drawImage(fr.c,-ax*s,-ay*s,fr.c.width*s,fr.c.height*s);
 }
 function mark(g,x,y){g.fillStyle='#39ff6a';g.fillRect(x-5,y-0.75,10,1.5);g.fillRect(x-0.75,y-5,1.5,10)}
+function enemyAttackFrame(type,u){
+  const set=SPR.enemy[type],split=ENEMIES[type].splitMotion&&set.real&&set.frames.length===8;
+  return (split?4:0)+frameAt(motionOf(type,split?4:6),split?4:6,Math.min(.999,u),split||ENEMIES[type].kind!=='ranged'?.5:null);
+}
+function enemyFrame(e){
+  if(e.animT>=0)return enemyAttackFrame(e.type,e.animT/.5);
+  const set=SPR.enemy[e.type];
+  return e.d.splitMotion&&set.real&&set.frames.length===8&&(e.st==='walk'||e.d.float)?Math.floor((e.motionT||0)*e.d.walkFps+e.ph)%4:0;
+}
 function drawEnemy(g,e,T){
-  const set=SPR.enemy[e.type],tn=TUNE[e.type],h=e.d.h*e.sc*tn.s/100*.85;let f=0,bob=0,rot=0;
-  if(e.animT>=0)f=frameAt(motionOf(e.type,6),6,Math.min(0.999,e.animT/0.5),e.d.kind==='ranged'?null:0.5); // 近接は0.25秒後に命中する。遠距離は動きの頭で弾を放つので、素の配分で再生
-  else if(e.frzT<=0){
+  const set=SPR.enemy[e.type],tn=TUNE[e.type],h=e.d.h*e.sc*tn.s/100*.85;let f=enemyFrame(e),bob=0,rot=0;
+  if(e.d.splitMotion){
+    if(e.d.float)bob=-5-Math.sin((e.motionT||0)*2.8+e.ph)*3;
+  }else if(e.animT<0&&e.frzT<=0){
     if(e.st==='walk'){const w=Math.sin(T*(5+e.spd*0.08)+e.ph);bob=-Math.abs(w)*3.4;rot=w*0.065} // 歩き：速い敵ほど歩幅が速い。左右に体を振って足踏みに見せる
     else{const w=Math.sin(T*2.6+e.ph);bob=-Math.abs(w)*1.2;rot=w*0.02}                       // 交戦・詠唱中の待機：浅い息づき
   }
@@ -3983,7 +4020,7 @@ function drawTunePreview(g,T){ // 敵を調整するときは、戦場の中央�
   const set=SPR.enemy[tuneKey],tn=TUNE[tuneKey],x=W/2,y=B.lineY-90,h=d.h*tn.s/100;
   g.fillStyle='rgba(0,0,0,.6)';g.beginPath();g.ellipse(x,y,26,8,0,0,TAU);g.fill();
   g.strokeStyle=CSSGOLD;g.lineWidth=1.5;g.beginPath();g.ellipse(x,y,30,9,0,0,TAU);g.stroke();
-  g.save();g.translate(x+tn.x,y+tn.y);blit(g,set,tuneAnim?frameLoop(motionOf(tuneKey,6),6,T):0,h);g.restore();
+  g.save();g.translate(x+tn.x,y+tn.y);blit(g,set,tuneAnim?(d.splitMotion&&set.real&&set.frames.length===8?(T%2<1?Math.floor(T*d.walkFps)%4:enemyAttackFrame(tuneKey,T%1)):frameLoop(motionOf(tuneKey,6),6,T)):0,h);g.restore();
   if(CFG.showAnchor)mark(g,x,y);
 }
 // スキル発動の瞬間だけ、使い手の正面絵が斜めの帯で横切る（ゲームは止めない）
@@ -4026,7 +4063,7 @@ function render(T){
   const list=B.enemies.slice().sort((a,b)=>a.y-b.y);
   for(const e of list)if(!e.dead)drawEnemy(g,e,T);
   for(const o of FX.ghosts){ // 突破した敵：振り抜きの残りのコマを、赤く染まりながら沈めて消す
-    const u=o.t/o.life,f=frameAt(motionOf(o.type,6),6,Math.min(0.999,0.5+u*0.5),0.5),set=SPR.enemy[o.type];
+    const u=o.t/o.life,f=enemyAttackFrame(o.type,0.5+u*0.5),set=SPR.enemy[o.type];
     g.save();g.globalAlpha=1-u;g.translate(o.x,o.y+u*10);blit(g,set,f,o.h);g.globalCompositeOperation='lighter';g.globalAlpha=(1-u)*0.45;blit(g,set,f,o.h);g.restore();
   }
   jcDrawPops(g);
@@ -5785,7 +5822,7 @@ window.NARAKU={
   town:{show:showTown,view:showView,pick:togglePick,hire:hireChar,equip:equipItem,unequip,enhance,breakItem,breakAll,inn:innStay,revive,buy:shopBuy,floor:setFloor,bank:bankLoot},
   look:{set:setLook,get:id=>allyLook(id).key,frames:id=>allyLook(id).seq.length,list:id=>lookList(id).map(o=>o.key)},
   hub:{HUB,select:hubSelect,enter:hubEnter,tick:hubTick,get sel(){return HSEL},get on(){return!!HUBS}},
-  MOTION,MOTION_DEF,HIT_AT,motionOf,frameAt,
+  MOTION,MOTION_DEF,HIT_AT,motionOf,frameAt,enemyFrame,enemyAttackFrame,spawn,pickType,
   mkItem,gearStats,itemName,itemPow,itemLines,enhCost,exportCode,importCode,fixSave,saveText:o=>saveText(o),loadSave,resume:resumeRun,bag:askBag,use:useBag,rng:mulberry32,
   // 探索の操作。go=1歩進んでマスを開く（移動の演出は省く）/ info=そのマスの見え方 / choose・buy・leave=各マスの画面 / next=勝利後 / giveUp=敗北後 / retreat=街へ帰還
   go(id){if(!stepTo(id))return false;arrive();return mode},

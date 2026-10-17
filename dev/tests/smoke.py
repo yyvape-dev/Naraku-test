@@ -165,7 +165,8 @@ with sync_playwright() as p:
     r=pg.evaluate("""()=>{
       const M=NARAKU.MOTION,S=NARAKU.SPR,bad=[],o={};
       for(const k in M){const m=M[k],n=m.ms.length,set=S.ally[k]||S.enemy[k];
-        if(!set||set.frames.length!==n)bad.push(k+':コマ数');
+        const split=!!NARAKU.ENEMIES[k]?.splitMotion;
+        if(!set||set.frames.length!==(split?n+4:n))bad.push(k+':コマ数');
         if(Math.min(...m.ms)!==m.ms[m.hit])bad.push(k+':ヒットが最短でない');
         if(!(m.ms[0]>m.ms[m.hit]*2&&m.ms[n-1]>m.ms[m.hit]*2))bad.push(k+':待機と回収が短い');
         for(let i=m.hit+1;i<n-1;i++)if(m.ms[i+1]<m.ms[i])bad.push(k+':回収が徐々に長くなっていない');
@@ -179,7 +180,7 @@ with sync_playwright() as p:
       
       o.uni=[0,0.2,0.5,0.99].map(u=>NARAKU.frameAt(null,6,u,0.55)).join();o.def=[!!NARAKU.motionOf('zzz',6),!!NARAKU.motionOf('zzz',12),NARAKU.motionOf('zzz',7)===null,NARAKU.motionOf('fox',6)===NARAKU.MOTION_DEF[6]].join();
       return o}""")
-    check('全13体に緩急の表があり、ヒットが最短・待機と回収が長め・回収は徐々に長い。どの速さでもヒットのコマが命中の瞬間に出る',not r['bad'] and r['keys']==13,r['bad'] or 'ユズナミキ0.42秒の配分(ms) '+str(r['fox']))
+    check('全18体に緩急の表があり（新規敵は移動4＋攻撃4）、ヒットが最短・待機と回収が長め・回収は徐々に長い。どの速さでもヒットのコマが命中の瞬間に出る',not r['bad'] and r['keys']==18,r['bad'] or 'ユズナミキ0.42秒の配分(ms) '+str(r['fox']))
     check('表の無い絵は、コマ数に合う仮の配分か等間隔で再生する',r['uni']=='0,1,3,5' and r['def']=='true,true,true,true',(r['uni'],r['def']))
 
     print('装備（モジュールD・軸1）')

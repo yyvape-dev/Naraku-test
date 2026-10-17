@@ -1,0 +1,28 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>通常敵5体・モーション確認</title>
+<style>body{margin:0;background:#191817;color:#e6d7c3;font:15px system-ui}main{max-width:900px;margin:auto;padding:16px}h1{font-size:20px}button,select,input{font:inherit}button,select{padding:8px;background:#34302b;color:inherit;border:1px solid #72614c;border-radius:5px}label{display:inline-block;margin:5px}iframe{display:block;width:393px;max-width:100%;height:852px;border:1px solid #68553c;margin-top:12px}p{line-height:1.6}a{color:#a7dad9}</style>
+<main><h1>通常敵5体・モーション確認</h1><p>実ゲームの描画処理を使用。正面向き・高解像度の素材を使用。上段は既存の骸骨・亡者・屍兵、下段は小鬼・双斧鬼・浮遊霊。左4コマが移動、右4コマが攻撃。浮遊霊は待機中も浮遊します。</p>
+<label>動作 <select id="mode"><option value="walk">前進／浮遊</option><option value="attack">攻撃</option><option value="idle">待機</option></select></label>
+<label>速度 <select id="speed"><option value="1">通常</option><option value="0.25">1/4倍</option></select></label><button id="play">停止</button>
+<label>攻撃の時点 <input id="time" type="range" min="0" max="499" value="0"></label><output id="status">読込中…</output><p><a href="../../index.html">ゲームへ</a></p>
+<iframe id="game" src="../../index.html" title="敵キャラを並べた実ゲーム"></iframe></main>
+<script>
+const $=id=>document.getElementById(id),ids=['skel','relic_dead','chain_brute','hook_goblin','twin_orc','veil_ghost'];let N=null,t=0,playing=true,last=0;
+$('play').onclick=()=>{playing=!playing;$('play').textContent=playing?'停止':'再生'};
+$('time').oninput=()=>{t=+$('time').value/1000;playing=false;$('play').textContent='再生';$('mode').value='attack'};
+$('mode').onchange=()=>t=0;
+function tick(now){
+ const dt=last?Math.min(.1,(now-last)/1000):0;last=now;
+ try{
+  if(!N){const n=$('game').contentWindow.NARAKU;if(n&&ids.every(id=>n.SPR.enemy[id]?.real)){
+   N=n;N.start(['fox','sword','mage'],777);N.B.enemies.length=0;N.QUAKE_VFX.preview=true;N.FX.banner=null;
+   $('game').contentDocument.getElementById('btnPause').click();
+   ids.forEach((id,i)=>{N.spawn(id);const e=N.B.enemies.at(-1);e.x=64+i%3*115;e.y=200+Math.floor(i/3)*145;e.atkT=999});
+  }}
+  if(N){if(playing)t+=dt*+$('speed').value;const mode=$('mode').value;
+   N.B.enemies.forEach(e=>{e.st=mode==='walk'?'walk':'cast';e.motionT=t;e.ph=0;e.animT=mode==='attack'?t%.5:-1});
+   $('status').textContent=N.B.enemies.slice(1).map(e=>N.enemyFrame(e)+1).join(' / ');if(playing)$('time').value=Math.round(t%.5*1000);
+  }
+ }catch(e){$('status').textContent=e.message}
+ requestAnimationFrame(tick);
+}requestAnimationFrame(tick);
+</script></html>
