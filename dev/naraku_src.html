@@ -2940,7 +2940,8 @@ const bulkList=maxR=>S.inv.filter(it=>it.r<=maxR&&it.n===0);
    格上げ：失敗すると金と資材だけ失う（装備は壊れない）。失敗するたびに次の成功率が少し上がり（it.upF）、成功で0に戻る。
    測定（1探索の稼ぎ：第1層2,500〜3,700G・第3層4,000〜6,000G、使い道は約1,200G）に合わせた値。 */
 const RFCFG={base:[0,200,300,450],grow:1.5,
-  upGold:[300,800,2000],upMats:[5,12,25],upP:[0.45,0.2,0.08],upPity:[0.05,0.03,0.015]};
+  upGold:[300,800,2000],upMats:[2,5,10], // 資材は2026-10-17 ユーザー指示「資材が足りず金が余るので少なめに」で 5/12/25→2/5/10
+  upP:[0.45,0.2,0.08],upPity:[0.05,0.03,0.015]};
 const itemLvF=it=>Math.max(1,it.pw/(8.5*RAR[it.r].mul));
 const rfK=it=>it.rfR===S.runs?(it.rfK||0):0;
 const rfCost=it=>it.r>0?Math.round(RFCFG.base[it.r]*itemLvF(it)*Math.pow(RFCFG.grow,rfK(it))/10)*10:0;
