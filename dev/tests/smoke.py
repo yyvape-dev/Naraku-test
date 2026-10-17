@@ -152,13 +152,13 @@ with sync_playwright() as p:
       const L=NARAKU.look,A=NARAKU.SPR.ally,MG=A.mage;A.mage=Object.assign({},MG,{frames:MG.frames.slice(0,6)}); // 全員12コマになったので、シェリを仮に6コマの絵にして確かめる
       const o={fox:A.fox.frames.length,none:[L.list('mage').join(),L.set('mage','new'),L.frames('fox'),L.frames('mage')].join('/')};
       // シェリに12コマの候補（中身はユズナミキの絵を借りる）を置いたことにして、切り替えを確かめる
-      A.mage2=A.fox;o.list=L.list('mage').join();o.first=L.get('mage')+':'+L.frames('mage');
+      A.mage2=Object.assign({},A.fox,{frames:A.fox.frames.slice(0,12)});o.list=L.list('mage').join();o.first=L.get('mage')+':'+L.frames('mage');
       const run=k=>{L.set('mage',k);NARAKU.start(['fox','sister','mage'],4242);NARAKU.sim(40);return T.snap()};
       const a=run('old'),b=run('new'),c=run('new6');
       o.same=a===b&&b===c;o.frames=['old','new','new6'].map(k=>{L.set('mage',k);return L.get('mage')+':'+L.frames('mage')}).join();o.bad=L.set('mage','constructor');
       delete A.mage2;o.back=L.get('mage')+':'+L.frames('mage');A.mage=MG;try{localStorage.removeItem('naraku_look_v1')}catch(e){}
       return o}""")
-    check('ユズナミキの攻撃は12コマ（既定は今の絵）。候補が無いキャラは「今の絵」だけ',r['fox']==12 and r['none']=='old/false/12/6',r['none'])
+    check('ユズナミキの攻撃は16コマ（既定は今の絵）。候補が無いキャラは「今の絵」だけ',r['fox']==16 and r['none']=='old/false/16/6',r['none'])
     check('候補（<名前>2）を置くと 今の絵／新／新6コマ を切り替えられる。初めは新。戦闘の結果は変わらない',r['list']=='old,new,new6' and r['first']=='new:12' and r['same'] and r['frames']=='old:6,new:12,new6:6' and r['bad'] is False and r['back']=='old:6',(r['frames'],r['back']))
 
     print('モーションの緩急（コマを等間隔で再生しない）')
@@ -174,7 +174,7 @@ with sync_playwright() as p:
           if(Object.keys(seen).length!==n)bad.push(k+':映らないコマがある@'+h);
           if(h!=null&&(NARAKU.frameAt(m,n,h,h)!==m.hit||NARAKU.frameAt(m,n,h-1e-6,h)!==m.hit-1))bad.push(k+':ヒットのコマが命中の瞬間に出ない@'+h)}}
       // 実際の長さでの配分：ユズナミキの通常攻撃（0.42秒）で、各コマが何ミリ秒映るか
-      const m=M.fox,cnt=new Array(12).fill(0),N=42000;for(let j=0;j<N;j++)cnt[NARAKU.frameAt(m,12,j/N,NARAKU.HIT_AT)]++;
+      const m=M.fox,n=m.ms.length,cnt=new Array(n).fill(0),N=42000;for(let j=0;j<N;j++)cnt[NARAKU.frameAt(m,n,j/N,NARAKU.HIT_AT)]++;
       o.fox=cnt.map(c=>Math.round(c/N*420));o.bad=bad;o.keys=Object.keys(M).filter(k=>!/2$/.test(k)).length; // 差し替え候補（<名前>2）の表は数えない
       
       o.uni=[0,0.2,0.5,0.99].map(u=>NARAKU.frameAt(null,6,u,0.55)).join();o.def=[!!NARAKU.motionOf('zzz',6),!!NARAKU.motionOf('zzz',12),NARAKU.motionOf('zzz',7)===null,NARAKU.motionOf('fox',6)===NARAKU.MOTION_DEF[6]].join();

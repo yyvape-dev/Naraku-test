@@ -1159,7 +1159,7 @@ const ENEMIES={
 const HIT_AT=0.55;   // 通常攻撃が命中するのは、動きの55%の時点
 const MOTION={
   // 味方
-  fox:   {ms:[120,90,80,95,70,115,40,70,85,100,115,130],hit:6}, // 12コマ（動画AI＋立ち絵。2026-10-09 本採用）：構え（立ち絵）→袖を広げる→しゃがんでクナイを構える（溜め2コマ）→掲げる→頭上で溜め（長め）→腕を振り抜いて放つ（ヒット・最短）→残心2コマ→立ち上がり→構え（立ち絵）
+  fox:   {ms:[120,90,40,40,95,35,35,115,20,20,35,35,85,100,115,130],hit:8,source:{ms:[120,90,80,95,70,115,40,70,85,100,115,130],hit:6}}, // 色白＋RIFEの16コマ（2026-10-17 採用）。元3→4・5→6・7→8・8→9だけ補間。sourceは狐火の従来12コマ時間軸。
   sister:{ms:[120,95,110,140,65,40,60,75,85,100,115,130],hit:5}, // 12コマ（動画AI。2026-10-10 本採用）：構え→杖を持ち手を上げ始める→掌を天へ（溜め）→掌を掲げたまま静止（溜め・最長。風の前の凪）→風が起こる（加速）→突風が噴き上がる（ヒット・最短）→ヴェールとスカートが最大に舞い上がる→減速して宙に浮く→裾が落ち始める→裾が収まる→手を下ろす→構え（ヒット後は徐々に長く＝噴き上げた風がふわりと減速して見える）
   mage:  {ms:[120,95,90,130,115,60,50,40,70,95,110,130],hit:7}, // 12コマ（動画AI。2026-10-10 本採用）：構え（手を後ろ）→右手を上げ始める→手を上げて振り向く→指を立てて溜め（長め2コマ）→指を鳴らす→外套が翻り始める→外套が大きく広がる（ヒット）→広がりきる→外套が落ち始める→戻り（手を後ろ）
   sword: {ms:[120,95,85,120,110,60,40,55,85,100,115,130],hit:6}, // 12コマ（動画AI。2026-10-10 本採用）：構え→剣を右へ出す→持ち上げる→頭上で溜め（長め2コマ）→振り出し（加速）→体の前を横一閃（ヒット・最短）→左へ振り抜く→低く残心2コマ→立ち上がり→構え（戻りは徐々に長く）
@@ -1968,8 +1968,8 @@ const FOXV={ox:135,oy:709,S:3,
   back:{tex:'fox_back',f0:0,f1:2.4,out0:2.6,out1:3.6,p0:[178,98],p1:[62,246],lift:80,a:0.9},
   arc: {tex:'fox_arc', f0:2.4,f1:5.2,out0:5.6,out1:6.6,p0:[37,160],p1:[171,35],lift:0,a:0.95}};
 function drawFoxBody(g,a,lk,h,ox,oy){
-  if(a.d.id!=='fox'||lk.set!==SPR.ally.fox||a.animT<0||lk.seq.length!==12)return;
-  const f=frameAtF(lk.m,12,Math.min(0.999,a.animT/a.animDur),a.animHit),fr=lk.set.frames[0],sc=h/lk.set.refH;
+  if(a.d.id!=='fox'||lk.set!==SPR.ally.fox||a.animT<0||lk.seq.length!==MOTION.fox.ms.length)return;
+  const f=frameAtF(lk.m.source||lk.m,12,Math.min(0.999,a.animT/a.animDur),a.animHit),fr=lk.set.frames[0],sc=h/lk.set.refH;
   for(const k of ['back','arc']){
     const v=FOXV[k],im=vtex(v.tex);if(!im||f<v.f0||f>v.out1)continue;
     const p=Math.min(1,(f-v.f0)/(v.f1-v.f0)),al=v.a*(f<v.out0?1:1-(f-v.out0)/(v.out1-v.out0))*Math.min(1,p*4);if(al<=0.01)continue;
