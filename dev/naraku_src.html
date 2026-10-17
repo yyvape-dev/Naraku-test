@@ -1020,6 +1020,7 @@ img.frm{display:block;width:100%;height:100%}
 @keyframes strategyVeil{0%{opacity:0}12%,80%{opacity:1}100%{opacity:0}}
 @media(prefers-reduced-motion:reduce){#strategyReveal .turn{animation:none;transform:rotateY(180deg)}}
 
+.tvc-pr.lana-profile{display:flex;flex-direction:column;align-items:stretch;justify-content:center;font-size:calc(10px*var(--lk));line-height:1.35}.lana-profile p{margin:0 0 4px;color:#3e2a17;font-size:11px}.lana-outfit{font-size:12px;display:flex;align-items:center;gap:10px;white-space:nowrap}.lana-outfit label{display:flex;align-items:center;gap:4px}.lana-outfit select{min-height:28px;font:inherit;color:#f4dfae;background:#211b17;border:1px solid #94764b;padding:3px}.lana-outfit input{margin:0}
 </style>
 <script>
 /* 起動の見張り。本体のスクリプトより前に置く。本体が読み込めない・途中で止まったときに、真っ暗な戦闘画面のまま黙らないようにする */
@@ -2375,6 +2376,22 @@ const LOOK_KEY='naraku_look_v1';let look={};
 try{const o=JSON.parse(localStorage.getItem(LOOK_KEY)||'{}');if(o&&typeof o==='object')look=o}catch(e){look={}}
 const seqAll=n=>{const o=[];for(let i=0;i<n;i++)o.push(i);return o};
 const seqThin=n=>{const o=[];for(let i=0;i<6;i++)o.push(i===5?n-1:Math.floor(i*n/6));return o}; // 12コマなら 1・3・5・7・9・12コマ目
+document.addEventListener('change',e=>{
+  if(e.target.matches('[data-lana-costume]')){setLanaCostume(e.target.value);facTvChar('sword')}
+  else if(e.target.matches('[data-lana-smooth]')){setLanaCostume(lanaCostume,e.target.checked);facTvChar('sword')}
+});
+// 衣装は同じキャラクターの外見だけを切り替える。育成・戦闘処理は共有。
+const COSTUME_KEY='naraku_lana_costume_v1';let lanaCostume='normal',lanaSmooth=false;
+try{const c=JSON.parse(localStorage.getItem(COSTUME_KEY)||'{}');lanaCostume=c.costume==='princess'?'princess':'normal';lanaSmooth=c.smooth===true}catch(e){}
+const PRINCESS_MS=[10,8,8,8,6,4,2,2,4,6,6,8,8,8,8,8].map(n=>n*1000/24);
+const PRINCESS_SMOOTH_MS=PRINCESS_MS.flatMap((n,i)=>i<15?[n/2,n/2]:[n]);
+function setLanaCostume(costume,smooth=lanaSmooth){
+  if(!['normal','princess'].includes(costume))return false;
+  lanaCostume=costume;lanaSmooth=!!smooth;
+  try{localStorage.setItem(COSTUME_KEY,JSON.stringify({costume,smooth:lanaSmooth}))}catch(e){}
+  return true;
+}
+function lanaOutfit(){return {costume:lanaCostume,smooth:lanaSmooth}}
 // そのキャラで選べる見た目（候補が無ければ「今の絵」だけ）
 function lookList(id){
   const cur=SPR.ally[id],alt=SPR.ally[id+'2']||null,out=[{key:'old',name:alt?'今の絵':'今の絵のみ',set:cur,seq:seqAll(cur.frames.length),m:motionOf(id,cur.frames.length)}];
@@ -2384,7 +2401,13 @@ function lookList(id){
   }
   return out;
 }
-function allyLook(id){const L=lookList(id);return L.find(o=>o.key===look[id])||L[L.length>1?1:0]} // 候補があれば、初めは「新」を出す
+function allyLook(id){
+  if(id==='sword'&&lanaCostume==='princess'){
+    const smooth=lanaSmooth&&SPR.ally.sword_princess_smooth;
+    const set=smooth||SPR.ally.sword_princess;
+    if(set&&set.real)return {key:smooth?'princess_smooth':'princess',name:'ラナ（姫騎士）',set,seq:seqAll(set.frames.length),m:{ms:smooth?PRINCESS_SMOOTH_MS:PRINCESS_MS,hit:smooth?14:7}};
+  }
+  const L=lookList(id);return L.find(o=>o.key===look[id])||L[L.length>1?1:0]} // 候補があれば、初めは「新」を出す
 function setLook(id,k){
   const L=lookList(id);if(L.length<2||!L.some(o=>o.key===k))return false;
   look[id]=k;try{localStorage.setItem(LOOK_KEY,JSON.stringify(look))}catch(e){}
@@ -5291,7 +5314,7 @@ function facTvList(){
 function facTvChar(id){
   const m=S.roster[id];if(!m){showView('party');return}
   tvEnter();FBACK=['party'];tvMode('c');$('#fac').classList.toggle('open',SMOPEN);
-  tvHead(CHARS[id].name,'冒険者の酒場');
+  tvHead(id==='sword'&&lanaCostume==='princess'?'ラナ（姫騎士）':CHARS[id].name,'冒険者の酒場');
   const d=CHARS[id],g=gearStats(m),mx=Math.round(maxHpOf(m)),hp=Math.round(mx*m.hpR),pi=S.picks.indexOf(id),pct=v=>Math.round(v);
   const rg=Math.round(d.range*(1+g.range/100)),rl=rg<=150?'近接':rg<=240?'中距離':'遠距離';
   const ex=[];[['spd','攻撃速度','+','%'],['range','射程','+','%'],['crit','会心率','+','%'],['skill','スキル威力','+','%'],['reload','スキル装填','−','%'],['soul','ソウル獲得','+','%'],['hp','最大体力','+','%'],['life','拠点ライフ','+','']].forEach(q=>{if(g[q[0]])ex.push('<div>'+q[1]+'<b>'+q[2]+g[q[0]]+q[3]+'</b></div>')});
@@ -5310,7 +5333,8 @@ function facTvChar(id){
     +'<div class="gr"><div>'+tvIc(4)+'攻撃<b>+'+gearPowTxt(m,g,'w')+'</b></div><div>'+tvIc(3)+'防御<b>+'+gearPowTxt(m,g,'a')+'</b></div><div>'+tvIc(6)+'射程<b>'+rl+' '+rg+'</b></div><div>'+tvIc(7)+'属性<b>'+tvTags(m)+'</b></div></div>'
     +(ex.length?'<div class="gr ex">'+ex.join('')+'</div>':'')+'</div>'
     +'<div class="tvc-tab">装備</div>'+eq('w',11.4,26.8)+eq('a',53.7,68.2)
-    +'<div class="tvc-tab b">人物概要</div><div class="tvc-pr">'+(TV_PROF[id]||d.role)+'</div>'
+    +'<div class="tvc-tab b">人物概要</div><div class="tvc-pr'+(id==='sword'?' lana-profile':'')+'">'+(id==='sword'?'<p>衣装は戦闘の後ろ姿に反映します。</p>':(TV_PROF[id]||d.role))
+    +(id==='sword'?'<div class="lana-outfit"><label>衣装 <select data-lana-costume aria-label="ラナの衣装"><option value="normal"'+(lanaCostume==='normal'?' selected':'')+'>通常</option><option value="princess"'+(lanaCostume==='princess'?' selected':'')+'>姫騎士</option></select></label> <label><input type="checkbox" data-lana-smooth'+(lanaSmooth?' checked':'')+'>補間（試験）</label></div>':'')+'</div>'
     +(!hired(id)?'<button class="tvc-bt tv-chip idle" style="left:6.5%" data-tvhire="'+id+'"><span>'+HIRE[id].cost+'Gで雇う</span></button>'
       :'<button class="tvc-bt tv-chip '+(pi>=0?'go':m.collapsed?'dead':'idle')+'" style="left:6.5%" data-tvpk="'+id+'"'+(m.collapsed?' disabled':'')+'><span>'+(pi>=0?'出撃から外す':m.collapsed?'精神崩壊':'出撃させる')+'</span></button>')
     +'<button class="tvc-bt tv-chip sub" style="left:35.75%" data-go="pick" data-arg="'+id+':w"><span>装備変更</span></button>'
@@ -5841,6 +5865,7 @@ window.NARAKU={
   startRun(ids,seed,floor){SAVE_ON=false;S=newSave();S.picks=ids.slice();if(floor){S.floorMax=Math.max(S.floorMax,floor);S.floor=floor}beginRun(seed)},
   // 街の操作と装備・セーブ
   town:{show:showTown,view:showView,pick:togglePick,hire:hireChar,equip:equipItem,unequip,enhance,breakItem,breakAll,inn:innStay,revive,buy:shopBuy,floor:setFloor,bank:bankLoot},
+  costume:{get:lanaOutfit,set:setLanaCostume},
   look:{set:setLook,get:id=>allyLook(id).key,frames:id=>allyLook(id).seq.length,list:id=>lookList(id).map(o=>o.key)},
   hub:{HUB,select:hubSelect,enter:hubEnter,tick:hubTick,get sel(){return HSEL},get on(){return!!HUBS}},
   MOTION,MOTION_DEF,HIT_AT,motionOf,frameAt,enemyFrame,enemyAttackFrame,spawn,pickType,ENCOUNTERS,encounterType,

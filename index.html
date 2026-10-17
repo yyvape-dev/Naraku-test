@@ -1020,6 +1020,7 @@ img.frm{display:block;width:100%;height:100%}
 @keyframes strategyVeil{0%{opacity:0}12%,80%{opacity:1}100%{opacity:0}}
 @media(prefers-reduced-motion:reduce){#strategyReveal .turn{animation:none;transform:rotateY(180deg)}}
 
+.tvc-pr.lana-profile{display:flex;flex-direction:column;align-items:stretch;justify-content:center;font-size:calc(10px*var(--lk));line-height:1.35}.lana-profile p{margin:0 0 4px;color:#3e2a17;font-size:11px}.lana-outfit{font-size:12px;display:flex;align-items:center;gap:10px;white-space:nowrap}.lana-outfit label{display:flex;align-items:center;gap:4px}.lana-outfit select{min-height:28px;font:inherit;color:#f4dfae;background:#211b17;border:1px solid #94764b;padding:3px}.lana-outfit input{margin:0}
 </style>
 <script>
 /* 起動の見張り。本体のスクリプトより前に置く。本体が読み込めない・途中で止まったときに、真っ暗な戦闘画面のまま黙らないようにする */
@@ -2354,7 +2355,7 @@ function bgFor(depth,kind){
   if(css){const st=document.createElement('style');st.textContent=css;document.head.appendChild(st)}
 })();
 /* 焼き込み済み素材（透過・足元そろえ済みの等間隔アトラス）。ビルド時に差し込まれる。無いキャラは仮絵で動く */
-const EMBED=/*__EMBED_START__*/{"beast":{"cols":6,"cw":345,"ch":230,"ax":172.5,"ay":225,"refH":217.0,"target":"enemy","src":"dev/assets/beast.webp?v=e622d425"},"blue":{"cols":12,"cw":460,"ch":445,"ax":230.0,"ay":438,"refH":260.0,"target":"ally","src":"dev/assets/blue.webp?v=ffbde5c0"},"blue_cyclops":{"cols":8,"cw":640,"ch":640,"ax":320,"ay":600,"refH":512,"target":"enemy","src":"dev/assets/blue_cyclops.webp?v=bc3e7ddf"},"chain_brute":{"cols":8,"cw":576,"ch":608,"ax":288,"ay":552,"refH":407,"target":"enemy","src":"dev/assets/chain_brute.webp?v=24e222ec"},"crimson_succubus":{"cols":8,"cw":640,"ch":640,"ax":320,"ay":600,"refH":515,"target":"enemy","src":"dev/assets/crimson_succubus.webp?v=e48141f9"},"fox":{"cols":16,"cw":251,"ch":269,"ax":125.5,"ay":264,"refH":260.0,"target":"ally","src":"dev/assets/fox.webp?v=b180345f"},"frill_dragon":{"cols":8,"cw":640,"ch":640,"ax":320,"ay":600,"refH":484,"target":"enemy","src":"dev/assets/frill_dragon.webp?v=7025708d"},"hook_goblin":{"cols":8,"cw":576,"ch":608,"ax":288,"ay":552,"refH":442,"target":"enemy","src":"dev/assets/hook_goblin.webp?v=1a6c8192"},"knight":{"cols":6,"cw":190,"ch":274,"ax":95.0,"ay":270,"refH":200.0,"target":"enemy","src":"dev/assets/knight.webp?v=2d0e59aa"},"mage":{"cols":12,"cw":304,"ch":270,"ax":152.0,"ay":265,"refH":260.0,"target":"ally","src":"dev/assets/mage.webp?v=bb040a63"},"ninja":{"cols":12,"cw":613,"ch":272,"ax":306.5,"ay":266,"refH":260.0,"target":"ally","src":"dev/assets/ninja.webp?v=62b6f045"},"ogre":{"cols":6,"cw":390,"ch":268,"ax":195.0,"ay":263,"refH":220.0,"target":"enemy","src":"dev/assets/ogre.webp?v=e0c3095c"},"relic_dead":{"cols":8,"cw":576,"ch":608,"ax":288,"ay":552,"refH":490,"target":"enemy","src":"dev/assets/relic_dead.webp?v=ef314ad4"},"samurai":{"cols":12,"cw":462,"ch":320,"ax":231.0,"ay":314,"refH":260.0,"target":"ally","src":"dev/assets/samurai.webp?v=317c6a33"},"scorp":{"cols":6,"cw":305,"ch":291,"ax":152.5,"ay":275,"refH":270.0,"target":"enemy","src":"dev/assets/scorp.webp?v=5315e671"},"shaman":{"cols":6,"cw":443,"ch":232,"ax":221.5,"ay":227,"refH":220.0,"target":"enemy","src":"dev/assets/shaman.webp?v=6ddfaf3a"},"sister":{"cols":12,"cw":183,"ch":275,"ax":91.5,"ay":269,"refH":260.0,"target":"ally","src":"dev/assets/sister.webp?v=69fc0720"},"sixarm_minotaur":{"cols":8,"cw":640,"ch":640,"ax":320,"ay":600,"refH":497,"target":"enemy","src":"dev/assets/sixarm_minotaur.webp?v=f40f7a19"},"skel":{"cols":6,"cw":221,"ch":241,"ax":110.5,"ay":236,"refH":190.0,"target":"enemy","src":"dev/assets/skel.webp?v=1d9f5ee9"},"sword":{"cols":12,"cw":443,"ch":292,"ax":221.5,"ay":287,"refH":189.0,"target":"ally","src":"dev/assets/sword.webp?v=6cc92919"},"twin_orc":{"cols":8,"cw":576,"ch":608,"ax":288,"ay":552,"refH":441,"target":"enemy","src":"dev/assets/twin_orc.webp?v=1ea017eb"},"veil_ghost":{"cols":8,"cw":576,"ch":608,"ax":288,"ay":552,"refH":514,"target":"enemy","src":"dev/assets/veil_ghost.webp?v=2ff6e139"},"violet_knight":{"cols":8,"cw":640,"ch":640,"ax":320,"ay":600,"refH":494,"target":"enemy","src":"dev/assets/violet_knight.webp?v=ca718a5a"}}/*__EMBED_END__*/;
+const EMBED=/*__EMBED_START__*/{"beast":{"cols":6,"cw":345,"ch":230,"ax":172.5,"ay":225,"refH":217.0,"target":"enemy","src":"dev/assets/beast.webp?v=e622d425"},"blue":{"cols":12,"cw":460,"ch":445,"ax":230.0,"ay":438,"refH":260.0,"target":"ally","src":"dev/assets/blue.webp?v=ffbde5c0"},"blue_cyclops":{"cols":8,"cw":640,"ch":640,"ax":320,"ay":600,"refH":512,"target":"enemy","src":"dev/assets/blue_cyclops.webp?v=bc3e7ddf"},"chain_brute":{"cols":8,"cw":576,"ch":608,"ax":288,"ay":552,"refH":407,"target":"enemy","src":"dev/assets/chain_brute.webp?v=24e222ec"},"crimson_succubus":{"cols":8,"cw":640,"ch":640,"ax":320,"ay":600,"refH":515,"target":"enemy","src":"dev/assets/crimson_succubus.webp?v=e48141f9"},"fox":{"cols":16,"cw":251,"ch":269,"ax":125.5,"ay":264,"refH":260.0,"target":"ally","src":"dev/assets/fox.webp?v=b180345f"},"frill_dragon":{"cols":8,"cw":640,"ch":640,"ax":320,"ay":600,"refH":484,"target":"enemy","src":"dev/assets/frill_dragon.webp?v=7025708d"},"hook_goblin":{"cols":8,"cw":576,"ch":608,"ax":288,"ay":552,"refH":442,"target":"enemy","src":"dev/assets/hook_goblin.webp?v=1a6c8192"},"knight":{"cols":6,"cw":190,"ch":274,"ax":95.0,"ay":270,"refH":200.0,"target":"enemy","src":"dev/assets/knight.webp?v=2d0e59aa"},"mage":{"cols":12,"cw":304,"ch":270,"ax":152.0,"ay":265,"refH":260.0,"target":"ally","src":"dev/assets/mage.webp?v=bb040a63"},"ninja":{"cols":12,"cw":613,"ch":272,"ax":306.5,"ay":266,"refH":260.0,"target":"ally","src":"dev/assets/ninja.webp?v=62b6f045"},"ogre":{"cols":6,"cw":390,"ch":268,"ax":195.0,"ay":263,"refH":220.0,"target":"enemy","src":"dev/assets/ogre.webp?v=e0c3095c"},"relic_dead":{"cols":8,"cw":576,"ch":608,"ax":288,"ay":552,"refH":490,"target":"enemy","src":"dev/assets/relic_dead.webp?v=ef314ad4"},"samurai":{"cols":12,"cw":462,"ch":320,"ax":231.0,"ay":314,"refH":260.0,"target":"ally","src":"dev/assets/samurai.webp?v=317c6a33"},"scorp":{"cols":6,"cw":305,"ch":291,"ax":152.5,"ay":275,"refH":270.0,"target":"enemy","src":"dev/assets/scorp.webp?v=5315e671"},"shaman":{"cols":6,"cw":443,"ch":232,"ax":221.5,"ay":227,"refH":220.0,"target":"enemy","src":"dev/assets/shaman.webp?v=6ddfaf3a"},"sister":{"cols":12,"cw":183,"ch":275,"ax":91.5,"ay":269,"refH":260.0,"target":"ally","src":"dev/assets/sister.webp?v=69fc0720"},"sixarm_minotaur":{"cols":8,"cw":640,"ch":640,"ax":320,"ay":600,"refH":497,"target":"enemy","src":"dev/assets/sixarm_minotaur.webp?v=f40f7a19"},"skel":{"cols":6,"cw":221,"ch":241,"ax":110.5,"ay":236,"refH":190.0,"target":"enemy","src":"dev/assets/skel.webp?v=1d9f5ee9"},"sword":{"cols":12,"cw":443,"ch":292,"ax":221.5,"ay":287,"refH":189.0,"target":"ally","src":"dev/assets/sword.webp?v=6cc92919"},"sword_princess":{"cw":352,"ch":560,"ax":184.12307692307692,"ay":451.7560975609756,"refH":296,"target":"ally","cols":16,"src":"dev/assets/sword_princess.webp?v=d968cf26"},"sword_princess_smooth":{"cw":352,"ch":560,"ax":184.12307692307692,"ay":451.7560975609756,"refH":296,"target":"ally","cols":31,"src":"dev/assets/sword_princess_smooth.webp?v=14c822c9"},"twin_orc":{"cols":8,"cw":576,"ch":608,"ax":288,"ay":552,"refH":441,"target":"enemy","src":"dev/assets/twin_orc.webp?v=1ea017eb"},"veil_ghost":{"cols":8,"cw":576,"ch":608,"ax":288,"ay":552,"refH":514,"target":"enemy","src":"dev/assets/veil_ghost.webp?v=2ff6e139"},"violet_knight":{"cols":8,"cw":640,"ch":640,"ax":320,"ay":600,"refH":494,"target":"enemy","src":"dev/assets/violet_knight.webp?v=ca718a5a"}}/*__EMBED_END__*/;
 /* 表示の微調整。s=大きさ(%) x,y=位置のずらし量。調整パネルの値をビルド時に固定値として差し込む */
 const TUNE=/*__TUNE_START__*/{"blue":{"s":94,"x":0,"y":20},"sister":{"s":106,"x":0,"y":20},"mage":{"s":101,"x":0,"y":20},"beast":{"s":87,"x":0,"y":0},"knight":{"s":89,"x":0,"y":0},"scorp":{"s":127,"x":0,"y":0},"sword":{"s":100,"x":0,"y":20},"fox":{"s":100,"x":0,"y":20},"violet_knight":{"s":127,"x":0,"y":0},"frill_dragon":{"s":127,"x":0,"y":0},"sixarm_minotaur":{"s":127,"x":0,"y":0},"blue_cyclops":{"s":127,"x":0,"y":0}}/*__TUNE_END__*/;
 CHAR_ORDER.concat(Object.keys(ENEMIES)).forEach(k=>{TUNE[k]=Object.assign({s:100,x:0,y:0},TUNE[k]||{})});
@@ -2375,6 +2376,22 @@ const LOOK_KEY='naraku_look_v1';let look={};
 try{const o=JSON.parse(localStorage.getItem(LOOK_KEY)||'{}');if(o&&typeof o==='object')look=o}catch(e){look={}}
 const seqAll=n=>{const o=[];for(let i=0;i<n;i++)o.push(i);return o};
 const seqThin=n=>{const o=[];for(let i=0;i<6;i++)o.push(i===5?n-1:Math.floor(i*n/6));return o}; // 12コマなら 1・3・5・7・9・12コマ目
+document.addEventListener('change',e=>{
+  if(e.target.matches('[data-lana-costume]')){setLanaCostume(e.target.value);facTvChar('sword')}
+  else if(e.target.matches('[data-lana-smooth]')){setLanaCostume(lanaCostume,e.target.checked);facTvChar('sword')}
+});
+// 衣装は同じキャラクターの外見だけを切り替える。育成・戦闘処理は共有。
+const COSTUME_KEY='naraku_lana_costume_v1';let lanaCostume='normal',lanaSmooth=false;
+try{const c=JSON.parse(localStorage.getItem(COSTUME_KEY)||'{}');lanaCostume=c.costume==='princess'?'princess':'normal';lanaSmooth=c.smooth===true}catch(e){}
+const PRINCESS_MS=[10,8,8,8,6,4,2,2,4,6,6,8,8,8,8,8].map(n=>n*1000/24);
+const PRINCESS_SMOOTH_MS=PRINCESS_MS.flatMap((n,i)=>i<15?[n/2,n/2]:[n]);
+function setLanaCostume(costume,smooth=lanaSmooth){
+  if(!['normal','princess'].includes(costume))return false;
+  lanaCostume=costume;lanaSmooth=!!smooth;
+  try{localStorage.setItem(COSTUME_KEY,JSON.stringify({costume,smooth:lanaSmooth}))}catch(e){}
+  return true;
+}
+function lanaOutfit(){return {costume:lanaCostume,smooth:lanaSmooth}}
 // そのキャラで選べる見た目（候補が無ければ「今の絵」だけ）
 function lookList(id){
   const cur=SPR.ally[id],alt=SPR.ally[id+'2']||null,out=[{key:'old',name:alt?'今の絵':'今の絵のみ',set:cur,seq:seqAll(cur.frames.length),m:motionOf(id,cur.frames.length)}];
@@ -2384,7 +2401,13 @@ function lookList(id){
   }
   return out;
 }
-function allyLook(id){const L=lookList(id);return L.find(o=>o.key===look[id])||L[L.length>1?1:0]} // 候補があれば、初めは「新」を出す
+function allyLook(id){
+  if(id==='sword'&&lanaCostume==='princess'){
+    const smooth=lanaSmooth&&SPR.ally.sword_princess_smooth;
+    const set=smooth||SPR.ally.sword_princess;
+    if(set&&set.real)return {key:smooth?'princess_smooth':'princess',name:'ラナ（姫騎士）',set,seq:seqAll(set.frames.length),m:{ms:smooth?PRINCESS_SMOOTH_MS:PRINCESS_MS,hit:smooth?14:7}};
+  }
+  const L=lookList(id);return L.find(o=>o.key===look[id])||L[L.length>1?1:0]} // 候補があれば、初めは「新」を出す
 function setLook(id,k){
   const L=lookList(id);if(L.length<2||!L.some(o=>o.key===k))return false;
   look[id]=k;try{localStorage.setItem(LOOK_KEY,JSON.stringify(look))}catch(e){}
@@ -5291,7 +5314,7 @@ function facTvList(){
 function facTvChar(id){
   const m=S.roster[id];if(!m){showView('party');return}
   tvEnter();FBACK=['party'];tvMode('c');$('#fac').classList.toggle('open',SMOPEN);
-  tvHead(CHARS[id].name,'冒険者の酒場');
+  tvHead(id==='sword'&&lanaCostume==='princess'?'ラナ（姫騎士）':CHARS[id].name,'冒険者の酒場');
   const d=CHARS[id],g=gearStats(m),mx=Math.round(maxHpOf(m)),hp=Math.round(mx*m.hpR),pi=S.picks.indexOf(id),pct=v=>Math.round(v);
   const rg=Math.round(d.range*(1+g.range/100)),rl=rg<=150?'近接':rg<=240?'中距離':'遠距離';
   const ex=[];[['spd','攻撃速度','+','%'],['range','射程','+','%'],['crit','会心率','+','%'],['skill','スキル威力','+','%'],['reload','スキル装填','−','%'],['soul','ソウル獲得','+','%'],['hp','最大体力','+','%'],['life','拠点ライフ','+','']].forEach(q=>{if(g[q[0]])ex.push('<div>'+q[1]+'<b>'+q[2]+g[q[0]]+q[3]+'</b></div>')});
@@ -5310,7 +5333,8 @@ function facTvChar(id){
     +'<div class="gr"><div>'+tvIc(4)+'攻撃<b>+'+gearPowTxt(m,g,'w')+'</b></div><div>'+tvIc(3)+'防御<b>+'+gearPowTxt(m,g,'a')+'</b></div><div>'+tvIc(6)+'射程<b>'+rl+' '+rg+'</b></div><div>'+tvIc(7)+'属性<b>'+tvTags(m)+'</b></div></div>'
     +(ex.length?'<div class="gr ex">'+ex.join('')+'</div>':'')+'</div>'
     +'<div class="tvc-tab">装備</div>'+eq('w',11.4,26.8)+eq('a',53.7,68.2)
-    +'<div class="tvc-tab b">人物概要</div><div class="tvc-pr">'+(TV_PROF[id]||d.role)+'</div>'
+    +'<div class="tvc-tab b">人物概要</div><div class="tvc-pr'+(id==='sword'?' lana-profile':'')+'">'+(id==='sword'?'<p>衣装は戦闘の後ろ姿に反映します。</p>':(TV_PROF[id]||d.role))
+    +(id==='sword'?'<div class="lana-outfit"><label>衣装 <select data-lana-costume aria-label="ラナの衣装"><option value="normal"'+(lanaCostume==='normal'?' selected':'')+'>通常</option><option value="princess"'+(lanaCostume==='princess'?' selected':'')+'>姫騎士</option></select></label> <label><input type="checkbox" data-lana-smooth'+(lanaSmooth?' checked':'')+'>補間（試験）</label></div>':'')+'</div>'
     +(!hired(id)?'<button class="tvc-bt tv-chip idle" style="left:6.5%" data-tvhire="'+id+'"><span>'+HIRE[id].cost+'Gで雇う</span></button>'
       :'<button class="tvc-bt tv-chip '+(pi>=0?'go':m.collapsed?'dead':'idle')+'" style="left:6.5%" data-tvpk="'+id+'"'+(m.collapsed?' disabled':'')+'><span>'+(pi>=0?'出撃から外す':m.collapsed?'精神崩壊':'出撃させる')+'</span></button>')
     +'<button class="tvc-bt tv-chip sub" style="left:35.75%" data-go="pick" data-arg="'+id+':w"><span>装備変更</span></button>'
@@ -5841,6 +5865,7 @@ window.NARAKU={
   startRun(ids,seed,floor){SAVE_ON=false;S=newSave();S.picks=ids.slice();if(floor){S.floorMax=Math.max(S.floorMax,floor);S.floor=floor}beginRun(seed)},
   // 街の操作と装備・セーブ
   town:{show:showTown,view:showView,pick:togglePick,hire:hireChar,equip:equipItem,unequip,enhance,breakItem,breakAll,inn:innStay,revive,buy:shopBuy,floor:setFloor,bank:bankLoot},
+  costume:{get:lanaOutfit,set:setLanaCostume},
   look:{set:setLook,get:id=>allyLook(id).key,frames:id=>allyLook(id).seq.length,list:id=>lookList(id).map(o=>o.key)},
   hub:{HUB,select:hubSelect,enter:hubEnter,tick:hubTick,get sel(){return HSEL},get on(){return!!HUBS}},
   MOTION,MOTION_DEF,HIT_AT,motionOf,frameAt,enemyFrame,enemyAttackFrame,spawn,pickType,ENCOUNTERS,encounterType,
