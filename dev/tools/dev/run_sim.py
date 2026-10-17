@@ -6,7 +6,7 @@
    装備と層: gear=15（全員に ATK+15 の武器と DFN+15 の防具。無銘・固有と同じ属性）/ cross=1（武器を固有と逆の属性にする＝両方の札が効く）/ floor=2（第2層）"""
 import sys, os, json
 from playwright.sync_api import sync_playwright
-html=os.path.abspath(sys.argv[1]); what=sys.argv[2] if len(sys.argv)>2 else 'battle'
+html=sys.argv[1] if sys.argv[1].startswith('http') else os.path.abspath(sys.argv[1]); what=sys.argv[2] if len(sys.argv)>2 else 'battle'
 rest=sys.argv[3:]; seeds=[1,2,3] if what=='battle' else [1,2,3,4,5]
 G={k:int(v) for k,v in (x.split('=') for x in rest if x.split('=')[0] in ('gear','cross','floor'))}; rest=[x for x in rest if x.split('=')[0] not in ('gear','cross','floor')]
 GEAR=[G.get('gear',0),G.get('cross',0),G.get('floor',1)]
@@ -82,7 +82,7 @@ PARTIES=(['fox','sword','mage'],['blue','sword','sister'],['fox','sister','mage'
 with sync_playwright() as p:
     b=p.chromium.launch(); pg=b.new_page(viewport={'width':390,'height':844})
     errs=[]; pg.on('pageerror',lambda e: errs.append(str(e)[:200]))
-    pg.goto('file://'+html); pg.wait_for_timeout(1200); pg.evaluate(LIB); pg.evaluate("([x,k,c])=>T.set(x,k,c)",ov[:3])
+    pg.goto(html if html.startswith('http') else 'file://'+html); pg.wait_for_function('window.NARAKU_READY',timeout=120000); pg.evaluate(LIB); pg.evaluate("([x,k,c])=>T.set(x,k,c)",ov[:3])
     if what=='battle':
         print('形式: 勝率 / 平均の強化回数 / 勝ったときの残り体力(%) / 勝ったときの戦闘不能の人数 / 金 / 装備   （4編成×シード',seeds,'）')
         for kind,depth,hp0 in (('battle',0,1),('battle',0.5,1),('battle',1,1),('battle',0.5,0.6),('elite',0.5,1),('elite',1,1),('ambush',0.5,1),('boss',1,1),('boss',1,0.6),('trial',0,1)):
