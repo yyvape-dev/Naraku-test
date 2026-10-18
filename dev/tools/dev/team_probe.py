@@ -1,4 +1,4 @@
-"""7人から3人を選ぶ全35編成×2シードを、ボット操縦・強化ランダムで1戦ずつ回し、キャラ別の与ダメージ（通常DPS・スキルDPS・合計・編成内シェア）と札の使用回数を出す。
+"""8人から3人を選ぶ全56編成×2シードを、ボット操縦・強化ランダムで1戦ずつ回し、キャラ別の与ダメージ（通常DPS・スキルDPS・合計・編成内シェア）と札の使用回数を出す。
    使い方: python3 dev/tools/dev/team_probe.py http://127.0.0.1:8765/index.html   （約10分。ばらつきは±20程度）
    atk_probe.py（5編成）の全編成版。シオウ・リンネ・ユズナミキの強さ比べと、大きな調整のあとの回帰確認に使う。"""
 import sys, os, json
@@ -30,7 +30,7 @@ with sync_playwright() as p:
     errs=[]; pg.on('pageerror',lambda e: errs.append(str(e)))
     pg.goto(html if html.startswith("http") else "file://"+html); pg.wait_for_function("window.NARAKU_READY",timeout=120000)
     agg={}; wins=0; n=0; cu={}; share={}
-    ids=['fox','sword','sister','mage','blue','ninja','samurai']
+    ids=['fox','sword','sister','mage','blue','ninja','samurai','phyllis']
     for party in itertools.combinations(ids,3):
         for seed in (1,2):
             r=pg.evaluate(JS,[list(party),seed,ov]); n+=1; wins+=r['win']

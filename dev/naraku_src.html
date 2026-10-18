@@ -1106,15 +1106,16 @@ const CHARS={
   blue:  {id:'blue',  name:'アベニウス',      short:'アベニウス',role:'蒼剣士・中距離扇状',   hp:130,range:170,cd:0.95,dmg:22,atk:'fan',   fan:0.9,   color:'#4fc3f7',far:{range:240,k:0.6,cd:1.3,spd:520,tex:'slash_a',col:'#4fc3f7'}},
   ninja: {id:'ninja', name:'リンネ',          short:'リンネ',  role:'忍・暗殺単体',       hp:90, range:205,cd:0.38,dmg:13,atk:'single',shotSpd:760,crit:0.12,vsBig:1.6,color:'#ff3a3a'},
   samurai:{id:'samurai',name:'シオウ',        short:'シオウ',  role:'侍・居合の貫通',     hp:125,range:265,cd:1.0, dmg:21,atk:'line',  lineW:22,  color:'#5fe0a0'},
+  phyllis:{id:'phyllis',name:'フィリシア',   short:'フィリシア',role:'魔術師・血華の範囲',hp:85, range:250,cd:1.35,dmg:17,atk:'circle',aoe:54,face:'left',color:'#e0304a'}, // 2026-10-18 追加。斜め横向きの絵（左向き）。左の枠では左右反転して中央を向く
   mage:  {id:'mage',  name:'シェリ',          short:'シェリ',  role:'魔術師・長射程貫通',hp:80, range:330,cd:1.6, dmg:24,atk:'line',  lineW:30,  color:'#a57be0'}
 };
-const CHAR_ORDER=['fox','sword','sister','mage','blue','ninja','samurai'];
+const CHAR_ORDER=['fox','sword','sister','mage','blue','ninja','samurai','phyllis'];
 // 酒場で雇う仲間（2026-10-17 追加。最初は未加入。cost＝雇う金）
-const HIRE={ninja:{cost:300},samurai:{cost:300}};
+const HIRE={ninja:{cost:300},samurai:{cost:300},phyllis:{cost:300}};
 const hired=id=>!!(S&&S.roster[id]&&S.roster[id].hired!==false);
 const crew=()=>CHAR_ORDER.filter(hired);
 // キャラ固有の属性タグ。武器を持つと、武器の属性タグが加わる（gearStats がまとめる）
-const CHAR_TAG={fox:'phys',sword:'phys',blue:'phys',sister:'mag',mage:'mag',ninja:'phys',samurai:'phys'};
+const CHAR_TAG={fox:'phys',sword:'phys',blue:'phys',sister:'mag',mage:'mag',ninja:'phys',samurai:'phys',phyllis:'mag'};
 const LINE_OFF=124,FOOT_OFF=22,ALLY_H=100; // 防衛線と味方の足元（アリーナ下端からの距離）、味方の表示身長
 
 const CARDS=[
@@ -1131,6 +1132,8 @@ const CARDS=[
   {id:'nj_kunai',  owner:'ninja', name:'千本苦無',  kind:'target', r:118,dmg:36, slow:1.5,reload:9, desc:'苦無の雨で広く刻み、足を止める',pal:['#ffe6e6','#ff5a5a','#4a0a0a']},
   {id:'sm_iai',    owner:'samurai',name:'居合・一文字',kind:'target',shape:'col',hw:24,dmg:115,reload:9,desc:'縦一列を、居合でまとめて斬り抜く',pal:['#ffffff','#5fe0a0','#0f3a2a']},
   {id:'sm_wind',   owner:'samurai',name:'風断ち',    kind:'target', r:84, dmg:90, knock:30,reload:10,desc:'斬撃の嵐で範囲を刻み、押し返す',pal:['#f0fff6','#7dffb8','#14402c']},
+  {id:'ph_thorn',  owner:'phyllis',name:'茨の檻',    kind:'target', r:96, dmg:55, slow:4,reload:9, desc:'枯れ枝の茨が絡みつき、広く足を止める',pal:['#ffd8d8','#e0304a','#2a140c']},
+  {id:'ph_bloom',  owner:'phyllis',name:'鮮血の大輪',kind:'target', r:108,dmg:150,bleed:4,bleedK:0.12,reload:12,desc:'血の花を咲かせて爆ぜ、4秒間 出血させる',pal:['#fff0f0','#e0304a','#4a0812']},
   {id:'mg_void',   owner:'mage',  name:'凍てつく虚無',kind:'target',r:100,dmg:40, freeze:2.6,reload:10,desc:'範囲の敵を凍結させる',pal:['#ffffff','#8fd8ff','#2a4f9a']}
 ];
 
@@ -1179,7 +1182,8 @@ const MOTION={
   sword: {ms:[120,95,85,120,110,60,40,55,85,100,115,130],hit:6}, // 12コマ（動画AI。2026-10-10 本採用）：構え→剣を右へ出す→持ち上げる→頭上で溜め（長め2コマ）→振り出し（加速）→体の前を横一閃（ヒット・最短）→左へ振り抜く→低く残心2コマ→立ち上がり→構え（戻りは徐々に長く）
   blue:  {ms:[120,95,90,135,115,60,50,40,70,95,110,130],hit:7},
   ninja: {ms:[120,85,60,70,55,60,70,115,40,60,95,130],hit:8},    // 12コマ（動画AI。2026-10-17）：構え→腰を落とす→右へ一閃→返す→回転斬り→斬り返し→薙ぎ→溜め（長め）→閃光の一突き（ヒット・最短）→斬り払い→残心→構え
-  samurai:{ms:[120,95,95,110,130,115,60,40,75,100,115,130],hit:7}, // 12コマ（動画AI。2026-10-17）：構え→刀を返す→持ち上げ→頭上へ→上段で溜め（長め2コマ）→振り下ろし→斬り抜く（ヒット・最短）→突き出し→残心→戻り→構え // 12コマ（動画AI。2026-10-10 本採用）：構え→持ち上げ→頭上へ→頭上で溜め（長め2コマ）→振り下ろし（加速2コマ）→斬撃の弧（ヒット・最短）→振り抜き→マントの翻り→戻り→構え（戻りは徐々に長く）
+  samurai:{ms:[120,95,95,110,130,115,60,40,75,100,115,130],hit:7},
+  phyllis:{ms:[65,65,48,48,45,45,55,55,42,42,38,38,20,20,30,30,38,38,40,40,42,42,45,45,50,50,55,55,60,60,130],hit:12}, // 31コマ（ユーザーの16コマ＋RIFE。2026-10-18）：構え→右手を前へ→掌に血の花→花が光る（溜め）→花が爆ぜてスカートが翻る（ヒット）→花びらが散る→構えへ戻る // 12コマ（動画AI。2026-10-17）：構え→刀を返す→持ち上げ→頭上へ→上段で溜め（長め2コマ）→振り下ろし→斬り抜く（ヒット・最短）→突き出し→残心→戻り→構え // 12コマ（動画AI。2026-10-10 本採用）：構え→持ち上げ→頭上へ→頭上で溜め（長め2コマ）→振り下ろし（加速2コマ）→斬撃の弧（ヒット・最短）→振り抜き→マントの翻り→戻り→構え（戻りは徐々に長く）
   // 敵（ヒットは5コマ目。重い敵ほど溜めと回収を長く取る）
   skel:  {ms:[105,90,75,70,45,120],hit:4},
   beast: {ms:[100,85,75,65,40,115],hit:4},
@@ -1958,6 +1962,7 @@ const VFXK={
   mage: {glow:'#9b5cff',streak:['#b48cff','#f6efff'],petal:['#f6efff','#b48cff','#5b2a9e'],ring:'#cdb0ff'},
   ninja: {glow:'#ff2a2a',streak:['#ff4a4a','#ffd0d0'],ring:'#ff5a5a'},
   samurai:{glow:'#3fe090',streak:['#7dffb8','#f0fff6'],ring:'#9fffd0'},
+  phyllis:{glow:'#e0304a',streak:['#ff5a6e','#ffe0e4'],petal:['#ffd0d4','#e0304a','#5a0a14'],ring:'#ff6a7a'},
   sister:{glow:'#ffcf6a',streak:['#ffe3a0','#fffbea'],petal:['#fffbea','#ffe39a','#c99a48'],ring:'#ffe9a8'},
   dustMax:900,k:1   // k：残滓の量の倍率（重いときはここを下げる）
 };
@@ -2561,7 +2566,7 @@ function placeholderSheet(kinds,fn){
   return c;
 }
 function figBack(g,k,f){
-  const P={ninja:{body:'#6a1416',trim:'#c9a24a',hair:'#e8dcc0'},samurai:{body:'#1c1a24',trim:'#3a9a6a',hair:'#3a2a5a'},fox:{body:'#6b2f22',trim:'#c9772e',hair:'#e0913a'},sword:{body:'#59616b',trim:'#aeb7c2',hair:'#4a3626'},sister:{body:'#1d2540',trim:'#e9e2cf',hair:'#1d2540'},mage:{body:'#17131f',trim:'#6b46a8',hair:'#17131f'},blue:{body:'#e9e2cf',trim:'#2a6f9a',hair:'#15171c'}}[k];
+  const P={phyllis:{body:'#e8dcc8',trim:'#a0302a',hair:'#d8d4d0'},ninja:{body:'#6a1416',trim:'#c9a24a',hair:'#e8dcc0'},samurai:{body:'#1c1a24',trim:'#3a9a6a',hair:'#3a2a5a'},fox:{body:'#6b2f22',trim:'#c9772e',hair:'#e0913a'},sword:{body:'#59616b',trim:'#aeb7c2',hair:'#4a3626'},sister:{body:'#1d2540',trim:'#e9e2cf',hair:'#1d2540'},mage:{body:'#17131f',trim:'#6b46a8',hair:'#17131f'},blue:{body:'#e9e2cf',trim:'#2a6f9a',hair:'#15171c'}}[k];
   const th=SWING[f],lean=[0,-1,-2,2,3,1][f];
   g.fillStyle='#120f0d';g.fillRect(-9,-24,7,24);g.fillRect(2,-24,7,24);
   if(k==='fox'){g.fillStyle=P.hair;g.beginPath();g.ellipse(-15,-30,8,17,0.5+f*0.08,0,TAU);g.fill();g.fillStyle='#fff1d8';g.beginPath();g.ellipse(-21,-43,4,6,0.5,0,TAU);g.fill()}
@@ -2608,7 +2613,7 @@ function figFront(g,k,f){
 function drawFace(g,k,S){
   g.save();g.scale(S/60,S/60);
   const bg=g.createLinearGradient(0,0,0,60);bg.addColorStop(0,'#241b14');bg.addColorStop(1,'#070605');g.fillStyle=bg;g.fillRect(0,0,60,60);
-  const C={ninja:{cloth:'#6a1416',hair:'#e8dcc0',eye:'#c0392b'},samurai:{cloth:'#1c1a24',hair:'#3a2a5a',eye:'#e0a030'},fox:{cloth:'#6b2f22',hair:'#e0913a',eye:'#f6c14a'},sword:{cloth:'#59616b',hair:'#4a3626',eye:'#9fb0c4'},sister:{cloth:'#1d2540',hair:'#1d2540',eye:'#7fb4e8'},mage:{cloth:'#17131f',hair:'#17131f',eye:'#c79bff'},blue:{cloth:'#e9e2cf',hair:'#15171c',eye:'#4fc3f7'}}[k];
+  const C={phyllis:{cloth:'#e8dcc8',hair:'#d8d4d0',eye:'#b02a30'},ninja:{cloth:'#6a1416',hair:'#e8dcc0',eye:'#c0392b'},samurai:{cloth:'#1c1a24',hair:'#3a2a5a',eye:'#e0a030'},fox:{cloth:'#6b2f22',hair:'#e0913a',eye:'#f6c14a'},sword:{cloth:'#59616b',hair:'#4a3626',eye:'#9fb0c4'},sister:{cloth:'#1d2540',hair:'#1d2540',eye:'#7fb4e8'},mage:{cloth:'#17131f',hair:'#17131f',eye:'#c79bff'},blue:{cloth:'#e9e2cf',hair:'#15171c',eye:'#4fc3f7'}}[k];
   g.fillStyle=C.cloth;g.beginPath();g.moveTo(4,60);g.quadraticCurveTo(30,36,56,60);g.fill();
   if(k==='fox'){g.fillStyle=C.hair;g.beginPath();g.moveTo(14,22);g.lineTo(15,4);g.lineTo(26,15);g.moveTo(46,22);g.lineTo(45,4);g.lineTo(34,15);g.fill()}
   if(k==='mage'||k==='sister'){g.fillStyle=C.hair;g.beginPath();g.moveTo(30,5);g.quadraticCurveTo(8,10,10,48);g.lineTo(50,48);g.quadraticCurveTo(52,10,30,5);g.fill()}
@@ -3162,10 +3167,11 @@ function allyHit(a,tg,rep,singleOnly=false){
   }else if(d.atk==='circle'){
     const cx=tg.x,cy=tg.y-14,r=d.aoe*wide,hits=[];
     for(const e of B.enemies){if(e.dead)continue;const dx=e.x-cx,dy=e.y-14-cy,rr=r+e.d.r*e.sc;if(dx*dx+dy*dy<=rr*rr)hits.push(e)}
-    if(a.d.id==='sword'&&lanaFx(cx,cy,r,rep,hits)){}
+    if(a.d.id==='phyllis'){phyFx(a,cx,cy,r,rep)}
+    else if(a.d.id==='sword'&&lanaFx(cx,cy,r,rep,hits)){}
     else if(!fxTex({n:'slash_b',col:'#ffd99a',x:cx,y:cy,w:r*2.1,rot:-2.36+(Math.random()-0.5)*0.6,fx:Math.random()<0.5?-1:1,life:0.26,s0:0.8,s1:1.05,fi:0.08,fo:1.6,a:rep?0.7:1}))
       FX.sh.push({k:'slash',x:cx,y:cy,r,t:0,life:0.2,col:rep?d.color:'#ffffff'});
-    if(a.d.id!=='sword'||!VT.lana_slash)fxTex({n:'spark',col:'#ffe0a0',x:tg.x,y:tg.y-18,w:30,life:0.18,s0:0.6,s1:1.1,rot:Math.random()*TAU,fi:0.05,fo:1.4});
+    if(a.d.id!=='phyllis'&&(a.d.id!=='sword'||!VT.lana_slash))fxTex({n:'spark',col:'#ffe0a0',x:tg.x,y:tg.y-18,w:30,life:0.18,s0:0.6,s1:1.1,rot:Math.random()*TAU,fi:0.05,fo:1.4});
     for(const e of hits)hitFrom(a,e,1);
   }else if(d.atk==='fan'){
     // 扇状：狙った敵の方向を中心に、射程内の広い角度をまとめて斬る
@@ -3246,6 +3252,7 @@ function updEnemies(dt){
     if(e.flash>0)e.flash-=dt;if(e.kbT>0)e.kbT-=dt;
     if(e.animT>=0&&(!e.d.splitMotion||e.frzT<=0)){e.animT+=dt;if(e.animT>=0.5)e.animT=-1}
     if(e.knT>0)e.knT-=dt;
+    if(e.blT>0){e.blT-=dt;e.blTick-=dt;if(e.blTick<=0){e.blTick+=0.5;hurt(e,e.blDps*0.5,'#ff4a5a',false,true,e.blBy,'skill');if(Math.random()<0.5)dust({kind:'petal',x:e.x+(Math.random()-0.5)*14,y:e.y-e.d.h*e.sc*0.5,vx:(Math.random()-0.5)*30,vy:-20,drag:2,life:0.5,w:0.8,wob:6,c0:'#ffd0d4',c1:'#e0304a',c2:'#5a0a14'});if(e.dead)continue}}
     if(e.burnT>0){ // 延焼：0.5秒ごとにまとめて焼く
       e.burnT-=dt;e.burnTick-=dt;
       if(e.burnTick<=0){e.burnTick+=0.5;hurt(e,e.burnDps*0.5,'#ff8a3a',false,true,e.burnBy,'atk');if(e.dead)continue}
@@ -3435,6 +3442,11 @@ const ULT_DEF={
     if(FX.shin&&FX.shin.pre)FX.shin=null;
     const b=CARDS.find(o=>o.id==='sm_iai'),c=Object.assign({},b,{hw:46,dmg:150,ult:'samurai'});
     for(let i=0;i<4;i++)B.impacts.push({t:0.06+i*0.16,c,x:45+i*90,y:B.lineY*0.5,k:1})}},
+  phyllis:{name:'血華繚乱',  col:'#e0304a',fire(a){ // 戦場に茨を走らせ、敵の多い所から順に10か所で血の大輪を咲かせる。最後に戦場全体へ花吹雪の一撃
+    const b=CARDS.find(o=>o.id==='ph_bloom'),c=Object.assign({},b,{dmg:95,ult:'phyllis'}),pts=ultTargets(10),ox=a?a.x:W/2,oy=B.lineY-40;
+    pts.forEach((p,i)=>{B.impacts.push({t:0.08+i*0.09,c,x:p.x,y:p.y,k:1});FX.sh.push({k:'thorn',pts:thornPts(ox,oy,p.x,p.y,10,16),t:-(0.02+i*0.09),life:0.7,w:4})});
+    B.impacts.push({t:1.15,c:Object.assign({},b,{shape:'row',hh:B.lineY*0.5/B.M.skR,dmg:110,bleed:3,fx:'full',ult:'phyllis'}),x:W/2,y:B.lineY*0.5,k:1});
+  }},
   blue:  {name:'斬月三日月',col:'#4fc3f7',fire(a){const b=CARDS.find(o=>o.id==='bl_moon'),hh=B.lineY/6/B.M.skR,c=Object.assign({},b,{hh,dmg:120,ult:'blue'});if(ultSeqOn('blue'))FX.blueU={t:0};for(let i=0;i<3;i++)B.impacts.push({t:0.05+i*0.22,c,x:W/2,y:B.lineY*(5-2*i)/6,k:1})}}
 };
 /* 聖母の加護（2026-10-18 ユーザー指示で持続型へ。旧＝全員全回復＋拠点+1＋全面90）：15秒の聖域。
@@ -3499,7 +3511,7 @@ function comboArmed(){const c=B&&B.combo;return c&&!ULT&&!B.ultUsed[c.id]&&B.t-c
 function comboBar(c){const cb=comboArmed();return cb===c.owner?'<span class="cb" style="animation-duration:'+CFG.comboWin+'s;animation-delay:-'+(B.t-B.combo.t).toFixed(2)+'s"></span>':''}
 /* カットインの立ち絵の置き方：fx,fy＝絵の中の顔の中心（絵の幅・高さに対する割合）、fw＝顔の幅（絵の幅に対する割合）。
    どのキャラも、戦場の (ULT_POS.x, ULT_POS.y) に顔が来て、顔の幅が戦場の幅×ULT_POS.face になるように置く（絵の幅は戦場の幅の1.0〜1.4倍に収める） */
-const ULT_ART={ninja:{fx:.70,fy:.29,fw:.15},samurai:{fx:.66,fy:.19,fw:.13},sword:{fx:.50,fy:.38,fw:.29},sword_p:{fx:.575,fy:.245,fw:.245},blue:{fx:.68,fy:.36,fw:.18},mage:{fx:.66,fy:.15,fw:.23},sister:{fx:.51,fy:.30,fw:.25},fox:{fx:.68,fy:.33,fw:.26}};
+const ULT_ART={phyllis:{fx:.41,fy:.19,fw:.25},ninja:{fx:.70,fy:.29,fw:.15},samurai:{fx:.66,fy:.19,fw:.13},sword:{fx:.50,fy:.38,fw:.29},sword_p:{fx:.575,fy:.245,fw:.245},blue:{fx:.68,fy:.36,fw:.18},mage:{fx:.66,fy:.15,fw:.23},sister:{fx:.51,fy:.30,fw:.25},fox:{fx:.68,fy:.33,fw:.26}};
 const ULT_POS={x:.55,y:.36,face:.27};
 function startUlt(a,consume=true){
   const id=a.d.id,def=ULT_DEF[id];if(!def)return;
@@ -3549,12 +3561,14 @@ function impact(c,x,y,k,shadow=false){
     else if(c.shape==='col'){if(Math.abs(dx)>hw+e.d.r*e.sc||e.y>B.lineY+8)continue}
     else{const rr=r+e.d.r*e.sc;if(dx*dx+dy*dy>rr*rr)continue}
     if(c.slow)e.slowT=Math.max(e.slowT,c.slow);
+    if(c.bleed){e.blT=Math.max(e.blT||0,c.bleed);e.blDps=Math.max(e.blDps||0,c.dmg*B.M.skDmg*k*(ow?ow.sk:1)*c.bleedK);e.blBy=c.owner;e.blTick=e.blTick||0.5} // 出血（フィリシア）：スキルの与ダメとして数える
     if(c.freeze)e.frzT=Math.max(e.frzT,c.freeze*(e.elite?0.5:1));
     if(c.knock)e.y-=c.knock*k*(e.elite?0.3:1);
     hurt(e,dmg*((c.boss&&(e.elite||e.d.boss))?c.boss:1),c.pal[1],false,false,c.owner,'skill');
   }
   if(c.shape!=='full'&&c.fx!=='full'&&(c.dmg||0)>0)jcImpact(x,y,B.kills-k0);
   if(c.healFlat)for(const a of B.allies)if(a.alive){a.hp=Math.min(a.max,a.hp+c.healFlat*k);fxSpark(a.x,a.y-64,'#bff0c0',6)}
+  if(c.owner==='phyllis')phyBloomFx(x,y,c.fx==='full'?W*0.55:r,c.ult?2:1,c.id==='ph_thorn'&&!c.ult);
   if(c.zone)B.zones.push({x,hw,t:c.zone,life:c.zone,tick:0.5,dps:c.zdps*B.M.skDmg*k*(ow?ow.sk:1),c});
   if(c.ult==='mage'&&BLACKHOLE_VFX.enabled&&blackholeReady()&&FX.sh.some(s=>s.k==='blackhole')){FX.shake=Math.min(16,FX.shake+(c.dmg>100?10:3));return}
   if(c.shin)return;
@@ -3992,6 +4006,45 @@ function banner(txt){FX.banner={txt,t:0}}
 function floatTxt(x,y,txt,col,size){if(FX.floats.length>70)FX.floats.shift();FX.floats.push({x:x+(Math.random()-0.5)*10,y,txt,col,size,t:0})}
 function addPart(p){if(FX.parts.length<1400)FX.parts.push(p)}
 function fxSpark(x,y,col,n){for(let i=0;i<n;i++){const a=Math.random()*TAU,s=40+Math.random()*120;addPart({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,t:0,life:0.2+Math.random()*0.25,size:1.5+Math.random()*2,col,drag:4,grav:0})}}
+/* フィリシア（2026-10-18）：枯れ枝の茨と鮮血の花。絵は使わずコードで描く（茨＝折れ線＋棘、花＝花びらの残滓と赤い輪）。
+   thornPts＝(x0,y0)→(x1,y1) を n 区切りで、左右に揺れる枝の道。drawThorn＝伸びる→留まる→薄れる */
+function thornPts(x0,y0,x1,y1,n,amp){
+  const dx=x1-x0,dy=y1-y0,L=Math.hypot(dx,dy)||1,nx=-dy/L,ny=dx/L,ph=Math.random()*TAU,pts=[];
+  for(let i=0;i<=n;i++){const u=i/n,w=Math.sin(u*Math.PI)*amp*Math.sin(u*7+ph)+(Math.random()-0.5)*amp*0.35*(i>0&&i<n);pts.push([x0+dx*u+nx*w,y0+dy*u+ny*w])}
+  return pts;
+}
+function drawThorn(g,s,u,a){
+  if(u<0)return;const P=s.pts,n=P.length,grow=Math.min(1,u*3.2),m=Math.max(2,Math.ceil(n*grow)),al=Math.min(1,a*1.6);
+  g.save();g.lineCap='round';g.lineJoin='round';g.globalAlpha=al;
+  const path=()=>{g.beginPath();g.moveTo(P[0][0],P[0][1]);for(let i=1;i<m;i++)g.lineTo(P[i][0],P[i][1])};
+  g.globalCompositeOperation='lighter';g.strokeStyle='rgba(224,48,74,.35)';g.lineWidth=s.w*2.6;path();g.stroke();
+  g.globalCompositeOperation='source-over';g.strokeStyle='#1e0d08';g.lineWidth=s.w;path();g.stroke();
+  g.strokeStyle='#6e3a22';g.lineWidth=Math.max(1,s.w*0.32);path();g.stroke();
+  g.strokeStyle='#1e0d08';g.lineWidth=1.3;
+  for(let i=1;i<m-1;i++){const p=P[i],q=P[i+1],dx=q[0]-p[0],dy=q[1]-p[1],L=Math.hypot(dx,dy)||1,sg=i%2?1:-1,t=s.w*1.9;
+    g.beginPath();g.moveTo(p[0],p[1]);g.lineTo(p[0]+(-dy/L*sg+dx/L*0.6)*t,p[1]+(dx/L*sg+dy/L*0.6)*t);g.stroke()}
+  if(grow>=1&&n>2){const e=P[n-1];g.globalCompositeOperation='lighter';g.fillStyle='rgba(255,90,110,'+0.5*al+')';g.beginPath();g.arc(e[0],e[1],s.w*1.6,0,TAU);g.fill()}
+  g.restore();
+}
+function phyPetals(x,y,n,v,up){const K=VFXK.phyllis.petal;for(let i=0;i<n;i++){const q=Math.random()*TAU,sp=v*(0.35+Math.random()*0.65);
+  dust({kind:'petal',x:x+(Math.random()-0.5)*8,y:y+(Math.random()-0.5)*8,vx:Math.cos(q)*sp,vy:Math.sin(q)*sp*0.7-up,drag:2.6,grav:30,life:0.5+Math.random()*0.5,w:0.9+Math.random()*0.9,wob:8,c0:K[0],c1:K[1],c2:K[2]})}}
+// 通常攻撃：手元から的へ茨が伸び、着弾点で小さな血の花が咲く
+function phyFx(a,cx,cy,r,rep){
+  const sx=a.x+(a.x<W*0.45?14:-14),sy=B.lineY-58;
+  FX.sh.push({k:'thorn',pts:thornPts(sx,sy,cx,cy,8,10),t:0,life:0.42,w:rep?2.2:3});
+  FX.sh.push({k:'flash',x:cx,y:cy,r:r*0.9,t:0,life:0.2,col:'rgba(224,48,74,.55)'});
+  FX.sh.push({k:'ring',x:cx,y:cy,r0:4,r1:r,t:0,life:0.26,col:'#ff6a7a',w:2.4});
+  phyPetals(cx,cy,rep?6:11,150,20);
+}
+// スキル・超必殺：茨が地面から放射状に突き出し（茨の檻は多め）、血の大輪が爆ぜる
+function phyBloomFx(x,y,r,big,cage){
+  const nb=cage?9:5;for(let i=0;i<nb;i++){const q=i/nb*TAU+Math.random()*0.5,L=r*(cage?0.95:0.7)*(0.75+Math.random()*0.3);
+    FX.sh.push({k:'thorn',pts:thornPts(x,y,x+Math.cos(q)*L,y+Math.sin(q)*L*0.75,7,r*0.08),t:-Math.random()*0.06,life:cage?1.1:0.6,w:cage?3.4:2.6})}
+  FX.sh.push({k:'flash',x,y,r:r*1.1,t:0,life:0.3,col:'rgba(255,60,90,.6)'});
+  FX.sh.push({k:'ring',x,y,r0:6,r1:r*1.05,t:0,life:0.36,col:'#ff8090',w:4});
+  phyPetals(x,y,Math.round((cage?16:30)*big),r*2.2,40);
+  if(big>1)FX.shake=Math.min(16,FX.shake+4);
+}
 function fxDeath(e){
   const col=e.d.col,n=e.d.boss?90:e.elite?46:(JC.on?18:9);
   for(let i=0;i<n;i++){const a=Math.random()*TAU,s=30+Math.random()*(e.elite?260:110);addPart({x:e.x,y:e.y-e.d.h*0.35,vx:Math.cos(a)*s,vy:Math.sin(a)*s-30,t:0,life:0.3+Math.random()*0.4,size:2+Math.random()*2.5,col:i%3?col:'#ffffff',drag:3,grav:0})}
@@ -4252,6 +4305,7 @@ function drawAlly(g,a,T){
   else{const b=Math.sin(T*2.1+a.ph);sy=1+b*0.018;sx=1-b*0.009;rot=Math.sin(T*1.05+a.ph)*0.012} // 待機は1コマ目＋呼吸
   if(B.M.aura)drawAura(g,a,T);
   litFloor(g,a);
+  if(a.d.face==='left'&&a.x<W*0.45)sx=-sx; // 斜め横向きの絵：左の枠では反転して中央を向く
   g.save();g.translate(a.x+tn.x,a.y+oy+tn.y);g.rotate(rot);g.scale(sx,sy);blit(g,set,lk.seq[f],h);litAlly(g,a,set,lk.seq[f],h);
   if(a.hitT>0){g.globalCompositeOperation='lighter';g.globalAlpha=0.6;blit(g,set,lk.seq[f],h)}
   g.restore();
@@ -4375,6 +4429,7 @@ function render(T){
   for(const s of FX.sh){
     const u=s.t/s.life,a=1-u;
     if(s.k==='flash'){const gr=g.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r*(0.5+u*0.5));gr.addColorStop(0,s.col);gr.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=a;g.fillStyle=gr;g.beginPath();g.arc(s.x,s.y,s.r,0,TAU);g.fill()}
+    else if(s.k==='thorn')drawThorn(g,s,u,a);
     else if(s.k==='ring'){g.globalAlpha=a;g.strokeStyle=s.col;g.lineWidth=s.w*a+0.5;g.beginPath();g.arc(s.x,s.y,lerp(s.r0,s.r1,1-a*a),0,TAU);g.stroke()}
     else if(s.k==='ray'){g.globalAlpha=a;g.strokeStyle=s.col;g.lineWidth=2;const c=Math.cos(s.ang),n=Math.sin(s.ang),r0=s.len*u*0.6;g.beginPath();g.moveTo(s.x+c*r0,s.y+n*r0);g.lineTo(s.x+c*s.len,s.y+n*s.len);g.stroke()}
     else if(s.k==='beam'){const ex=s.x+s.dx*s.len,ey=s.y+s.dy*s.len;g.lineCap='round';g.globalAlpha=a*0.55;g.strokeStyle=s.col;g.lineWidth=s.w*(0.6+a*0.6);g.beginPath();g.moveTo(s.x,s.y);g.lineTo(ex,ey);g.stroke();g.globalAlpha=a;g.strokeStyle='#ffffff';g.lineWidth=Math.max(1,s.w*0.22);g.beginPath();g.moveTo(s.x,s.y);g.lineTo(ex,ey);g.stroke()}
@@ -5513,12 +5568,13 @@ function facSmith(){
   facHit(cd);
 }
 // 酒場（仲間表と詳細画面）。板の中身はモードごとに #tvSheet を丸ごと描き直す。装備選び（pick）は従来の本文（facPage）に戻す
-const TV_ROLE={fox:8,sword:9,sister:10,mage:11,blue:12,ninja:8,samurai:12},TV_TAG={phys:13,mag:14},TV_RC=['#5a4a36','#1f5f9e','#6a3aa8','#9a6a10'];
+const TV_ROLE={fox:8,sword:9,sister:10,mage:11,blue:12,ninja:8,samurai:12,phyllis:11},TV_TAG={phys:13,mag:14},TV_RC=['#5a4a36','#1f5f9e','#6a3aa8','#9a6a10'];
 const TV_PROF={fox:'狐の耳を持つ身軽な斥候。投げ刃を矢継ぎ早に放ち、迫る敵を一体ずつ確実に仕留める。人懐こいが、戦場では驚くほど冷静。',
   sword:'誇り高い女騎士。大剣のひと振りで、周りの敵をまとめて薙ぎ払う。最前線に立ち、仲間の盾となることを誓っている。',
   sister:'奈落に祈りを捧げ続けるシスター。聖なる光で敵を討ち、傷ついた仲間を癒やす。穏やかな笑みの奥に、揺るがぬ信念を秘める。',
   mage:'古い魔導書を携えた魔術師。遠くの敵まで一直線に貫く術を得意とする。知識欲が強く、奈落の謎にも興味を隠さない。',
   ninja:'赤い装束の暗殺者。二振りの刃で急所だけを狙い、強敵ほど深く刻む。口数は少なく、仕事を選ばない。',
+  phyllis:'枯れ枝の魔力と、鮮血のような花を操るエルフの魔術師。茨で敵を縛り、血の花を咲かせて群れごと散らす。穏やかに微笑むが、その花は誰かの命を吸って咲く。',
   samurai:'猫の耳を持つ流浪の侍。居合の一太刀は遠くの敵まで一直線に斬り抜く。礼を重んじるが、間合いに入った敵は逃さない。',
   blue:'蒼い光をまとう剣士。三日月のような剣閃を扇状に放ち、中ほどの距離の敵を一掃する。寡黙だが、仲間への信頼は厚い。'};
 const tvIc=(n,cls)=>'<i class="tv-ic'+(cls?' '+cls:'')+'" style="background-position:'+(n%4)*100/3+'% '+Math.floor(n/4)*100/3+'%"></i>';
