@@ -15,8 +15,8 @@ src = sorted((root/'cardart'/'src_phyllis_motion').glob('key_*.png'))
 assert len(src) == 16, len(src)
 FOOT_X, FOOT_Y, TOP = 1048, 1175, 204
 BOX = (FOOT_X-520, 60, FOOT_X+520, 1200)       # 1040×1140。花びらが左へ散る分と、頭上へ舞う分を含む
-K = 0.36
-SIZE = (round(1040*K), round(1140*K))           # 374×410
+K = 0.28   # 2026-10-18 0.36→0.28（iPhone のメモリ対策。表示の身長に対して十分）
+SIZE = (round(1040*K), round(1140*K))           # 291×319
 
 def keyed(im):
     rgb = np.asarray(im.convert('RGB'), dtype=np.float32)

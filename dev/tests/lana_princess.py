@@ -20,7 +20,8 @@ with sync_playwright() as p:
     errors=[]
     page.on('pageerror',lambda e: errors.append(str(e)))
     page.goto(sys.argv[1])
-    page.wait_for_function('window.NARAKU && NARAKU.SPR.ally.sword_princess_smooth')
+    page.wait_for_function('window.NARAKU && NARAKU.SPR.ally.sword')  # 姫騎士の絵は衣装を選んだ時に切り分ける（2026-10-18 メモリ対策）
+    assert page.evaluate('!NARAKU.SPR.ally.sword_princess && !NARAKU.SPR.ally.sword_princess_smooth')
     page.evaluate("NARAKU.fresh();NARAKU.town.view('char','sword')")
     page.select_option('[data-lana-costume]','princess')
     page.check('[data-lana-smooth]')

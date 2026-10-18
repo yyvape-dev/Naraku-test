@@ -2437,6 +2437,7 @@ const PRINCESS_SMOOTH_MS=PRINCESS_MS.flatMap((n,i)=>i<15?[n/2,n/2]:[n]);
 function setLanaCostume(costume,smooth=lanaSmooth){
   if(!['normal','princess'].includes(costume))return false;
   lanaCostume=costume;lanaSmooth=!!smooth;
+  if(typeof sprWant==='function')sprWant();
   try{localStorage.setItem(COSTUME_KEY,JSON.stringify({costume,smooth:lanaSmooth}))}catch(e){}
   applyCostumeFx();
   return true;
@@ -2485,7 +2486,16 @@ const LD={n:0,t:0};
 function loadEmbedded(){
   const one=(src,store,id)=>new Promise(res=>{const img=new Image();img.onload=()=>{store[id]=img;LD.n++;res()};img.onerror=()=>{LD.n++;res()};img.src=src});
   const faces=Object.keys(FACES).map(id=>one(FACES[id],SPR.face,id)).concat(Object.keys(CUTS).map(id=>one(CUTS[id],SPR.cut,id)),Object.keys(BGS).map(id=>one(BGS[id],SPR.bg,id)),UI.map?[one(UI.map,SPR,'map')]:[],UI.medals?[one(UI.medals,SPR,'medals')]:[],UI.pieces?[one(UI.pieces,SPR,'pieces')]:[],UI.table?[one(UI.table,SPR,'table')]:[],UI.smoke?[one(UI.smoke,SPR,'smoke')]:[]);
-  return Promise.all(faces.concat(Object.keys(EMBED).map(id=>new Promise(res=>{
+  return Promise.all(faces.concat(Object.keys(EMBED).map(id=>{
+    if(SPR_LAZY[id]&&!SPR_LAZY[id]()){LD.n++;return null} // 使う時まで切り分けない（姫騎士の衣装）
+    return SPR_WAIT[id]=sprSlice(id);
+  }).filter(Boolean)));
+}
+/* 絵のシートを1コマずつの canvas に切り分ける。切り分けた canvas はメモリを食う（起動時の全キャラで約230MB）ので、
+   iPhone の Safari の上限に近い（2026-10-18 フィリシア追加後、実機で街のUIの絵が出なくなった）。
+   使う条件のある絵は SPR_LAZY に置き、条件を満たした時（衣装の切り替え）に sprWant で切り分ける。未読込のあいだは allyLook が通常の絵で描く */
+const SPR_LAZY={sword_princess:()=>lanaCostume==='princess',sword_princess_smooth:()=>lanaCostume==='princess'&&lanaSmooth},SPR_WAIT={};
+function sprSlice(id){return new Promise(res=>{
     const e=EMBED[id],img=new Image();
     img.onload=()=>{
       try{
@@ -2496,8 +2506,8 @@ function loadEmbedded(){
       LD.n++;res();
     };
     img.onerror=()=>{LD.n++;res()};img.src=e.src;
-  }))));
-}
+  })}
+function sprWant(){for(const id in SPR_LAZY)if(EMBED[id]&&!SPR_WAIT[id]&&SPR_LAZY[id]())SPR_WAIT[id]=sprSlice(id)}
 
 // マゼンタらしさ 0..1
 function magScore(r,g,b){if(Math.abs(r-b)>110)return 0;const m=r<b?r:b;return m>g?(m-g)/255:0}
