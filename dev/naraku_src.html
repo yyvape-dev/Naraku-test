@@ -1100,11 +1100,11 @@ const CFG={W:360,dur:180,baseLife:10,handSize:5,rewindCost:35,comboWin:5,fix:tru
   spawnStart:1.4,spawnDecay:62,spawnMin:0.1,hpRamp:180,hpCurve:100,dmgRamp:450,waveBase:5,waveGrow:4,eliteEvery:60,bossAt:130};
 
 const CHARS={
-  fox:   {id:'fox',   name:'ユズナミキ',      short:'ユズナミキ',role:'狐耳・二連弾幕',     hp:95, range:235,cd:0.60,dmg:6, atk:'single',shots:2,shotSpd:640,color:'#e0913a'},
+  fox:   {id:'fox',   name:'ユズナミキ',      short:'ユズナミキ',role:'狐耳・二連跳弾',     hp:95, range:235,cd:0.60,dmg:6, atk:'single',shots:2,chain:2,shotSpd:640,color:'#e0913a'},
   sword: {id:'sword', name:'ラナ',            short:'ラナ',    role:'女騎士・近接円形',     hp:180,range:135,cd:1.15,dmg:34,atk:'circle',aoe:62,    color:'#b9c2cc',far:{range:240,k:0.6,cd:1.3,spd:520,tex:'slash_b',col:'#ff4a3a'}},
   sister:{id:'sister',name:'マリアンヌ',      short:'マリアンヌ',role:'シスター・単体と治癒',hp:110,range:205,cd:1.25,dmg:14,atk:'single',shotSpd:430,heal:4,color:'#e9dca8'},
   blue:  {id:'blue',  name:'アベニウス',      short:'アベニウス',role:'蒼剣士・中距離扇状',   hp:130,range:170,cd:0.95,dmg:22,atk:'fan',   fan:0.9,   color:'#4fc3f7',far:{range:240,k:0.6,cd:1.3,spd:520,tex:'slash_a',col:'#4fc3f7'}},
-  ninja: {id:'ninja', name:'リンネ',          short:'リンネ',  role:'忍・暗殺単体',       hp:90, range:205,cd:0.38,dmg:9, atk:'single',shotSpd:760,crit:0.12,vsBig:1.6,color:'#ff3a3a'},
+  ninja: {id:'ninja', name:'リンネ',          short:'リンネ',  role:'忍・暗殺単体',       hp:90, range:205,cd:0.38,dmg:13,atk:'single',shotSpd:760,crit:0.12,vsBig:1.6,color:'#ff3a3a'},
   samurai:{id:'samurai',name:'シオウ',        short:'シオウ',  role:'侍・居合の貫通',     hp:125,range:265,cd:1.0, dmg:21,atk:'line',  lineW:22,  color:'#5fe0a0'},
   mage:  {id:'mage',  name:'シェリ',          short:'シェリ',  role:'魔術師・長射程貫通',hp:80, range:330,cd:1.6, dmg:24,atk:'line',  lineW:30,  color:'#a57be0'}
 };
@@ -3130,7 +3130,7 @@ function allyHit(a,tg,rep,singleOnly=false){
       const t=tgs[i%tgs.length];
       const sx=a.x+(i-(n-1)/2)*7,sy=B.lineY-30;
       const pm=d.id==='sister'&&SISS.get(a)?SISS.get(a).pm:null; // マリアンヌは掌から光の糸を引く（尾の始点だけ。弾の位置と命中は変えない）
-      B.shots.push({from:1,x:sx,y:sy,lx:pm?pm[0]:sx,ly:pm?pm[1]:sy,tg:t,tx:t.x,ty:t.y-18,spd:d.shotSpd,a,k:1,chain:m.pierce,seen:[],col:d.color});
+      B.shots.push({from:1,x:sx,y:sy,lx:pm?pm[0]:sx,ly:pm?pm[1]:sy,tg:t,tx:t.x,ty:t.y-18,spd:d.shotSpd,a,k:1,chain:m.pierce+(d.chain||0),seen:[],col:d.color}); // d.chain＝その味方が初めから持つ跳弾（魔法の強化「貫く魔弾」に上乗せ）
       if(d.id==='ninja'&&i<2)fxFB('ninja',t.x,t.y-26,96+Math.random()*24,(Math.random()-0.5)*0.9,Math.random()<0.5);
       if(d.id==='fox'&&VT.fox_flash&&i<2)FX.sh.push({k:'lv',n:'pop',tex:'fox_flash',x:sx,y:sy,w:34,ay:0.62,rot:Math.atan2(t.y-18-sy,t.x-sx)+Math.PI/2,t:0,life:0.16,s0:0.5,grow:0.05,hold:0.03,a:0.95});
     }
