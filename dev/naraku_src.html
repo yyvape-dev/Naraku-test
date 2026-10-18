@@ -3350,6 +3350,8 @@ function updShots(dt){
 }
 
 /* ---- アクティブスキル ---- */
+// 手札のスキル札の種別（2026-10-18 ユーザー指示「スキル」の表記を、効き方が分かる語に）：即時＝狙わずに発動／縦型＝縦一列／横型＝横一列／円形＝狙った所を中心に円
+const skillKind=c=>c.kind==='instant'?'即時':c.shape==='col'?'縦型':c.shape==='row'?'横型':'円形';
 function useCard(si,x,y){
   const s=B.slots[si];if(!s||!s.card||mode!=='battle'||ULT)return false;
   const c=s.card;if(c.category==='strategy')return useStrategy(si);
@@ -4961,7 +4963,7 @@ function syncDOM(){
           return'<div class="card back'+(back?' back-art':'')+'" data-i="'+i+'"><span class="ar">'+(back?'<img alt="" draggable="false" src="'+back+'">':'')+'<span class="fill"></span></span><img class="fr" alt="" draggable="false" src="'+BATTLE_CARD_FRAME+'"><span class="ki">'+(i===STRATEGY_SLOT?'戦略 装填中':B.queue.length||s.refill>0?'装填中':'札なし')+'</span></div>';
         }
         const c=s.card,art=c.category==='strategy'?UI['battle_strategy_'+c.effect]:cosA(UI,c.owner,'card_');
-        return'<button class="card'+(c.category==='strategy'?' strategy '+c.effect+(c.rare?' rare':''):'')+(B.sel===i?' sel':'')+(cb===c.owner?' combo':'')+'" data-i="'+i+'" aria-label="'+c.name+'：'+c.desc+'">'+comboBar(c)+'<span class="ar">'+(art?'<img alt="" draggable="false" src="'+art+'">':c.category==='strategy'?strategyMotif(c.effect):'')+'</span><span class="sn'+(c.name.length>4?' lg':'')+'">'+c.name+'</span><img class="fr" alt="" draggable="false" src="'+BATTLE_CARD_FRAME+'"><span class="ki">'+(c.category==='strategy'?(c.rare?'希少戦略':'戦略'):'スキル')+'</span></button>';
+        return'<button class="card'+(c.category==='strategy'?' strategy '+c.effect+(c.rare?' rare':''):'')+(B.sel===i?' sel':'')+(cb===c.owner?' combo':'')+'" data-i="'+i+'" aria-label="'+c.name+'：'+c.desc+'">'+comboBar(c)+'<span class="ar">'+(art?'<img alt="" draggable="false" src="'+art+'">':c.category==='strategy'?strategyMotif(c.effect):'')+'</span><span class="sn'+(c.name.length>4?' lg':'')+'">'+c.name+'</span><img class="fr" alt="" draggable="false" src="'+BATTLE_CARD_FRAME+'"><span class="ki">'+(c.category==='strategy'?(c.rare?'希少戦略':'戦略'):skillKind(c))+'</span></button>';
       }
       if(!s.card)return'<div class="card empty" data-i="'+i+'"><span class="fill"></span><span class="ds">'+(i===STRATEGY_SLOT?'戦略 装填中':B.queue.length||s.refill>0?'装填中':'札なし')+'</span></div>';
       const c=s.card,o=CHARS[c.owner]||{color:'#71c999',short:'戦略'};
