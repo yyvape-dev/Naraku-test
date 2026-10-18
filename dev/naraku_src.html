@@ -1208,12 +1208,15 @@ const FAMS={
   mag:   {name:'魔法',who:'魔法の味方',col:'#a57be0'},   // 魔法タグの味方の通常攻撃に効く
   all:   {name:'全員',who:'全員',      col:'#d8cdb4'},   // 属性を問わず全員に効く（少し出にくい）
   common:{name:'共通',who:'共通',      col:'#b39355'},   // 手札スキルと全体に効く
-  taboo: {name:'禁忌',who:'禁忌',      col:'#d23a2e'}    // 強力だが、選ぶと生存者全員の狂気が増える
+  taboo: {name:'禁忌',who:'禁忌',      col:'#d23a2e'},   // 強力だが、選ぶと生存者全員の狂気が増える
+  fox:   {name:'ユズナミキ',who:'ユズナミキ専用',col:'#e0913a'}, // キャラ専用の札（2026-10-18〜）：そのキャラが生きて編成にいる時だけ候補に出る
+  ninja: {name:'リンネ',who:'リンネ専用',    col:'#ff3a3a'}
 };
 const UPCFG={first:5,grow:3,grow2:0.45,// 次の強化に必要なソウル＝first＋grow×回数＋grow2×回数²（序盤は速く、終盤はゆっくり。1戦で約14回）
   wTagBase:1,wTag:0.5,                 // 確率誘導：物理・魔法の札は、その属性の味方が1人いるごとに重み+0.5（0人なら出ない）
   wAll:0.7,wCommon:1,wTaboo:0.3,       // 全員に効く札は少し出にくい。禁忌はまれ
-  tabooFrom:2,tabooMad:10,lock:0.4,judgeEvery:18};
+  tabooFrom:2,tabooMad:10,lock:0.4,judgeEvery:18,
+  wChar:1,relayRange:150,relayK:0.6,burstK:0.25,burstR:30,burstRStep:6,weakK:0.3,execK:0.4,execHp:0.3}; // wChar＝キャラ専用の札の重み／relay＝連鎖暗殺／burst＝狐火の爆ぜ／weak＝急所狙い／exec＝首狩り
 // g=絵が無いあいだ札に出す一文字の紋章 / desc=札に出す短い効果文（誰に効くかは系統の見出しで示す）。「|」は改行してよい位置（札の幅が狭いので、語の途中で折り返さないようにする）
 const UPS=[
   {id:'p_dmg',   fam:'phys',  name:'剛力',      g:'剛',max:5,desc:'通常攻撃の|威力 +30%'},
@@ -1236,6 +1239,12 @@ const UPS=[
   {id:'s_range', fam:'common',name:'遠見',      g:'遠',max:4,desc:'全員の|射程 +15%'},
   {id:'s_soul',  fam:'common',name:'魂喰い',    g:'魂',max:3,desc:'ソウルの|獲得量 +25%'},
   {id:'s_life',  fam:'common',name:'拠点修復',  g:'修',max:5,desc:'拠点ライフを|2回復'},
+  {id:'f_bounce',fam:'fox',   name:'跳ね弾',    g:'跳',max:3,desc:'弾が跳ぶ回数 +1'},
+  {id:'f_volley',fam:'fox',   name:'弾幕増強',  g:'幕',max:3,desc:'一度に撃つ|弾数 +1'},
+  {id:'f_burst', fam:'fox',   name:'狐火の爆ぜ',g:'爆',max:3,desc:'命中した弾が|周囲の敵も焼く|（威力25%×段）'},
+  {id:'n_weak',  fam:'ninja', name:'急所狙い',  g:'急',max:3,desc:'大鬼・ボスへの|威力 +30%'},
+  {id:'n_exec',  fam:'ninja', name:'首狩り',    g:'首',max:3,desc:'体力30%以下の敵に|威力 +40%'},
+  {id:'n_relay', fam:'ninja', name:'連鎖暗殺',  g:'連',max:3,desc:'撃破した敵の|近くへ苦無が|もう1本飛ぶ'},
   {id:'t_aura',  fam:'taboo', name:'黒き衝動',  g:'衝',max:1,desc:'黒いオーラを|まとい、全員の|攻撃速度2倍'},
   {id:'t_judge', fam:'taboo', name:'奈落の裁き',g:'裁',max:1,desc:'黒炎が全ての|敵を焼く。|18秒ごとに|再発動'},
   {id:'t_pact',  fam:'taboo', name:'血の盟約',  g:'盟',max:1,desc:'全員の|与えるダメージ|2倍'}
@@ -3113,12 +3122,24 @@ function pickTargets(a,n){
 function hitFrom(a,e,k){
   if(e.dead)return;
   const m=a.M;let dmg=a.d.dmg*m.dmg*k,crit=false;
-  if(a.d.vsBig&&(e.elite||e.d.boss))dmg*=a.d.vsBig;
+  if((a.d.vsBig||m.weak)&&(e.elite||e.d.boss))dmg*=(a.d.vsBig||1)+(m.weak||0)*UPCFG.weakK; // リンネ：急所狙い
+  if(m.exec&&e.hp<=e.max*UPCFG.execHp)dmg*=1+UPCFG.execK*m.exec; // リンネ：首狩り
   const cr=m.crit+(a.d.crit||0);if(cr>0&&B.rk()<cr){dmg*=3;crit=true}
   if(m.burn){e.burnT=3;e.burnDps=Math.max(e.burnDps,dmg*0.25*m.burn);e.burnBy=a.d.id}
   if(m.chill)e.slowT=Math.max(e.slowT,0.8+0.5*m.chill);
   if(m.knock&&e.knT<=0){e.knT=0.7;e.y-=(8+5*m.knock)*(e.d.boss?0.1:e.elite?0.3:1)}
+  const ex=e.x,ey=e.y;
   hurt(e,dmg,a.d.color,crit,false,a.d.id,'atk');
+  if(m.splash){ // ユズナミキ：狐火の爆ぜ。命中した弾が周囲の敵も焼く
+    const r=UPCFG.burstR+UPCFG.burstRStep*m.splash,sd=dmg*UPCFG.burstK*m.splash;
+    for(const o of B.enemies){if(o===e||o.dead)continue;const dx=o.x-ex,dy=o.y-ey,rr=r+o.d.r*o.sc;if(dx*dx+dy*dy<=rr*rr)hurt(o,sd,a.d.color,false,true,a.d.id,'atk')}
+    FX.sh.push({k:'ring',x:ex,y:ey-16,r0:3,r1:r,t:0,life:0.2,col:a.d.color,w:1.6});
+  }
+  if(m.relay&&e.dead&&!B.noRelay){ // リンネ：連鎖暗殺。撃破した敵の近くへ苦無がもう1本（連鎖した苦無では起きない）
+    const near=[];for(const o of B.enemies){if(o.dead||o===e||o.y<0)continue;const dx=o.x-ex,dy=o.y-ey,q=dx*dx+dy*dy;if(q<=UPCFG.relayRange*UPCFG.relayRange)near.push([q,o])}
+    near.sort((p,q)=>p[0]-q[0]);
+    for(let i=0;i<Math.min(m.relay,near.length);i++){const t=near[i][1];B.shots.push({from:1,x:ex,y:ey-18,lx:ex,ly:ey-18,tg:t,tx:t.x,ty:t.y-18,spd:a.d.shotSpd,a,k:UPCFG.relayK,chain:0,seen:[],col:a.d.color,rel:1})}
+  }
 }
 function allyHit(a,tg,rep,singleOnly=false){
   const d=a.d,m=a.M,rg=d.range*a.rg,wide=1+0.25*m.pierce;
@@ -3130,7 +3151,7 @@ function allyHit(a,tg,rep,singleOnly=false){
       const t=tgs[i%tgs.length];
       const sx=a.x+(i-(n-1)/2)*7,sy=B.lineY-30;
       const pm=d.id==='sister'&&SISS.get(a)?SISS.get(a).pm:null; // マリアンヌは掌から光の糸を引く（尾の始点だけ。弾の位置と命中は変えない）
-      B.shots.push({from:1,x:sx,y:sy,lx:pm?pm[0]:sx,ly:pm?pm[1]:sy,tg:t,tx:t.x,ty:t.y-18,spd:d.shotSpd,a,k:1,chain:m.pierce+(d.chain||0),seen:[],col:d.color}); // d.chain＝その味方が初めから持つ跳弾（魔法の強化「貫く魔弾」に上乗せ）
+      B.shots.push({from:1,x:sx,y:sy,lx:pm?pm[0]:sx,ly:pm?pm[1]:sy,tg:t,tx:t.x,ty:t.y-18,spd:d.shotSpd,a,k:1,chain:m.pierce+(d.chain||0)+(m.xchain||0),seen:[],col:d.color}); // d.chain＝その味方が初めから持つ跳弾（魔法の強化「貫く魔弾」に上乗せ）
       if(d.id==='ninja'&&i<2)fxFB('ninja',t.x,t.y-26,96+Math.random()*24,(Math.random()-0.5)*0.9,Math.random()<0.5);
       if(d.id==='fox'&&VT.fox_flash&&i<2)FX.sh.push({k:'lv',n:'pop',tex:'fox_flash',x:sx,y:sy,w:34,ay:0.62,rot:Math.atan2(t.y-18-sy,t.x-sx)+Math.PI/2,t:0,life:0.16,s0:0.5,grow:0.05,hold:0.03,a:0.95});
     }
@@ -3301,7 +3322,7 @@ function updShots(dt){
       if(s.from){
         let next=null;
         if(s.tg&&!s.tg.dead){
-          hitFrom(s.a,s.tg,s.k);
+          B.noRelay=!!s.rel;hitFrom(s.a,s.tg,s.k);B.noRelay=false;
           if(s.chain>0){ // 貫く魔弾：まだ当てていない一番近い敵へ跳ぶ
             s.seen.push(s.tg.idx);let bd=130*130;
             for(const e of B.enemies){
@@ -3626,6 +3647,9 @@ function recalc(){
     const g=a.g,both=a.tags.phys&&a.tags.mag,s=both?{dmg:ph.dmg*mg.dmg/aD,spd:ph.spd*mg.spd/aS,multi:ph.multi,crit:ph.crit,knock:ph.knock,pierce:mg.pierce,burn:mg.burn,chill:mg.chill}:a.tags.phys?ph:mg;
     a.M={dmg:s.dmg*(1+g.atk/100),spd:s.spd*(1+g.spd/100),multi:s.multi+(a.d.atk==='single'?(a.d.shots||1)-1:0),crit:s.crit+g.crit/100,knock:s.knock,pierce:s.pierce,burn:s.burn,chill:s.chill};
     a.rg=B.M.range*(1+g.range/100);a.sk=(1+g.atk/100)*(1+g.skill/100);
+    a.M.xchain=0;a.M.splash=0;a.M.weak=0;a.M.exec=0;a.M.relay=0; // キャラ専用の札
+    if(a.d.id==='fox'){a.M.multi+=n('f_volley');a.M.xchain=n('f_bounce');a.M.splash=n('f_burst')}
+    if(a.d.id==='ninja'){a.M.weak=n('n_weak');a.M.exec=n('n_exec');a.M.relay=n('n_relay')}
     if(sanctOn()){a.M.spd*=SANCT.spd;a.M.multi+=SANCT.multi;a.rg*=SANCT.range} // 聖母の加護の発動中
     if(!a.m.collapsed)soulG+=g.soul;
   }
@@ -3638,6 +3662,7 @@ function upWeight(u,tc){
   if((B.up[u.id]||0)>=u.max)return 0;
   if(u.fam==='phys'||u.fam==='mag')return tc[u.fam]?UPCFG.wTagBase+UPCFG.wTag*tc[u.fam]:0;
   if(u.fam==='all')return UPCFG.wAll;
+  if(CHARS[u.fam])return B.allies.some(a=>a.d.id===u.fam&&a.alive)?UPCFG.wChar:0; // キャラ専用の札
   if(u.fam==='taboo')return B.lv>=UPCFG.tabooFrom?UPCFG.wTaboo:0;
   return UPCFG.wCommon;
 }
