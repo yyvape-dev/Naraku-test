@@ -1,4 +1,4 @@
-# 探索の机のバリエーション（2026-10-18）。通常はシードで6枚から1枚・宝物の匂いは墓所・大異変は血。
+# 探索の机のバリエーション（2026-10-18）。通常はシードで7枚から1枚・宝物の匂いは墓所・大異変は血。
 # 使い方: python3 dev/tests/tables.py http://127.0.0.1:8765/index.html [撮影先フォルダ]
 import sys
 from playwright.sync_api import sync_playwright
@@ -19,13 +19,13 @@ with sync_playwright() as p:
             pg.wait_for_timeout(100)
         return k,pg.evaluate('NARAKU.tableShown()')
     seen={}
-    for s in range(1,60):
+    for s in range(1,120):
         k,shown=run(s)
         if k not in seen:
             seen[k]=s;chk(shown==k,f'通常 seed{s}: 選ばれた机 {k} が表示される（表示 {shown}）')
             if out: pg.screenshot(path=f'{out}/table_{k}.png')
-        if len(seen)>=6: break
-    chk(set(seen)=={'base','warm','moon','frost','war','hallow'},'通常の机は6種類すべて出る（tomb・bloodは出ない）: '+','.join(sorted(seen)))
+        if len(seen)>=7: break
+    chk(set(seen)=={'base','warm','moon','frost','war','hallow','circus'},'通常の机は7種類すべて出る（tomb・bloodは出ない）: '+','.join(sorted(seen)))
     k1,_=run(7);k2,_=run(7);chk(k1==k2,'同じ探索（同じシード）なら同じ机')
     for an,want in (('treasure','tomb'),('cata','blood')):
         k,shown=run(11,an);chk(k==want and shown==want,f'異変 {an} → {want}（表示 {shown}）')

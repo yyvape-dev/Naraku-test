@@ -4417,11 +4417,12 @@ let boardT=null,mapOv=null,fogC=null;const medalC={},pieceFace={};
 // TABLE_IN＝元画像に対する盤の内側の位置（割合）。cy＝画面に置くときに中央へ寄せる高さ。HUD＝上の情報帯の高さ（盤をその下へ寄せる）
 const TABLE_IN={x0:.1055,x1:.8906,y0:.1302,y1:.7878,cy:.459},MAP_HUD=46;
 // 机のバリエーション（2026-10-18 ユーザー決定）。assets/ui_table_<名前>.webp（1024×1536）。in＝盤の内側（元画像のpx）、dim＝盤の内側だけに重ねる暗さ（明るい絵ほど強く。メダルと道を見やすくする）。
-// 通常の探索は TABLE_POOL から探索のシードで1枚（探索中は固定）。異変「宝物の匂い」は墓所（tomb）、「大異変」は血（blood）に固定。絵が無ければ従来の ui_table
+// 通常の探索は TABLE_POOL（7枚）から探索のシードで1枚（探索中は固定）。異変「宝物の匂い」は墓所（tomb）、「大異変」は血（blood）に固定。絵が無ければ従来の ui_table
 const TABLES={
  warm:{in:[167,230,887,1252],dim:.42}, moon:{in:[125,215,899,1265],dim:.05}, frost:{in:[88,235,912,1232],dim:0},
- war:{in:[110,170,890,1252],dim:.15}, hallow:{in:[125,182,888,1252],dim:.15}, tomb:{in:[122,128,900,1315],dim:.38}, blood:{in:[110,168,888,1228],dim:.15}};
-const TABLE_POOL=['base','warm','moon','frost','war','hallow'];
+ war:{in:[110,170,890,1252],dim:.15}, hallow:{in:[125,182,888,1252],dim:.15}, tomb:{in:[122,128,900,1315],dim:.38}, blood:{in:[110,168,888,1228],dim:.15},
+ circus:{in:[108,178,920,1300],dim:.15}};
+const TABLE_POOL=['base','warm','moon','frost','war','hallow','circus'];
 function tableKey(){
   if(!R)return 'base';const a=R.anomaly;
   const k=a==='cata'?'blood':a==='treasure'?'tomb':TABLE_POOL[hash32((R.seed>>>0)^0x5441424c)%TABLE_POOL.length];
