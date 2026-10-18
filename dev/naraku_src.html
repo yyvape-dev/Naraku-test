@@ -4416,29 +4416,51 @@ let boardT=null,mapOv=null,fogC=null;const medalC={},pieceFace={};
 // 机と盤（ui_table）：机は画面に固定し、盤の内側だけでマスと道が縦に流れる。
 // TABLE_IN＝元画像に対する盤の内側の位置（割合）。cy＝画面に置くときに中央へ寄せる高さ。HUD＝上の情報帯の高さ（盤をその下へ寄せる）
 const TABLE_IN={x0:.1055,x1:.8906,y0:.1302,y1:.7878,cy:.459},MAP_HUD=46;
+// 机のバリエーション（2026-10-18 ユーザー決定）。assets/ui_table_<名前>.webp（1024×1536）。in＝盤の内側（元画像のpx）、dim＝盤の内側だけに重ねる暗さ（明るい絵ほど強く。メダルと道を見やすくする）。
+// 通常の探索は TABLE_POOL から探索のシードで1枚（探索中は固定）。異変「宝物の匂い」は墓所（tomb）、「大異変」は血（blood）に固定。絵が無ければ従来の ui_table
+const TABLES={
+ warm:{in:[167,230,887,1252],dim:.42}, moon:{in:[125,215,899,1265],dim:.05}, frost:{in:[118,235,906,1232],dim:0},
+ war:{in:[122,178,890,1252],dim:.15}, hallow:{in:[140,182,888,1252],dim:.15}, tomb:{in:[118,190,905,1250],dim:.38}, blood:{in:[118,168,888,1228],dim:.15}};
+const TABLE_POOL=['base','warm','moon','frost','war','hallow'];
+function tableKey(){
+  if(!R)return 'base';const a=R.anomaly;
+  const k=a==='cata'?'blood':a==='treasure'?'tomb':TABLE_POOL[hash32((R.seed>>>0)^0x5441424c)%TABLE_POOL.length];
+  return k!=='base'&&UI['table_'+k]?k:'base';
+}
+const TABLE_IMG={};
+// 選ばれた机の絵・URL・盤の内側（割合）・暗さ。差し替えの絵は使う時に読み込み、読み終わるまでは従来の机で描く（読み終われば描き直す）
+function tableSpec(){
+  const k=tableKey(),base={k:'base',im:SPR.table,url:UI.table,in:TABLE_IN,dim:0};if(k==='base')return base;
+  let im=TABLE_IMG[k];if(!im){im=TABLE_IMG[k]=new Image();im.onload=()=>{tableG=null};im.src=UI['table_'+k]}
+  if(!im.complete||!im.naturalWidth)return base;
+  const T=TABLES[k],[a,b,c,d]=T.in; // in は 1024×1536 基準のpx
+  return {k,im,url:UI['table_'+k],in:{x0:a/1024,x1:c/1024,y0:b/1536,y1:d/1536,cy:(b+d)/2/1536},dim:T.dim};
+}
 let tableG=null;
 // 机は画面全体（戦場＋下部エリア）に敷く。幅に合わせ、縦が足りなければ最大1.1倍まで広げる（左右が少し切れる）。
 // 盤の中心は「上の情報帯の下〜戦場の下端」の中央へ寄せる。戦場（Canvas）の分は Canvas に描き、下部エリアの分は #app の背景として透かして見せる
 function tableGeo(){
-  const im=SPR.table;if(!im)return null;
+  const sp=tableSpec(),im=sp.im,TI=sp.in;if(!im)return null;
   const ar=$('#arena').getBoundingClientRect(),ap=$('#app').getBoundingClientRect();if(ar.width<10||ap.height<10)return null;
-  const key=Math.round(H)+'|'+Math.round(ar.width)+'|'+Math.round(ar.height)+'|'+Math.round(ap.height);if(tableG&&tableG._k===key)return tableG;
+  const key=sp.k+'|'+Math.round(H)+'|'+Math.round(ar.width)+'|'+Math.round(ar.height)+'|'+Math.round(ap.height);if(tableG&&tableG._k===key)return tableG;
   const k=W/ar.width,Aw=ap.width,Ah=ap.height,top=ar.top-ap.top,arH=ar.height,lft=ar.left-ap.left;
   // 短い画面で机ごと縮める案（最小0.86倍）は、盤とメダルが小さくなり視認性が落ちたため、ユーザーの判断で取りやめ（2026-10-09 夜）
   const ih0=Aw*im.height/im.width,hud=MAP_HUD/k;
   const z=clamp(Ah/ih0,1,1.1),iw=Aw*z,ih=ih0*z,ox=(Aw-iw)/2;
-  let oy=top+(hud+arH)/2-TABLE_IN.cy*ih;oy=ih>=Ah?clamp(oy,Ah-ih,0):clamp(oy,0,Ah-ih);
+  let oy=top+(hud+arH)/2-TI.cy*ih;oy=ih>=Ah?clamp(oy,Ah-ih,0):clamp(oy,0,Ah-ih);
   const c=mkCanvas(W*2,Math.round(H)*2),g=c.getContext('2d');g.scale(2,2);g.fillStyle='#0d0906';g.fillRect(0,0,W,H);
   const X=v=>(v-lft)*k,Y=v=>(v-top)*k;
   g.imageSmoothingQuality='high';
   const cs=Math.max(Aw/im.width,Ah/im.height)*1.06,cw2=im.width*cs,ch2=im.height*cs; // 下敷き：画面を覆う大きさの同じ絵を暗くしたもの（縮めたときの隙間埋め）
   if(z<1||ih<Ah){g.drawImage(im,X((Aw-cw2)/2),Y((Ah-ch2)/2),cw2*k,ch2*k);g.fillStyle='rgba(6,4,3,.62)';g.fillRect(0,0,W,H)}
   g.drawImage(im,X(ox),Y(oy),iw*k,ih*k);
+  const dimC='rgba(8,5,3,'+sp.dim+')',bx=ox+TI.x0*iw,by=oy+TI.y0*ih,bw=(TI.x1-TI.x0)*iw,bh=(TI.y1-TI.y0)*ih;
+  if(sp.dim>0){g.fillStyle=dimC;g.fillRect(X(bx),Y(by),bw*k,bh*k)} // 盤の内側だけ暗くする（明るい机の絵でもメダルと道が埋もれないように）
   if(z<1){for(const sd of [0,1]){const x=X(sd?ox+iw:ox),q=g.createLinearGradient(x+(sd?-14:14),0,x,0);q.addColorStop(0,'rgba(6,4,3,0)');q.addColorStop(1,'rgba(6,4,3,.9)');g.fillStyle=q;g.fillRect(sd?x-14:x,0,14,H)}}
   const el=$('#app');el.classList.add('tbl');
   const P2=(x,y,w,h)=>x.toFixed(1)+'px '+y.toFixed(1)+'px / '+w.toFixed(1)+'px '+h.toFixed(1)+'px no-repeat';
-  el.style.background='url('+UI.table+') '+P2(ox,oy,iw,ih)+(z<1||ih<Ah?',linear-gradient(rgba(6,4,3,.62),rgba(6,4,3,.62)),url('+UI.table+') '+P2((Aw-cw2)/2,(Ah-ch2)/2,cw2,ch2):'')+',#0d0906';
-  const t={_k:key,c,x0:X(ox+TABLE_IN.x0*iw),x1:X(ox+TABLE_IN.x1*iw),y0:Y(oy+TABLE_IN.y0*ih),y1:Y(oy+TABLE_IN.y1*ih)};
+  el.style.background=(sp.dim>0?'linear-gradient('+dimC+','+dimC+') '+P2(bx,by,bw,bh)+',':'')+'url('+sp.url+') '+P2(ox,oy,iw,ih)+(z<1||ih<Ah?',linear-gradient(rgba(6,4,3,.62),rgba(6,4,3,.62)),url('+sp.url+') '+P2((Aw-cw2)/2,(Ah-ch2)/2,cw2,ch2):'')+',#0d0906';
+  const t={_k:key,tk:sp.k,c,x0:X(ox+TI.x0*iw),x1:X(ox+TI.x1*iw),y0:Y(oy+TI.y0*ih),y1:Y(oy+TI.y1*ih)};
   t.v0=Math.max(t.y0,MAP_HUD-4);t.v1=Math.min(t.y1,H-2); // 盤のうち戦場に見えている範囲
   return tableG=t;
 }
@@ -6106,7 +6128,7 @@ window.NARAKU={
   mkItem,gearStats,itemName,itemPow,itemLines,enhCost,exportCode,importCode,fixSave,saveText:o=>saveText(o),loadSave,resume:resumeRun,bag:askBag,use:useBag,rng:mulberry32,
   // 探索の操作。go=1歩進んでマスを開く（移動の演出は省く）/ info=そのマスの見え方 / choose・buy・leave=各マスの画面 / next=勝利後 / giveUp=敗北後 / retreat=街へ帰還
   go(id){if(!stepTo(id))return false;arrive();return mode},
-  info:id=>nodeInfo(id),light:()=>lightState(),nodeXY:id=>{R.camY=null;const q=mapXY(R.map.nodes[id]);return{x:q.x/W,y:q.y/H}},choose:chooseNode,buy:buyItem,leave:leaveNode,next:afterVictory,giveUp,
+  info:id=>nodeInfo(id),light:()=>lightState(),tableKey:()=>tableKey(),tableShown:()=>tableG?tableG.tk:null,nodeXY:id=>{R.camY=null;const q=mapXY(R.map.nodes[id]);return{x:q.x/W,y:q.y/H}},choose:chooseNode,buy:buyItem,leave:leaveNode,next:afterVictory,giveUp,
   retreat(){if(mode!=='map'||R.walk)return false;endRun('return');return true},
   retreatCost:()=>R?retreatCost():null,
   smith:{reforge,reforgeUndo,upgrade:upgradeItem,rfCost,upCost,RFCFG},
