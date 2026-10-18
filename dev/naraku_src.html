@@ -4419,8 +4419,8 @@ const TABLE_IN={x0:.1055,x1:.8906,y0:.1302,y1:.7878,cy:.459},MAP_HUD=46;
 // 机のバリエーション（2026-10-18 ユーザー決定）。assets/ui_table_<名前>.webp（1024×1536）。in＝盤の内側（元画像のpx）、dim＝盤の内側だけに重ねる暗さ（明るい絵ほど強く。メダルと道を見やすくする）。
 // 通常の探索は TABLE_POOL から探索のシードで1枚（探索中は固定）。異変「宝物の匂い」は墓所（tomb）、「大異変」は血（blood）に固定。絵が無ければ従来の ui_table
 const TABLES={
- warm:{in:[167,230,887,1252],dim:.42}, moon:{in:[125,215,899,1265],dim:.05}, frost:{in:[118,235,906,1232],dim:0},
- war:{in:[122,178,890,1252],dim:.15}, hallow:{in:[140,182,888,1252],dim:.15}, tomb:{in:[118,190,905,1250],dim:.38}, blood:{in:[118,168,888,1228],dim:.15}};
+ warm:{in:[167,230,887,1252],dim:.42}, moon:{in:[125,215,899,1265],dim:.05}, frost:{in:[88,235,912,1232],dim:0},
+ war:{in:[110,170,890,1252],dim:.15}, hallow:{in:[125,182,888,1252],dim:.15}, tomb:{in:[122,128,900,1315],dim:.38}, blood:{in:[110,168,888,1228],dim:.15}};
 const TABLE_POOL=['base','warm','moon','frost','war','hallow'];
 function tableKey(){
   if(!R)return 'base';const a=R.anomaly;
