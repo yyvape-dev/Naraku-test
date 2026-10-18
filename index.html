@@ -2495,6 +2495,10 @@ function loadEmbedded(){
    iPhone の Safari の上限に近い（2026-10-18 フィリシア追加後、実機で街のUIの絵が出なくなった）。
    使う条件のある絵は SPR_LAZY に置き、条件を満たした時（衣装の切り替え）に sprWant で切り分ける。未読込のあいだは allyLook が通常の絵で描く */
 const SPR_LAZY={sword_princess:()=>lanaCostume==='princess',sword_princess_smooth:()=>lanaCostume==='princess'&&lanaSmooth},SPR_WAIT={};
+/* 敵の絵（1体 5〜13MB、合計約120MB）も戦闘に入る時に必要な分だけ切り分け、街へ戻ったら手放す（2026-10-18）。
+   未読込のあいだは buildPlaceholders の仮絵で描く（戦闘の最初の敵が出る前に、キャッシュから数百ミリ秒で揃う） */
+const SPR_NEED=new Set(),PH_ENEMY={};
+for(const id in EMBED)if(EMBED[id].target==='enemy')SPR_LAZY[id]=()=>SPR_NEED.has(id);
 function sprSlice(id){return new Promise(res=>{
     const e=EMBED[id],img=new Image();
     img.onload=()=>{
@@ -2507,7 +2511,17 @@ function sprSlice(id){return new Promise(res=>{
     };
     img.onerror=()=>{LD.n++;res()};img.src=e.src;
   })}
-function sprWant(){for(const id in SPR_LAZY)if(EMBED[id]&&!SPR_WAIT[id]&&SPR_LAZY[id]())SPR_WAIT[id]=sprSlice(id)}
+function sprWant(){const ps=[];for(const id in SPR_LAZY)if(EMBED[id]&&SPR_LAZY[id]()){if(!SPR_WAIT[id])SPR_WAIT[id]=sprSlice(id);ps.push(SPR_WAIT[id])}return Promise.all(ps)}
+function sprNeed(ids){ids.forEach(id=>{if(EMBED[id])SPR_NEED.add(id)});return sprWant()}
+// 街へ戻る時：敵の絵を仮絵に戻して手放す（次の戦闘でまた読む）
+function sprRelease(){SPR_NEED.clear();for(const id in PH_ENEMY)if(SPR_WAIT[id]){delete SPR_WAIT[id];SPR.enemy[id]=PH_ENEMY[id]}}
+// この戦闘に出うる敵：通常の9種＋強敵2種＋この戦闘の主（出現番号は種から決まるので、先に数えられる）
+function battleEnemyIds(){
+  const ids=['skel','relic_dead','beast','hook_goblin','knight','chain_brute','twin_orc','shaman','veil_ghost',...ENCOUNTERS.elite];
+  if(B.hasBoss)ids.push(encounterType('boss'));
+  if(B.cata)for(let n=0;n<B.dur/CATA.bossEvery;n++)ids.push(encounterType('boss',n));
+  return ids;
+}
 
 // マゼンタらしさ 0..1
 function magScore(r,g,b){if(Math.abs(r-b)>110)return 0;const m=r<b?r:b;return m>g?(m-g)/255:0}
@@ -2648,7 +2662,7 @@ function paintFace(cv,id){
 function buildPlaceholders(){
   CHAR_ORDER.forEach(id=>{SPR.ally[id]=buildSet(placeholderSheet([id],figBack),6,1,0)});
   const es=placeholderSheet(['knight','sorc'],figFront),pm=buildSet(es,6,2,0),pr=buildSet(es,6,2,1);
-  Object.keys(ENEMIES).forEach(k=>{SPR.enemy[k]=ENEMIES[k].kind==='ranged'?pr:pm});
+  Object.keys(ENEMIES).forEach(k=>{SPR.enemy[k]=PH_ENEMY[k]=ENEMIES[k].kind==='ranged'?pr:pm});
 }
 
 /* =========================================================
@@ -2769,6 +2783,7 @@ function newBattle(seed){
      enemies:[],shots:[],impacts:[],sel:null,slots:[],queue:[],chaseUntil:0,
      allies:P.members.map((m,i)=>{const d=charD(m.id),g=gearStats(m),max=d.hp*(1+g.hp/100);return{m,d,g,tags:g.tags,M:null,rg:1,sk:1,slot:i,x:0,y:0,animHit:HIT_AT,hp:m.collapsed?0:max*m.hpR,max,alive:!m.collapsed,deadBy:m.collapsed?'mad':null,cdT:0.3+i*0.1,animT:-1,animDur:0.4,pend:null,lunge:0,hitT:0,ph:i*1.7}})};
   recalc();
+  sprNeed(battleEnemyIds());
   B.allies.forEach(a=>{B.stat[a.d.id]={atk:0,skill:0,taken:0};if(a.alive)B.life+=a.g.life}); // 二つ名「守護の」：拠点ライフの上乗せ
   const deck=[];
   B.allies.forEach(a=>{if(a.alive)CARDS.forEach(c=>{if(c.owner===a.d.id)deck.push(c)})});
@@ -5014,7 +5029,7 @@ function showView(v,arg){if(TV.v!==v||TV.arg!==(arg||null))TCONF='';TV={v,arg:ar
 const reView=()=>VIEWS[TV.v](TV.arg);
 function showTown(){
   if(tuning)closeTune();
-  mode='town';B=null;R=null;hideUp();app.classList.remove('battle-ui','exploring');elHand.classList.remove('dest');elRail.innerHTML='';elHand.innerHTML='';$('#party').innerHTML='';handSig='';
+  mode='town';B=null;R=null;sprRelease();hideUp();app.classList.remove('battle-ui','exploring');elHand.classList.remove('dest');elRail.innerHTML='';elHand.innerHTML='';$('#party').innerHTML='';handSig='';
   townParty();showView('town');
 }
 function barsHTML(m){
@@ -6083,7 +6098,7 @@ $('#tune').addEventListener('click',ev=>{
   const r=b.closest('.trow'),inp=r.querySelector('input'),k=r.dataset.k;
   TUNE[tuneKey][k]=clamp(TUNE[tuneKey][k]+(+b.dataset.d),+inp.min,+inp.max);saveTune();syncTune();
 });
-$('#tuneSel').addEventListener('change',ev=>{tuneKey=ev.target.value;syncTune()});
+$('#tuneSel').addEventListener('change',ev=>{tuneKey=ev.target.value;if(ENEMIES[tuneKey])sprNeed([tuneKey]);syncTune()});
 $('#tuneAnim').addEventListener('change',ev=>{tuneAnim=ev.target.checked});
 $('#tuneMark').addEventListener('change',ev=>{CFG.showAnchor=ev.target.checked});
 $('#tune24').addEventListener('change',ev=>{SEQ24=ev.target.checked;seq24Apply();try{localStorage.setItem(SEQ24_KEY,SEQ24?'1':'0')}catch(e){}});
@@ -6187,6 +6202,8 @@ window.NARAKU={
   XCFG,BKINDS,NODES,EVENTS,SHOP,GCFG,TCFG,TSHOP,RAR,AFFIX,genMap,bgFor,get S(){return S},get saveOk(){return SAVE_OK},
   // start=単発の戦闘（opt省略でStep 2までと同じ180秒戦。{kind,depth}で探索中の戦闘を再現できる）/ startRun=探索を始める
   start:(ids,seed,opt)=>beginTrial(ids,seed,opt),
+  // 敵の絵を全部読む（検証用。普段は戦闘に入る時に必要な分だけ読む）
+  sprAll:()=>sprNeed(Object.keys(ENEMIES)),SPR_NEED,
   // fresh=まっさらな街にする（自動保存は切る。検証が本物の記録を書き換えないように）/ sortie=今の街の状態で出撃 / startRun=まっさらな街から、その3人で出撃
   fresh(){SAVE_ON=false;S=newSave();S.omen='none';showTown();return S},sortie(seed){townParty();if(!canDive())return false;beginRun(seed);return true},
   startRun(ids,seed,floor,anomaly='none'){SAVE_ON=false;S=newSave();S.omen=omenKey(anomaly);S.picks=ids.slice();if(floor){S.floorMax=Math.max(S.floorMax,floor);S.floor=floor}beginRun(seed)},

@@ -35,7 +35,7 @@ with sync_playwright() as p:
     b=p.chromium.launch(); pg=b.new_page(viewport={'width':390,'height':844},device_scale_factor=2)
     pg.on('console',lambda m: errs.append(m.text) if m.type=='error' else None)
     pg.on('pageerror',lambda e: errs.append('PAGEERR '+str(e)))
-    pg.goto(html if html.startswith('http') else 'file://'+html); pg.wait_for_timeout(1500); pg.evaluate(LIB)
+    pg.goto(html if html.startswith('http') else 'file://'+html); pg.wait_for_timeout(1500); pg.evaluate('NARAKU.sprAll()'); pg.wait_for_function('Object.values(NARAKU.SPR.enemy).every(s=>s.real)',timeout=60000); pg.evaluate(LIB)
     fake=pg.evaluate("[...Object.keys(NARAKU.SPR.ally).filter(k=>!NARAKU.SPR.ally[k].real),...Object.keys(NARAKU.SPR.enemy).filter(k=>!NARAKU.SPR.enemy[k].real)]")
     print('仮絵のまま:',fake or 'なし')
 

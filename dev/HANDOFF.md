@@ -5,6 +5,18 @@
 - 保留：提案3「施設への投資（見た目が育つ箱庭）」はユーザー判断で後回し。本番へ出すときはテスト版の dev/ と index.html をコピー（AGENTS.md）。
 - 検証の入口：smoke.py・boot.py・omens.py・lana_princess.py・smith_reforge.py・retreat_cost.py・cataclysm.py（すべて http の URL）。
 
+## 2026-10-18 23時台・続（敵の絵を戦闘の時だけ読む）
+
+**事実**
+- 敵の絵（10種、1体5〜13MB、合計約120MB）を起動時に切り分けるのをやめた。`SPR_LAZY` に敵を追加、`sprNeed(ids)` で読み、`sprRelease()`（`showTown` の頭）で仮絵に戻して手放す。
+- `newBattle` が `battleEnemyIds()`（通常9種＋強敵2種＋この戦闘の主。主は `encounterType` が種で決まるので先に数えられる）を `sprNeed` する。未読込のあいだは `PH_ENEMY` の仮絵。
+- Chromium での切り分け済み絵の合計：街 178→53MB、戦闘中 約145MB（通常敵が約92MB）。
+- 検証用に `NARAKU.sprAll()`（全敵を読む）を追加。smoke / normal_enemies / boss_enemies はこれを待つ。smoke・normal_enemies・boss_enemies・lana_princess・omens・boot は通過。
+
+**仮説**
+- iPhone の街のUI欠けは起動時の切り分けが原因で、これで直るはず（実機は未確認）。
+- 戦闘中の約145MBがまだ重い場合の次の手：通常敵5種（576×608）を0.7倍に縮める（約-30MB）、遅れて出る敵（beast系は20秒後、knight系は45秒後）を出現前に読む。
+
 ## 現在地（2026-10-18 23時台）：iPhone で街のUIの絵（看板のアイコン・金貨・下部の盤・出撃ボタン）が出ない → 起動時のメモリを減らした（テスト版のみ・実機確認待ち）
 - 事実：ユーザーの実機（iPhone・Safari、テスト版、フィリシア入りの編成）のスクショで、街の看板のアイコン・金貨・資材・下部の盤（`--th-panel` などCSSの背景画像）が出ず、文字だけが出ていた。手元の Chromium では正常に出る（WebKit は取得できず未再現）。
 - 事実：起動時に `loadEmbedded` が全キャラ・敵のシートを1コマずつの canvas に切り分けて保持している。合計は約213MB（フィリシア追加前は約195MB）。うち姫騎士の2枚（sword_princess 12MB・sword_princess_smooth 23MB）は衣装を選んでいなくても切り分けていた。

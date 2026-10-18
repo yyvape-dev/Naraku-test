@@ -10,7 +10,7 @@ with sync_playwright() as p:
  page.on('pageerror',lambda e:errors.append(str(e)))
  page.on('response',lambda r:errors.append(str(r.status)+' '+r.url) if r.status>=400 else None)
  page.route('**/favicon.ico',lambda r:r.fulfill(status=204))
- page.goto(URL);page.wait_for_function('window.NARAKU_READY===true',timeout=60000)
+ page.goto(URL);page.wait_for_function('window.NARAKU_READY===true',timeout=60000);page.evaluate('NARAKU.sprAll()');page.wait_for_function('Object.values(NARAKU.SPR.enemy).every(s=>s.real)',timeout=60000)
  result=page.evaluate('''ids=>{
  const N=NARAKU,assert=(c,m)=>{if(!c)throw Error(m)},frames={};
  N.start(['fox','sword','mage'],777);
